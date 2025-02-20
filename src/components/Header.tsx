@@ -1,50 +1,43 @@
 // src/components/Header.tsx
 import Link from 'next/link';
-import { fetchSiteInfo, fetchMainMenu } from '@/lib/api';
-import type { MenuItem } from '@/lib/api';
+import type { MenuItem, SiteInfo } from '@/lib/types';
 
-// Make Header a Client Component
-'use client';
-
-function NavLink({ href, children, target }: { href: string; children: React.ReactNode; target?: string }) {
-  return (
-    <Link
-      href={href}
-      className="text-white hover:text-gray-200 transition-colors"
-      target={target}
-    >
-      {children}
-    </Link>
-  );
+interface HeaderProps {
+  siteInfo: SiteInfo;
+  menuItems: MenuItem[];
 }
 
-export default function Header({
-  siteInfo,
-  menuItems
-}: {
-  siteInfo: { name: string; description: string; }
-  menuItems: MenuItem[]
-}) {
+export default function Header({ siteInfo, menuItems }: HeaderProps) {
+  const { name } = siteInfo || {};
+  const items = menuItems || [];
+
   return (
     <header className="bg-gray-800 shadow-md">
       <div className="container mx-auto px-4 py-6">
         <nav className="flex justify-between items-center">
-          <NavLink href="/">
-            <span className="text-xl font-bold text-white">
-              {siteInfo.name}
-            </span>
-          </NavLink>
+          <Link
+            href="/"
+            className="text-xl font-bold text-white hover:text-gray-200"
+          >
+            {name || 'Home'}
+          </Link>
 
           <div className="space-x-4">
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.ID}
-                href={item.slug}
-                target={item.target || undefined}
-              >
-                {item.title}
-              </NavLink>
-            ))}
+            {items.map((item) => {
+              const href = item.slug || '/';
+              const linkProps = item.target ? { target: item.target } : {};
+
+              return (
+                <Link
+                  key={item.ID}
+                  href={href}
+                  className="text-white hover:text-gray-200 transition-colors"
+                  {...linkProps}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
           </div>
         </nav>
       </div>

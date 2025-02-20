@@ -1,24 +1,49 @@
 // src/lib/api.ts
+import { MenuItem, SiteInfo } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-export interface MenuItem {
-  ID: number;
-  title: string;
-  url: string;
-  slug: string;
-  target: string;
+const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG;
+
+if (!API_URL) {
+  throw new Error("API_URL is not defined");
 }
 
-export interface SiteInfo {
-  name: string;
-  description: string;
+if (!THEME_SLUG) {
+  throw new Error("THEME_SLUG is not defined");
+}
+
+async function fetchAPI(endpoint: string) {
+  const url = `${API_URL}/wp-json${endpoint}`;
+  console.log("Fetching:", url);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+      });
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
 }
 
 export async function testConnection() {
   try {
-    const res = await fetch(`${API_URL}/stegetfore-headless-wp/v1/test`);
-    if (!res.ok) throw new Error("API response was not ok");
-    return await res.json();
+    return await fetchAPI(`/${THEME_SLUG}/v1/test`);
   } catch (error) {
     console.error("API Connection Error:", error);
     throw error;
@@ -27,35 +52,46 @@ export async function testConnection() {
 
 export async function fetchPosts() {
   try {
-    const res = await fetch(`${API_URL}/wp/v2/posts?_embed`);
-    if (!res.ok) throw new Error("Failed to fetch posts");
-    return await res.json();
+    const data = await fetchAPI("/wp/v2/posts?_embed");
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error fetching posts:", error);
-    throw error;
+    return [];
   }
 }
 
 export async function fetchPost(slug: string) {
   try {
-    const res = await fetch(`${API_URL}/wp/v2/posts?slug=${slug}&_embed`);
-    if (!res.ok) throw new Error("Failed to fetch post");
-    const posts = await res.json();
-    return posts[0];
+    const data = await fetchAPI(`/wp/v2/posts?slug=${slug}&_embed`);
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
   } catch (error) {
     console.error("Error fetching post:", error);
-    throw error;
+    return null;
   }
 }
 
 export async function fetchSiteInfo(): Promise<SiteInfo> {
-  const res = await fetch(`${API_URL}/wp-json/headless-theme/v1/site-info`);
-  if (!res.ok) throw new Error("Failed to fetch site info");
-  return res.json();
+  try {
+    const data = await fetchAPI(`/${THEME_SLUG}/v1/site-info`);
+    return {
+      name: data.name || "Site Name",
+      description: data.description || "Site Description",
+    };
+  } catch (error) {
+    console.error("Error fetching site info:", error);
+    return {
+      name: "Site Name",
+      description: "Site Description",
+    };
+  }
 }
 
 export async function fetchMainMenu(): Promise<MenuItem[]> {
-  const res = await fetch(`${API_URL}/wp-json/headless-theme/v1/menu/primary`);
-  if (!res.ok) throw new Error("Failed to fetch menu");
-  return res.json();
+  try {
+    const data = await fetchAPI(`/${THEME_SLUG}/v1/menu/primary`);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    return [];
+  }
 }

@@ -1,32 +1,28 @@
 // src/app/layout.tsx
-import { Suspense } from 'react';
-import { fetchSiteInfo, fetchMainMenu } from '@/lib/api';
+import { getLayoutData } from '@/lib/layoutUtils';
 import Header from '@/components/Header';
-import HeaderSkeleton from '@/components/HeaderSkeleton';
 import Footer from '@/components/Footer';
+import './globals.css';
 
-async function HeaderWrapper() {
-  const [siteInfo, menuItems] = await Promise.all([
-    fetchSiteInfo(),
-    fetchMainMenu()
-  ]);
+export const dynamic = 'force-dynamic';
 
-  return <Header siteInfo={siteInfo} menuItems={menuItems} />;
-}
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { siteInfo, menuItems } = await getLayoutData();
+
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col">
-        <Suspense fallback={<HeaderSkeleton />}>
-          <HeaderWrapper />
-        </Suspense>
-        {children}
-        <Footer />
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <div className="min-h-screen flex flex-col">
+          <Header siteInfo={siteInfo} menuItems={menuItems} />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
