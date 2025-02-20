@@ -1,6 +1,18 @@
 // src/lib/api.ts
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export interface MenuItem {
+  ID: number;
+  title: string;
+  url: string;
+  slug: string;
+  target: string;
+}
+
+export interface SiteInfo {
+  name: string;
+  description: string;
+}
 
 export async function testConnection() {
   try {
@@ -36,13 +48,14 @@ export async function fetchPost(slug: string) {
   }
 }
 
-export async function fetchSiteInfo() {
-  try {
-    const res = await fetch(`${API_URL}/stegetfore-headless-wp/v1/site-info`);
-    if (!res.ok) throw new Error("Failed to fetch site info");
-    return await res.json();
-  } catch (error) {
-    console.error("Error fetching site info:", error);
-    throw error;
-  }
+export async function fetchSiteInfo(): Promise<SiteInfo> {
+  const res = await fetch(`${API_URL}/wp-json/headless-theme/v1/site-info`);
+  if (!res.ok) throw new Error("Failed to fetch site info");
+  return res.json();
+}
+
+export async function fetchMainMenu(): Promise<MenuItem[]> {
+  const res = await fetch(`${API_URL}/wp-json/headless-theme/v1/menu/primary`);
+  if (!res.ok) throw new Error("Failed to fetch menu");
+  return res.json();
 }

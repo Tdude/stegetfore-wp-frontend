@@ -17,11 +17,11 @@ export default function PostCard({ post }: { post: Post }) {
         )}
         <div className="p-4">
           <h2
-            className="text-xl font-semibold mb-2 hover:text-blue-600"
+            className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
             dangerouslySetInnerHTML={{ __html: post.title.rendered }}
           />
           <div
-            className="text-gray-600 line-clamp-3"
+            className="text-gray-300 line-clamp-3"
             dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
           />
           <div className="mt-4 text-blue-600 font-medium">
