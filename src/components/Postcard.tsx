@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 
-export default function PostCard({ post }: { post: Post }) {
+export default function Postcard({ post }: { post: Post }) {
   return (
     <article className="border rounded-lg overflow-hidden shadow-sm transition-shadow hover:shadow-md">
       <Link href={`/posts/${post.slug}`} className="block">
