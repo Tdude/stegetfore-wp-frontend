@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
 import { fetchPosts, fetchSiteInfo } from '@/lib/api';
-import PostCard from '@/components/PostCard';
+import PostCard from '@/components/Postcard';
 import { PostSkeletonGrid } from '@/components/PostSkeleton';
 
 async function Posts() {

@@ -25,7 +25,7 @@ export default function Postcard({ post }: { post: Post }) {
             dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
           />
           <div className="mt-4 text-blue-600 font-medium">
-            Read more →
+            Läs mer →
           </div>
         </div>
       </Link>

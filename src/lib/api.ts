@@ -12,8 +12,11 @@ if (!THEME_SLUG) {
   throw new Error("THEME_SLUG is not defined");
 }
 
-async function fetchAPI(endpoint: string) {
-  const url = `${API_URL}/wp-json${endpoint}`;
+async function fetchAPI(
+  endpoint: string,
+  options: { revalidate?: number } = {}
+) {
+  const url = `${API_URL}${endpoint}`;
   console.log("Fetching:", url);
 
   try {
@@ -21,7 +24,8 @@ async function fetchAPI(endpoint: string) {
       headers: {
         "Content-Type": "application/json",
       },
-      cache: "no-store",
+      // Default to 60 seconds if not specified
+      next: { revalidate: options.revalidate ?? 60 },
     });
 
     if (!response.ok) {
@@ -52,7 +56,8 @@ export async function testConnection() {
 
 export async function fetchPosts() {
   try {
-    const data = await fetchAPI("/wp/v2/posts?_embed");
+    // Cache posts list for 20 minutes
+    const data = await fetchAPI("/wp/v2/posts?_embed", { revalidate: 1200 });
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -62,7 +67,10 @@ export async function fetchPosts() {
 
 export async function fetchPost(slug: string) {
   try {
-    const data = await fetchAPI(`/wp/v2/posts?slug=${slug}&_embed`);
+    // Cache individual posts for 20 minutes
+    const data = await fetchAPI(`/wp/v2/posts?slug=${slug}&_embed`, {
+      revalidate: 1200,
+    });
     return Array.isArray(data) && data.length > 0 ? data[0] : null;
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -70,12 +78,19 @@ export async function fetchPost(slug: string) {
   }
 }
 
+// Different cache times for different types of content
 export async function fetchSiteInfo(): Promise<SiteInfo> {
   try {
-    const data = await fetchAPI(`/${THEME_SLUG}/v1/site-info`);
+    // Cache site info for 1 hour
+    const data = await fetchAPI(`/${THEME_SLUG}/v1/site-info`, {
+      revalidate: 3600,
+    });
     return {
       name: data.name || "Site Name",
       description: data.description || "Site Description",
+      url: data.url,
+      admin_email: data.admin_email,
+      language: data.language,
     };
   } catch (error) {
     console.error("Error fetching site info:", error);
@@ -88,10 +103,37 @@ export async function fetchSiteInfo(): Promise<SiteInfo> {
 
 export async function fetchMainMenu(): Promise<MenuItem[]> {
   try {
-    const data = await fetchAPI(`/${THEME_SLUG}/v1/menu/primary`);
+    // Cache menu for 1 hour
+    const data = await fetchAPI(`/${THEME_SLUG}/v1/menu/primary`, {
+      revalidate: 3600,
+    });
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error fetching menu:", error);
     return [];
+  }
+}
+
+export async function fetchPages() {
+  try {
+    // Cache pages list for 20 minutes
+    const data = await fetchAPI("/wp/v2/pages?_embed", { revalidate: 1200 });
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error fetching pages:", error);
+    return [];
+  }
+}
+
+export async function fetchPage(slug: string) {
+  try {
+    // Cache individual pages for 20 minutes
+    const data = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {
+      revalidate: 1200,
+    });
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error("Error fetching page:", error);
+    return null;
   }
 }

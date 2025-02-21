@@ -1,5 +1,5 @@
-// src/lib/layoutUtils.ts
-import { fetchSiteInfo, fetchMainMenu, testAPI } from './api';
+// src/lib/layoutUtils.tsx
+import { fetchSiteInfo, fetchMainMenu } from './api';
 import type { SiteInfo, MenuItem } from './types';
 
 export async function getLayoutData(): Promise<{
@@ -7,10 +7,6 @@ export async function getLayoutData(): Promise<{
   menuItems: MenuItem[];
 }> {
   try {
-    // Test API connection first
-    const apiTest = await testAPI();
-    console.log('API Test Result:', apiTest);
-
     // Fetch data in parallel
     const [siteInfo, menuItems] = await Promise.all([
       fetchSiteInfo(),
@@ -26,8 +22,8 @@ export async function getLayoutData(): Promise<{
     // Return default values instead of throwing
     return {
       siteInfo: {
-        name: 'Site Name',
-        description: 'Site Description'
+        name: 'Sajtens namn',
+        description: 'Sajtbeskrivning'
       },
       menuItems: []
     };

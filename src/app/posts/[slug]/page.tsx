@@ -3,9 +3,19 @@ import { Suspense } from 'react';
 import { fetchPost } from '@/lib/api';
 import Link from 'next/link';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
+import { notFound } from 'next/navigation';
+
+async function getSlugFromParams(params: { slug: string }) {
+  const result = await Promise.resolve(params);
+  return result.slug;
+}
 
 async function Post({ slug }: { slug: string }) {
   const post = await fetchPost(slug);
+
+  if (!post) {
+    notFound();
+  }
 
   return (
     <article className="max-w-3xl mx-auto">
@@ -32,18 +42,20 @@ async function Post({ slug }: { slug: string }) {
           href="/"
           className="text-blue-600 hover:text-blue-800"
         >
-          ← Back to all posts
+          ← Tillbaka till alla inlägg
         </Link>
       </div>
     </article>
   );
 }
 
-export default function PostPage({
-  params: { slug }
+export default async function PostPage({
+  params
 }: {
   params: { slug: string }
 }) {
+  const slug = await getSlugFromParams(params);
+
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
