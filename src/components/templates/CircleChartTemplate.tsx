@@ -1,27 +1,26 @@
-// components/templates/LivshjuletCHart.tsx
+// components/LivshjuletCHart.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
 interface ActiveSegment {
   ring: number;
   segment: number;
 }
 
-type CircularAssessmentChartProps = {
+type CircleChartTemplateProps = {
   className?: string;
 }
 
-const CircularAssessmentChart = ({
+const CircleChartTemplate = ({
   className
-}: CircularAssessmentChartProps) => {
+}: CircleChartTemplateProps) => {
     const [activeSegments, setActiveSegments] = useState<ActiveSegment[]>([]);
   const NUM_SEGMENTS = 8;
   const NUM_RINGS = 5;
   const RADIUS_STEP = 50;
   const STORAGE_KEY = "donutChartState";
-
-  const [activeSegments, setActiveSegments] = useState([]);
 
   const segmentLabels = [
     "Ekonomi",
@@ -210,4 +209,4 @@ const CircularAssessmentChart = ({
   );
 };
 
-export default CircularAssessmentChart;
+export default CircleChartTemplate;

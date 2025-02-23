@@ -72,15 +72,23 @@ p {
 }
 
 h2 {
-  @apply text-2xl font-bold mb-4;
+  @apply text-2xl font-bold mt-6 mb-2;
 }
 
 h3 {
-  @apply text-xl font-semibold mt-4 mb-2;
+  @apply text-xl font-semibold mt-6 mb-2;
 }
 
 ul {
-  @apply list-disc list-inside mt-2 mb-2;
+  @apply list-disc list-inside mt-4 mb-4;
+}
+
+li {
+  @apply list-disc list-inside;
+}
+
+label {
+  @apply border rounded-md p-2;
 }
 
 input {

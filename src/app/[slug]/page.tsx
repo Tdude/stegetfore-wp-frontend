@@ -3,6 +3,8 @@ import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
+import PageTemplateSelector from '@/components/PageTemplateSelector';
+
 
 // Helper function to safely get params
 async function getSlugFromParams(params: { slug: string }) {
@@ -17,27 +19,35 @@ async function Page({ slug }: { slug: string }) {
     notFound();
   }
 
-  const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+  // Fallback to default template rendering if something goes wrong
+  try {
+    return <PageTemplateSelector page={page} />;
+  } catch (error) {
+    console.error('Error rendering template:', error);
 
-  return (
-    <article className="max-w-3xl mx-auto">
-      {featuredImage && (
-        <img
-          src={featuredImage}
-          alt={page.title.rendered}
-          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+    // Fallback to default layout
+    const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+
+    return (
+      <article className="max-w-3xl mx-auto">
+        {featuredImage && (
+          <img
+            src={featuredImage}
+            alt={page.title.rendered}
+            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          />
+        )}
+        <h1
+          className="text-4xl font-bold mb-4"
+          dangerouslySetInnerHTML={{ __html: page.title.rendered }}
         />
-      )}
-      <h1
-        className="text-4xl font-bold mb-4"
-        dangerouslySetInnerHTML={{ __html: page.title.rendered }}
-      />
-      <div
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: page.content.rendered }}
-      />
-    </article>
-  );
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: page.content.rendered }}
+        />
+      </article>
+    );
+  }
 }
 
 export default async function PageWrapper({

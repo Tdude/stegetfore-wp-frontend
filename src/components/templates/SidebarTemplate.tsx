@@ -1,8 +1,16 @@
 // src/components/templates/SidebarTemplate.tsx
+'use client';
+
+import React, { useEffect } from 'react';
+
+import { Page, PageTemplate } from '@/lib/types';
+import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+
 export default function SidebarTemplate({ page }: { page: Page }) {
   return (
     <TemplateTransitionWrapper>
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <p>The sidebar templ</p>
         <article className="md:col-span-3">
           <h1
             className="text-4xl font-bold mb-4"

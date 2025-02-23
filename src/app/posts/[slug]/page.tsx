@@ -31,7 +31,6 @@ async function Post({ slug }: { slug: string }) {
         className="text-4xl font-bold mb-4"
         dangerouslySetInnerHTML={{ __html: post.title.rendered }}
       />
-
       <div
         className="prose max-w-none"
         dangerouslySetInnerHTML={{ __html: post.content.rendered }}
@@ -42,7 +41,7 @@ async function Post({ slug }: { slug: string }) {
           href="/"
           className="text-blue-600 hover:text-blue-800"
         >
-          ← Tillbaka till alla inlägg
+          ← Alla inlägg
         </Link>
       </div>
     </article>
