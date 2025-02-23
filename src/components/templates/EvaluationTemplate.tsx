@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
@@ -97,9 +97,9 @@ const initialFormState: FormData = {
 
 // Styling classes
 const stageClasses = {
-  ej: 'border-l-4 border-red-200 pl-4 mb-2',
-  trans: 'border-l-4 border-amber-200 pl-4 mb-2',
-  full: 'border-l-4 border-green-200 pl-4 mb-2'
+  ej: 'border-l-4 border-red-200 pl-4',
+  trans: 'border-l-4 border-amber-200 pl-4',
+  full: 'border-l-4 border-green-200 pl-4'
 };
 
 // Progress Bar component
@@ -196,7 +196,7 @@ const dialog1Options = [
 ] as const;
 
 const dialog2Options = [
-  { value: '1', label: 'Pratar pavbrutet', stage: 'ej' },
+  { value: '1', label: 'Pratar oavbrutet', stage: 'ej' },
   { value: '2', label: 'Är tyst vid tillsägelse', stage: 'ej' },
   { value: '3', label: 'Lyssnar på mig', stage: 'trans' },
   { value: '4', label: 'Har full dialog med mig', stage: 'trans' },
@@ -297,77 +297,106 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
   const [formData, setFormData] = useState<FormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
 
-  // Fetch existing evaluation
+  // For data loading
   useEffect(() => {
     if (!evaluationId) return;
 
-    const fetchEvaluation = async () => {
-      setIsLoading(true);
+    const fetchData = async () => {
+      toast.loading('Hämtar utvärdering...', {
+        id: 'loading-data', // Unique ID to reference this toast
+      });
+
       try {
         const response = await fetch(`/wp-json/evaluation/v1/get/${evaluationId}`);
-        if (!response.ok) throw new Error('Failed to fetch evaluation');
+        if (!response.ok) throw new Error('Failed to fetch');
 
-        const data: LoadedData = await response.json();
+        const data = await response.json();
         setFormData(data.formData);
 
-        toast({
-          title: "Evaluation loaded",
-          description: `Last updated: ${new Date(data.last_updated).toLocaleString()}`
+        toast.success('Utvärdering laddad', {
+          id: 'loading-data', // Replace the loading toast
         });
       } catch (error) {
-        console.error('Error fetching evaluation:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load evaluation"
+        toast.error('Kunde inte hämta utvärderingen', {
+          id: 'loading-data', // Replace the loading toast
         });
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    fetchEvaluation();
-  }, [evaluationId, toast]);
+    fetchData();
+  }, [evaluationId]);
 
-  // Update form submission
+  // For unsaved changes warning
+  const handleFieldChange = (newValue: any) => {
+    setFormData(newValue);
+    toast.info('Kom ihåg att spara dina ändringar!', {
+      id: 'unsaved-changes', // Only show one of these at a time
+      duration: 2000,
+    });
+  };
+
+  // For validation errors
+  const validateForm = () => {
+    const errors = []; // Your validation logic here
+
+    if (errors.length > 0) {
+      toast.error('Vänligen åtgärda följande:', {
+        description: (
+          <ul className="list-disc pl-4">
+            {errors.map((error, i) => (
+              <li key={i}>{error}</li>
+            ))}
+          </ul>
+        ),
+        duration: 5000,
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // Loading notifications
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+
+    // Show loading toast that we can dismiss later
+    const loadingToast = toast.loading('Sparar utvärdering...');
 
     try {
       const response = await fetch('/wp-json/evaluation/v1/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-WP-Nonce': wpApiSettings.nonce // WordPress will provide this
+          'X-WP-Nonce': wpApiSettings.nonce
         },
         body: JSON.stringify({
-          student_name: "Student Name", // You might want to make this dynamic
+          student_name: "Student Name",
           formData: formData
         })
       });
 
       if (!response.ok) throw new Error('Failed to save evaluation');
 
-      const result: SaveResponse = await response.json();
-
-      toast({
-        title: "Success",
-        description: "Evaluation saved successfully"
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success('Utvärderingen sparades!', {
+        duration: 3000, // Will dismiss after 3 seconds
       });
+
     } catch (error) {
-      console.error('Error saving evaluation:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save evaluation"
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
+      toast.error('Kunde inte spara utvärderingen', {
+        description: 'Försök igen eller kontakta support',
+        duration: 5000,
       });
     } finally {
       setIsSaving(false);
     }
   };
+
 
   // Handle form value changes
   const handleValueChange = (section: keyof FormData, field: string) => (value: string) => {

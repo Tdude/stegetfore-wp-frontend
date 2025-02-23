@@ -2,6 +2,7 @@
 import { getLayoutData } from '@/lib/layoutUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Providers from '@/components/Providers';
 import './globals.css';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,7 @@ export default async function RootLayout({
           <main className="flex-grow">
             {children}
           </main>
+          <Providers />
           <Footer />
         </div>
       </body>
