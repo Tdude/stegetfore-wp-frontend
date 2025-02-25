@@ -28,17 +28,17 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
   }
 
   return (
-    <header className="bg-gray-800 shadow-md">
-      <div className="container mx-auto px-4 py-6">
-        <nav className="flex justify-between items-center">
+    <header className="bg-white shadow-md">
+      <div className="container mx-auto px-4">
+        <nav className="flex justify-between items-stretch h-16">
           <Link
             href="/"
-            className="text-xl font-bold text-white hover:text-gray-200"
+            className="text-xl font-bold text-gray-800 hover:text-black flex items-center"
           >
             {name || 'Home'}
           </Link>
 
-          <div className="space-x-4">
+          <div className="flex items-stretch">
             {items.map((item) => {
               const href = getFormattedHref(item.slug);
               const linkProps = item.target ? { target: item.target } : {};
@@ -47,7 +47,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
                 <Link
                   key={item.ID}
                   href={href}
-                  className="text-white hover:text-gray-200 transition-colors"
+                  className="text-gray-800 hover:text-black transition-colors px-4 flex items-center border-b-2 border-transparent hover:border-primary"
                   {...linkProps}
                 >
                   {item.title}

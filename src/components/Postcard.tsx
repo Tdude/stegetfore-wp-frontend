@@ -21,7 +21,7 @@ export default function Postcard({ post }: { post: Post }) {
             dangerouslySetInnerHTML={{ __html: post.title.rendered }}
           />
           <div
-            className="text-gray-300 line-clamp-3"
+            className="text-gray-700 line-clamp-3"
             dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
           />
           <div className="mt-4 text-blue-600 font-medium">

@@ -1,41 +1,55 @@
 // src/components/PostSkeleton.tsx
-export function PostSkeleton() {
-    return (
-      <div className="border rounded-lg overflow-hidden shadow-sm animate-pulse">
-        <div className="h-48 bg-gray-200" /> {/* Image placeholder */}
-        <div className="p-4">
-          <div className="h-6 bg-gray-200 rounded w-3/4 mb-4" /> {/* Title placeholder */}
-          <div className="space-y-2"> {/* Content placeholder */}
-            <div className="h-4 bg-gray-200 rounded w-full" />
-            <div className="h-4 bg-gray-200 rounded w-5/6" />
-            <div className="h-4 bg-gray-200 rounded w-4/6" />
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Multiple post skeleton for listings
+export function PostSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <Card key={i} className="h-full overflow-hidden">
+          <div className="aspect-video">
+            <Skeleton className="h-full w-full" />
           </div>
-        </div>
-      </div>
-    );
-  }
+          <CardHeader className="pb-2">
+            <div className="flex gap-2 mb-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+            <Skeleton className="h-8 w-full mb-2" />
+            <Skeleton className="h-8 w-4/5" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-6 w-24" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
-  export function PostSkeletonGrid() {
-    return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((key) => (
-          <PostSkeleton key={key} />
-        ))}
+// Single post skeleton for post page
+export function SinglePostSkeleton() {
+  return (
+    <article className="max-w-3xl mx-auto">
+      <Skeleton className="w-full h-64 md:h-96 rounded-lg mb-8" />
+      <Skeleton className="h-12 w-3/4 mb-4" />
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-5/6" />
+        <Skeleton className="h-6 w-4/5" />
+        <Skeleton className="h-6 w-full" />
       </div>
-    );
-  }
-
-  export function SinglePostSkeleton() {
-    return (
-      <div className="max-w-3xl mx-auto animate-pulse">
-        <div className="h-64 md:h-96 bg-gray-200 rounded-lg mb-8" /> {/* Featured image */}
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-6" /> {/* Title */}
-        <div className="space-y-4"> {/* Content */}
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-5/6" />
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-4/6" />
-        </div>
+      <div className="mt-8">
+        <Skeleton className="h-8 w-32" />
       </div>
-    );
-  }
+    </article>
+  );
+}

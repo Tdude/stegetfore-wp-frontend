@@ -1,48 +1,95 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
-import { fetchPosts, fetchSiteInfo } from '@/lib/api';
-import PostCard from '@/components/Postcard';
-import { PostSkeletonGrid } from '@/components/PostSkeleton';
+import { fetchPosts, fetchFeaturedPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { PostSkeleton } from '@/components/PostSkeleton';
+import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-async function Posts() {
-  const posts = await fetchPosts();
+// This is a server component
+export default async function HomePage() {
+  try {
+    // Fetch homepage data first as our primary content source
+    let homepageData;
+    let page;
 
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-    </div>
-  );
-}
+    try {
+      // Fetch the homepage from WP API
+      homepageData = await fetchHomepageData();
 
-async function SiteInfo() {
-  const siteInfo = await fetchSiteInfo();
+      // Also fetch the page that might be set as homepage in WordPress
+      page = await fetchPage('home');
+    } catch (error) {
+      console.error("Error fetching homepage data:", error);
+    }
 
-  return (
-    <div className="mb-8">
-      <h1 className="text-3xl font-bold">{siteInfo.name}</h1>
-      <p className="text-gray-600">{siteInfo.description}</p>
-    </div>
-  );
-}
+    // Fallback if homepage data fetch fails
+    if (!homepageData) {
+      // Fetch basic data that we know should work
+      const posts = await fetchPosts();
+      const categories = await fetchCategories();
 
-export default function Home() {
+      // Use the first 3 posts as featured
+      const featuredPosts = posts.slice(0, 3);
 
-  return (
-    <main className="container mx-auto px-4 py-8 flex-grow">
-      <Suspense fallback={
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-        </div>
-      }>
-        <SiteInfo />
+      // Create a minimal homepage data structure
+      homepageData = {
+        featured_posts: featuredPosts,
+        featured_posts_title: "Featured Articles",
+        latest_posts: posts.slice(3), // The rest of the posts
+        latest_posts_title: "Latest Posts",
+        hero: {
+          title: "Ta Steget Före",
+          intro: "Upptäck en smartare vardag - för dig och för eleven.",
+          buttons: [
+            { text: "Upptäck mer", url: "/om-oss", style: "primary" },
+            { text: "Kontakta oss", url: "/kontakt", style: "outline" }
+          ],
+          image: "/images/hero-fallback.jpg" // Provide a fallback image path
+        },
+        selling_points: [
+          {
+            id: 1,
+            title: "Professionell hjälp",
+            description: "We offer high-quality professional services tailored to your needs."
+          },
+          {
+            id: 2,
+            title: "Ett team av experter",
+            description: "Our team of experts is ready to help you achieve your goals."
+          },
+          {
+            id: 3,
+            title: "Fokuserad målbild och resultatuppföljning",
+            description: "We're committed to your satisfaction with our work."
+          }
+        ],
+        categories: categories
+      };
+    }
+
+    // Create a page object if none was fetched
+    if (!page) {
+      page = {
+        type: 'homepage',
+        template: 'homepage', // Set template explicitly
+        id: 0,
+        slug: 'home',
+        title: { rendered: homepageData.hero?.title || 'Welcome' }
+      };
+    }
+
+    // Pass the data to the page template
+    return (
+      <Suspense fallback={<div className="h-screen bg-muted/30 animate-pulse"></div>}>
+        <PageTemplateSelector
+          page={page}
+          isHomePage={true}
+          homepageData={homepageData}
+        />
       </Suspense>
-
-      <Suspense fallback={<PostSkeletonGrid />}>
-        <Posts />
-      </Suspense>
-    </main>
-  );
+    );
+  } catch (error) {
+    console.error("Error rendering homepage:", error);
+    return notFound();
+  }
 }
