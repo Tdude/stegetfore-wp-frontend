@@ -30,9 +30,11 @@ export interface Post {
   };
   template?: string;
   featured_image_url?: string | null;
+  categories: number[];
 }
 
 export interface Page {
+  id: number;
   title: {
     rendered: string;
   };
@@ -42,6 +44,7 @@ export interface Page {
   content: {
     rendered: string;
   };
+  slug: string;
   template?: string;
   featured_image_url?: string | null;
   _embedded?: {
@@ -65,6 +68,7 @@ export interface Page {
 
 export enum PageTemplate {
   DEFAULT = "default",
+  HOMEPAGE = "templates/homepage.php",
   FULL_WIDTH = "templates/full-width.php",
   SIDEBAR = "templates/sidebar.php",
   LANDING = "templates/landing.php",
