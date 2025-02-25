@@ -197,8 +197,15 @@ const LifeWheelChart = ({
     return segments;
   };
 
-  const handleSegmentHover = (event) => {
-    const segment = event.target;
+  interface SegmentElement extends SVGPathElement {
+    getAttribute(name: string): string | null;
+    closest<K extends keyof HTMLElementTagNameMap>(selector: K): HTMLElementTagNameMap[K] | null;
+    closest<K extends keyof SVGElementTagNameMap>(selector: K): SVGElementTagNameMap[K] | null;
+    closest<E extends Element = Element>(selectors: string): E | null;
+  }
+
+  const handleSegmentHover = (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+    const segment = event.target as SegmentElement;
     if (segment.getAttribute('data-ring') === '0') {
       const svg = segment.closest('svg');
       if (svg) {
