@@ -61,17 +61,27 @@ export default function HeroSection({
           )}
           {ctaButtons && ctaButtons.length > 0 && (
             <div className="flex flex-wrap gap-4 justify-center">
-              {ctaButtons.map((button, index) => (
-                <Button
-                  key={index}
-                  size="lg"
-                  variant={button.style === 'outline' ? 'outline' : button.style === 'secondary' ? 'secondary' : 'default'}
-                  className={button.style === 'outline' ? 'bg-transparent border-white text-white hover:bg-white/20' : ''}
-                  asChild
-                >
-                  <a href={button.url}>{button.text}</a>
-                </Button>
-              ))}
+              {ctaButtons.map((button, index) => {
+                // Determine the button variant
+                const variant = button.style === 'outline'
+                  ? 'outline'
+                  : button.style === 'secondary'
+                    ? 'secondary'
+                    : 'primary';
+
+                return (
+                  <Button
+                    key={index}
+                    size="lg"
+                    variant={variant}
+                    // Only add custom className for outline buttons, and make sure it doesn't conflict
+                    className={button.style === 'outline' ? 'border-white text-white hover:bg-white/20' : undefined}
+                    asChild
+                  >
+                    <a href={button.url}>{button.text}</a>
+                  </Button>
+                );
+              })}
             </div>
           )}
         </div>
