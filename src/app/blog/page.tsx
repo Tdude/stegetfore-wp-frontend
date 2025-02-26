@@ -1,6 +1,7 @@
 // src/app/blog/page.tsx
 import { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { fetchPosts, fetchCategories } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
@@ -50,10 +51,11 @@ async function BlogPostsList() {
               <Link href={`/posts/${post.slug}`} className="block group">
                 <div className="relative aspect-video overflow-hidden rounded-lg mb-4">
                   {post.featured_image_url ? (
-                    <img
+                    <Image
                       src={post.featured_image_url}
-                      alt=""
+                      alt={post.title.rendered}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      fill
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">

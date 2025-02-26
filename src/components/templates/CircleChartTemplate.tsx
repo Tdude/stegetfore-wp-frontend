@@ -31,10 +31,7 @@ const hoverStyles = `
 `;
 
 const LifeWheelChart = ({
-  className,
-  chartData,
-  title
-}: LifeWheelChartProps) => {
+  className}: LifeWheelChartProps) => {
   const [activeSegments, setActiveSegments] = useState<ActiveSegment[]>([]);
   const NUM_SEGMENTS = 8;
   const NUM_RINGS = 5;
@@ -264,7 +261,7 @@ const LifeWheelChart = ({
         </svg>
         <Button
           onClick={resetChart}
-          variant="default"
+          variant="primary"
           className="w-32"
         >
           Nollställ

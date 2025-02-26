@@ -17,8 +17,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } catch (err) {
+    console.error("Error revalidating:", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
-      { message: "Error revalidating" },
+      { message: "Error revalidating: " + errorMessage },
       { status: 500 }
     );
   }

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import Image from 'next/image';
 
 interface GalleryItem {
   id: number;
@@ -45,10 +46,12 @@ export default function GallerySection({
                     <DialogTrigger asChild>
                       <div className="cursor-pointer overflow-hidden rounded-md">
                         <AspectRatio ratio={16/9}>
-                          <img
+                          <Image
                             src={item.image}
                             alt={item.title}
                             className="object-cover w-full h-full transition-transform hover:scale-105"
+                            fill
+                            style={{ objectFit: 'cover' }}
                           />
                         </AspectRatio>
                         <div className="mt-2 text-sm font-medium">{item.title}</div>
@@ -56,11 +59,13 @@ export default function GallerySection({
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-3xl">
                       <div>
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full rounded-md"
-                        />
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            className="object-cover w-full h-full rounded-md"
+                            fill
+                            style={{ objectFit: 'cover' }}
+                          />
                         <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
                         {item.description && (
                           <p className="text-muted-foreground mt-2">{item.description}</p>
@@ -83,10 +88,12 @@ export default function GallerySection({
               <DialogTrigger asChild>
                 <div className="cursor-pointer overflow-hidden rounded-md">
                   <AspectRatio ratio={1/1}>
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.title}
                       className="object-cover w-full h-full transition-transform hover:scale-105"
+                      fill
+                      style={{ objectFit: 'cover' }}
                     />
                   </AspectRatio>
                   <div className="mt-2 text-sm font-medium">{item.title}</div>
@@ -94,11 +101,13 @@ export default function GallerySection({
               </DialogTrigger>
               <DialogContent className="sm:max-w-3xl">
                 <div>
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full rounded-md"
-                  />
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  className="object-cover w-full h-full rounded-md"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
                   <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
                   {item.description && (
                     <p className="text-muted-foreground mt-2">{item.description}</p>

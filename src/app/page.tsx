@@ -1,8 +1,7 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
-import { fetchPosts, fetchFeaturedPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib/api';
+import { fetchPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib/api';
 import { notFound } from 'next/navigation';
-import { PostSkeleton } from '@/components/PostSkeleton';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
 // This is a server component

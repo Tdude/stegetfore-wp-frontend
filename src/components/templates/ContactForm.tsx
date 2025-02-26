@@ -141,8 +141,9 @@ const ContactForm: React.FC<ContactFormProps> = ({
         setDialogOpen(true);
       }
     } catch (error) {
+      console.error("Never used? My ass: " + error);
       setStatus('error');
-      setDialogMessage('Kunde inte skicka iväg. Försök igen om en stund');
+      setDialogMessage('Kunde inte skicka iväg. Försök igen om en stund. Errormeddelande: ' + error);
       setDialogOpen(true);
     }
   };

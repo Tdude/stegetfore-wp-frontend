@@ -2,14 +2,17 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+
+// Assuming wpApiSettings is available globally, declare it here
+declare const wpApiSettings: {
+  nonce: string;
+};
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-
-import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
 // Types
 interface SaveResponse {
@@ -104,8 +107,8 @@ const stageClasses = {
 
 // Progress Bar component
 const ProgressBar: React.FC<ProgressBarProps> = ({ value, type, stage }) => {
-  const baseClasses = "h-2 rounded-full transition-all duration-300";
-  const typeClasses = type === 'section' ? 'h-1' : 'h-2';
+  const baseClasses = "h2 rounded-full transition-all duration-300";
+  const typeClasses = type === 'section' ? 'h-1' : 'h-6';
 
   const getProgressColor = (value: number, stage?: string) => {
     if (type === 'total' && stage === 'ej') return 'bg-red-500';
@@ -177,120 +180,120 @@ const SubSection: React.FC<SubSectionProps> = ({
   );
 };
 
-const narvaroOptions = [
+const narvaroOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Kommer inte till skolan', stage: 'ej' },
   { value: '2', label: 'Kommer till skolan, ej till lektion', stage: 'ej' },
   { value: '3', label: 'Kommer till min lektion ibland', stage: 'trans' },
   { value: '4', label: 'Kommer alltid till min lektion', stage: 'trans' },
   { value: '5', label: 'Kommer till andras lektioner', stage: 'full' }
-] as const;
+];
 
 
 // Add these option arrays after the existing narvaroOptions
-const dialog1Options = [
+const dialog1Options: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Helt tyst', stage: 'ej' },
   { value: '2', label: 'Säger enstaka ord till mig', stage: 'ej' },
   { value: '3', label: 'Vi pratar ibland', stage: 'trans' },
   { value: '4', label: 'Har full dialog med mig', stage: 'trans' },
   { value: '5', label: 'Har dialog med andra vuxna', stage: 'full' }
-] as const;
+]
 
-const dialog2Options = [
+const dialog2Options: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Pratar oavbrutet', stage: 'ej' },
   { value: '2', label: 'Är tyst vid tillsägelse', stage: 'ej' },
   { value: '3', label: 'Lyssnar på mig', stage: 'trans' },
   { value: '4', label: 'Har full dialog med mig', stage: 'trans' },
   { value: '5', label: 'Dialog med vissa andra vuxna', stage: 'full' }
-] as const;
+]
 
-const blickOptions = [
+const blickOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Möter inte min blick', stage: 'ej' },
   { value: '2', label: 'Har gett mig ett ögonkast', stage: 'ej' },
   { value: '3', label: 'Håller fast ögonkontakt', stage: 'trans' },
   { value: '4', label: '"Pratar" med ögonen', stage: 'trans' },
   { value: '5', label: 'Möter andras blickar', stage: 'full' }
-] as const;
+]
 
-const beroringOptions = [
+const beroringOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Jag får inte närma mig', stage: 'ej' },
   { value: '2', label: 'Jag får närma mig', stage: 'ej' },
   { value: '3', label: 'Tillåter beröring av mig', stage: 'trans' },
   { value: '4', label: 'Söker fysisk kontakt, ex. kramar', stage: 'trans' },
   { value: '5', label: 'Tillåter beröring av andra vuxna', stage: 'full' }
-] as const;
+]
 
-const konfliktOptions = [
+const konfliktOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Försvinner från skolan vid konflikt', stage: 'ej' },
   { value: '2', label: 'Stannar kvar på skolan', stage: 'ej' },
   { value: '3', label: 'Kommer tillbaka till mig', stage: 'trans' },
   { value: '4', label: 'Förklarar för mig efter konflikt', stage: 'trans' },
   { value: '5', label: 'Kommer tillbaka till andra vuxna', stage: 'full' }
-] as const;
+]
 
-const fortroendeOptions = [
+const fortroendeOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Delar inte med sig', stage: 'ej' },
   { value: '2', label: 'Delar med sig till mig ibland', stage: 'ej' },
   { value: '3', label: 'Vill dela med sig till mig', stage: 'trans' },
   { value: '4', label: 'Ger mig förtroenden', stage: 'trans' },
   { value: '5', label: 'Ger även förtroenden till vissa andra', stage: 'full' }
-] as const;
+]
 
 
-const impulskontrollOptions = [
+const impulskontrollOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Helt impulsstyrd', stage: 'ej' },
   { value: '2', label: 'Kan ibland hålla negativa känslor', stage: 'ej' },
   { value: '3', label: 'Skäms över negativa beteenden', stage: 'trans' },
   { value: '4', label: 'Kan ta mot tillsägelse', stage: 'trans' },
   { value: '5', label: 'Kan prata om det som hänt', stage: 'full' }
-] as const;
+]
 
-const forberedddOptions = [
+const forberedddOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Aldrig', stage: 'ej' },
   { value: '2', label: 'Lyckas vara förberedd en första gång', stage: 'ej' },
   { value: '3', label: 'Försöker vara förberedd som andra', stage: 'trans' },
   { value: '4', label: 'Pratar om förberedelse', stage: 'trans' },
   { value: '5', label: 'Planerar och har ordning', stage: 'full' }
-] as const;
+]
 
-const fokusOptions = [
+const fokusOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Kan inte koncentrera sig', stage: 'ej' },
   { value: '2', label: 'Kan fokusera en kort stund vid enskild tillsägelse', stage: 'ej' },
   { value: '3', label: 'Kan fokusera självmant tillsammans med andra', stage: 'trans' },
   { value: '4', label: 'Pratar om fokus och förbättrar sig', stage: 'trans' },
   { value: '5', label: 'Kan fokusera och koncentrera sig', stage: 'full' }
-] as const;
+]
 
-const turtagningOptions = [
+const turtagningOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Klarar ej', stage: 'ej' },
   { value: '2', label: 'Klarar av att vänta vid tillsägelse', stage: 'ej' },
   { value: '3', label: 'Gör som andra, räcker upp handen', stage: 'trans' },
   { value: '4', label: 'Kan komma överens om hur turtagning fungerar', stage: 'trans' },
   { value: '5', label: 'Full turtagning', stage: 'full' }
-] as const;
+]
 
-const instruktionOptions = [
+const instruktionOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Tar inte/förstår inte instruktion', stage: 'ej' },
   { value: '2', label: 'Tar/förstår instruktion i ett led men startar inte en uppgift', stage: 'ej' },
   { value: '3', label: 'Tar/förstår instruktion i flera led, kan lösa uppgift ibland', stage: 'trans' },
   { value: '4', label: 'Kan prata om uppgiftslösning', stage: 'trans' },
   { value: '5', label: 'Genomför uppgifter', stage: 'full' }
-] as const;
+]
 
-const arbetaSjalvOptions = [
+const arbetaSjalvOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Klarar inte', stage: 'ej' },
   { value: '2', label: 'Löser en uppgift med stöd', stage: 'ej' },
   { value: '3', label: 'Kan klara uppgifter självständigt i klassrummet', stage: 'trans' },
   { value: '4', label: 'Gör ofta läxor och pratar om dem', stage: 'trans' },
   { value: '5', label: 'Tar ansvar för självständigt arbete utanför skolan', stage: 'full' }
-] as const;
+]
 
-const tidOptions = [
+const tidOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Ingen tidsuppfattning', stage: 'ej' },
   { value: '2', label: 'Börjar använda andra konkreta referenser', stage: 'ej' },
   { value: '3', label: 'Har begrepp för en kvart', stage: 'trans' },
   { value: '4', label: 'Kan beskriva tidslängd och ordningsförlopp', stage: 'trans' },
   { value: '5', label: 'God tidsuppfattning', stage: 'full' }
-] as const;
+]
 
 
 const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
@@ -338,7 +341,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
 
   // For validation errors
   const validateForm = () => {
-    const errors = []; // Your validation logic here
+    const errors: string[] = []; // Your validation logic here
 
     if (errors.length > 0) {
       toast.error('Vänligen åtgärda följande:', {
@@ -473,7 +476,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
         {stages.map((stage) => (
           <div
             key={stage.type}
-            className={`flex-1 text-center p-2 text-sm ${headerStageClasses[stage.type]}`}
+            className={`flex-1 text-center p-2 text-lg font-bold ${headerStageClasses[stage.type]}`}
           >
             {stage.label}
           </div>
@@ -491,6 +494,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
           <CardTitle>Anknytningstecken</CardTitle>
         </CardHeader>
         <CardContent>
+        <div className="h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <SubSection
             title="Närvaro"
             name="narvaro"
@@ -575,6 +579,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
             fieldName="fortroende"
             calculateProgress={calculateSectionProgress}
           />
+          </div>
 
           <div className="mt-8">
             <ProgressHeader

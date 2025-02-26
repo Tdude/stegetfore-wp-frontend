@@ -3,7 +3,9 @@ import { Suspense } from 'react';
 import { fetchPost } from '@/lib/api';
 import Link from 'next/link';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
+
 
 async function getSlugFromParams(params: { slug: string }) {
   const result = await Promise.resolve(params);
@@ -20,11 +22,14 @@ async function Post({ slug }: { slug: string }) {
   return (
     <article className="max-w-3xl mx-auto">
       {post.featured_image_url && (
-        <img
+      <div className="w-full h-64 md:h-96 rounded-lg mb-8 relative">
+        <Image
           src={post.featured_image_url}
           alt={post.title.rendered}
           className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          fill
         />
+      </div>
       )}
 
       <h1

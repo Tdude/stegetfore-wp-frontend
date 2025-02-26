@@ -14,16 +14,16 @@ import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
 
 
-interface PageTemplateSelectorProps {
+interface PageTemplateSelectorProps<T = any> {
   page: Page & {
     type?: string;
     template?: string;
     id?: number;
     slug?: string;
-    title?: { rendered: any };
+    title?: { rendered: string };
   };
   isHomePage?: boolean; // New prop to force homepage template
-  homepageData?: any; // Optional homepage data
+  homepageData?: T; // Generic type
 }
 
 export default function PageTemplateSelector({

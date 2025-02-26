@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Post } from '@/lib/types';
+import Image from 'next/image';
 
 interface CategoryDisplay {
   id: number;
@@ -23,11 +24,13 @@ export default function PostsList({ posts, categories }: PostsListProps) {
         <Card key={post.id} className="h-full overflow-hidden">
           {post.featured_image_url && (
             <div className="aspect-video overflow-hidden">
-              <img
-                src={post.featured_image_url}
-                alt={post.title.rendered}
-                className="object-cover w-full h-full transition-transform hover:scale-105"
-              />
+              <Image
+                  src={post.featured_image_url}
+                  alt={post.title.rendered}
+                  className="w-full h-full object-cover transition-transform hover:scale-105"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
             </div>
           )}
           <CardHeader className="pb-2">

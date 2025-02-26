@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
 
@@ -31,10 +32,11 @@ async function Page({ slug }: { slug: string }) {
     return (
       <article className="max-w-3xl mx-auto">
         {featuredImage && (
-          <img
-            src={featuredImage}
-            alt={page.title.rendered}
-            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          <Image
+          src={featuredImage}
+          alt={page.title.rendered}
+          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          fill
           />
         )}
         <h1
