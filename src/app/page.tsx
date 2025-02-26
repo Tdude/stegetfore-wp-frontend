@@ -74,7 +74,10 @@ export default async function HomePage() {
         template: 'homepage', // Set template explicitly
         id: 0,
         slug: 'home',
-        title: { rendered: homepageData.hero?.title || 'Welcome' }
+        title: { rendered: homepageData.hero?.title || 'Welcome' },
+        chartData: { segments: [] }, // Add default or mock data for chartData
+        excerpt: { rendered: '' }, // Add default or mock data for excerpt
+        content: { rendered: '' } // Add default or mock data for content
       };
     }
 

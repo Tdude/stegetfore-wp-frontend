@@ -41,7 +41,7 @@ async function Post({ slug }: { slug: string }) {
           href="/"
           className="text-blue-600 hover:text-blue-800"
         >
-          ← Alla inlägg
+          ← Till Start
         </Link>
       </div>
     </article>

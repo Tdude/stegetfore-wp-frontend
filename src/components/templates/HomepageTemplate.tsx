@@ -10,6 +10,7 @@ import CTASection from '@/components/homepage/CTASection';
 import TestimonialsSection from '@/components/homepage/TestimonialsSection';
 import SellingPoints from '@/components/homepage/SellingPoints';
 import GallerySection from '@/components/homepage/GallerySection';
+import StatsSection from '@/components/homepage/StatsSection';
 
 interface HomepageTemplateProps {
   page: Page;
@@ -67,12 +68,22 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
           {/* Featured Posts Section */}
           <FeaturedPosts
             posts={homepageData.featured_posts || []}
-            title={homepageData.featured_posts_title || "Nytt från bloggen"}
+            title={homepageData.featured_posts_title || "I fokus"}
           />
 
           {/* Selling Points */}
           {homepageData.selling_points && homepageData.selling_points.length > 0 && (
             <SellingPoints points={homepageData.selling_points} />
+          )}
+
+          {/* Stats Section */}
+          {homepageData.stats && homepageData.stats.length > 0 && (
+            <StatsSection
+              stats={homepageData.stats}
+              title={homepageData.stats_title || "Vårt arbete i siffror"}
+              subtitle={homepageData.stats_subtitle || "Att vi är stolta är bara förnamnet. Bakom varje siffra finns ett barn."}
+              backgroundColor={homepageData.stats_background_color || "bg-muted/30"}
+            />
           )}
 
           {/* Gallery Section - Maybe? */}
@@ -92,7 +103,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
           {homepageData.cta && (
             <CTASection
               title={homepageData.cta.title || "Redo att börja?"}
-              description={homepageData.cta.description || "Häng med redan idag."}
+              description={homepageData.cta.description || "Häng med redan idag. Den här texten kommer från hemsidemallen."}
               buttonText={homepageData.cta.button_text || "Kontakta oss"}
               buttonUrl={homepageData.cta.button_url || "/kontakt"}
               backgroundColor={homepageData.cta.background_color || "bg-primary"}
