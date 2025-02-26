@@ -112,3 +112,27 @@
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   }
 }
+
+/* Menu stuff */
+.group-hover:visible {
+  z-index: 50;
+}
+.navbar-nav {
+  @apply flex-col lg:flex-row;
+}
+
+.nav-item {
+  @apply relative;
+}
+
+.nav-dropdown:hover .nav-dropdown-list {
+  @apply lg:block;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-md text-center;
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-primary/90;
+}
