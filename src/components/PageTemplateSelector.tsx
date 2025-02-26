@@ -11,9 +11,17 @@ import SidebarTemplate from './templates/SidebarTemplate';
 import LandingTemplate from './templates/LandingTemplate';
 import EvaluationTemplate from './templates/EvaluationTemplate';
 import CircleChartTemplate from './templates/CircleChartTemplate';
+import ContactFormTemplate from './templates/ContactFormTemplate';
+
 
 interface PageTemplateSelectorProps {
-  page: Page;
+  page: Page & {
+    type?: string;
+    template?: string;
+    id?: number;
+    slug?: string;
+    title?: { rendered: any };
+  };
   isHomePage?: boolean; // New prop to force homepage template
   homepageData?: any; // Optional homepage data
 }
@@ -24,6 +32,7 @@ export default function PageTemplateSelector({
   homepageData = {}
 }: PageTemplateSelectorProps) {
   const template = page.template;
+
 
   // Debug information
   React.useEffect(() => {
@@ -52,9 +61,12 @@ export default function PageTemplateSelector({
           case PageTemplate.LANDING:
             return <LandingTemplate key="landing" page={page} />;
           case PageTemplate.EVALUATION:
-            return <EvaluationTemplate key="evaluation" page={page} />;
+            return <EvaluationTemplate key="evaluation" evaluationId={page.evaluationId ? Number(page.evaluationId) : undefined} />;
           case PageTemplate.CIRCLE_CHART:
-            return <CircleChartTemplate key="circle-chart" page={page} />;
+            return <CircleChartTemplate key="circle-chart" chartData={page.chartData}
+            title={page.title.rendered} />;
+          case PageTemplate.CONTACT:
+            return <ContactFormTemplate key="contact-form" page={page} />;
           case undefined:
           case '':
           case PageTemplate.DEFAULT:
