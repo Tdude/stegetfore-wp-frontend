@@ -1,5 +1,12 @@
 // src/lib/api.ts
-import { Post, Page, SiteInfo, MenuItem } from "./types";
+import {
+  Post,
+  Page,
+  SiteInfo,
+  MenuItem,
+  WPCF7Form,
+  WPCF7SubmissionResponse,
+} from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG;
@@ -206,7 +213,22 @@ export async function fetchMainMenu(): Promise<MenuItem[]> {
     const data = await fetchAPI(`/${THEME_SLUG}/v1/menu/primary`, {
       revalidate: 3600,
     });
-    return Array.isArray(data) ? data : [];
+
+    // Process menu items to ensure they match our MenuItem type
+    const processMenuItems = (items: any[]): MenuItem[] => {
+      if (!Array.isArray(items)) return [];
+
+      return items.map((item) => ({
+        ID: item.ID || item.id || 0,
+        title: item.title || "",
+        url: item.url || "",
+        slug: item.slug || (item.url ? item.url.replace(/^\/|\/$/g, "") : ""),
+        target: item.target || "",
+        children: item.children ? processMenuItems(item.children) : undefined,
+      }));
+    };
+
+    return Array.isArray(data) ? processMenuItems(data) : [];
   } catch (error) {
     console.error("Error fetching menu:", error);
     return [];
@@ -235,6 +257,7 @@ export async function fetchPages(): Promise<Page[]> {
             page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
           template: page.template || "",
           _embedded: page._embedded,
+          chartData: page.chartData || null,
         }))
       : [];
   } catch (error) {
@@ -272,6 +295,7 @@ export async function fetchPage(slug: string): Promise<Page | null> {
         page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
       template: page.template || "",
       _embedded: page._embedded,
+      chartData: page.chartData || null,
     };
   } catch (error) {
     console.error("Error fetching page:", error);
@@ -335,5 +359,50 @@ export async function fetchPostsByIds(ids: number[]): Promise<any[]> {
   } catch (error) {
     console.error("Error in fetchPostsByIds:", error);
     throw error;
+  }
+}
+
+// Get WPCF7 Form by ID
+export async function getContactForm(
+  formId: number
+): Promise<WPCF7Form | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp-json/contact-form-7/v1/contact-forms/${formId}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch contact form: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching contact form:", error);
+    return null;
+  }
+}
+
+// Submit WPCF7 Form
+export async function submitContactForm(
+  formId: number,
+  formData: FormData
+): Promise<WPCF7SubmissionResponse> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp-json/contact-form-7/v1/contact-forms/${formId}/feedback`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error submitting contact form:", error);
+    return {
+      status: "mail_failed",
+      message:
+        "There was an error submitting the form. Please try again later.",
+    };
   }
 }
