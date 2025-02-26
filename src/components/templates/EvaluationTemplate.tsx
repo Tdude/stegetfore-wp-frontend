@@ -1,4 +1,4 @@
-// conponents/EvaluationTemplate.tsx
+// components/EvaluationTemplate.tsx
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -425,9 +425,9 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
 
   // Progress calculations
   const calculateSectionProgress = useCallback((section: keyof FormData, field: string): number => {
-    if (!formData?.[section]?.[field]) return 0;
+    if (!formData?.[section]?.[field as keyof typeof formData[typeof section]]) return 0;
     const value = formData[section][field as keyof typeof formData[typeof section]];
-    return value ? (parseInt(value) / 5) * 100 : 0;
+    return typeof value === 'string' && value ? (parseInt(value) / 5) * 100 : 0;
   }, [formData]);
 
   const calculateTotalProgress = useCallback((section: keyof FormData): number => {
@@ -438,7 +438,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
 
     const totalValue = fields.reduce((sum, field) => {
       const value = sectionData[field as keyof typeof sectionData];
-      return sum + (value ? parseInt(value) : 0);
+      return sum + (typeof value === 'string' && value ? parseInt(value) : 0);
     }, 0);
 
     const maxValue = fields.length * 5;
@@ -451,6 +451,14 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
     if (progress < 66) return 'trans';
     return 'full';
   };
+
+  // Progress Header Props
+  interface ProgressHeaderProps {
+    stages: Array<{
+      label: string;
+      type: 'ej' | 'trans' | 'full';
+    }>;
+  }
 
   // Progress Header Component
   const ProgressHeader: React.FC<ProgressHeaderProps> = ({ stages }) => {
