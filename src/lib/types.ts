@@ -6,6 +6,7 @@ export interface MenuItem {
   url: string;
   slug: string;
   target: string;
+  children?: MenuItem[];
 }
 
 export interface SiteInfo {
@@ -34,6 +35,7 @@ export interface Post {
 }
 
 export interface Page {
+  chartData: { segments: number[] } | undefined;
   id: number;
   title: {
     rendered: string;
@@ -64,6 +66,42 @@ export interface Page {
       };
     }>;
   };
+  evaluationId?: string;
+}
+
+export interface WPCF7Form {
+  id: number;
+  title: string;
+  properties: {
+    form: string;
+    mail: {
+      subject: string;
+      sender: string;
+      body: string;
+      recipient: string;
+      additional_headers: string;
+      attachments: string;
+      use_html: boolean;
+      exclude_blank: boolean;
+    };
+  };
+}
+
+export interface WPCF7SubmissionResponse {
+  status:
+    | "mail_sent"
+    | "mail_failed"
+    | "validation_failed"
+    | "spam"
+    | "aborted"
+    | "unaccepted_terms";
+  message: string;
+  postedData?: Record<string, string>;
+  invalidFields?: Array<{
+    field: string;
+    message: string;
+  }>;
+  into?: string;
 }
 
 export enum PageTemplate {
@@ -74,4 +112,5 @@ export enum PageTemplate {
   LANDING = "templates/landing.php",
   EVALUATION = "templates/evaluation.php",
   CIRCLE_CHART = "templates/circle-chart.php",
+  CONTACT = "templates/contact",
 }
