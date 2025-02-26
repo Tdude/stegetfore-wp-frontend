@@ -8,10 +8,13 @@ interface ActiveSegment {
   segment: number;
 }
 
-type LifeWheelChartProps = {
+interface LifeWheelChartProps {
   className?: string;
+  chartData?: {
+    segments: number[];
+  };
+  title?: string;
 }
-
 
 const hoverStyles = `
   path[data-ring="0"] {
@@ -28,7 +31,9 @@ const hoverStyles = `
 `;
 
 const LifeWheelChart = ({
-  className
+  className,
+  chartData,
+  title
 }: LifeWheelChartProps) => {
   const [activeSegments, setActiveSegments] = useState<ActiveSegment[]>([]);
   const NUM_SEGMENTS = 8;
