@@ -49,18 +49,21 @@ export default async function HomePage() {
           {
             id: 1,
             title: "Professionell hjälp",
-            description: "We offer high-quality professional services tailored to your needs."
+            description: "Vi erbjuder ditten och datten samt dutten.",
+            content: ""
           },
           {
             id: 2,
-            title: "Ett team av experter",
-            description: "Our team of experts is ready to help you achieve your goals."
+            title: "Hejsan svejsan",
+            description: "Vi erbjuder ditten och datten samt dutten.",
+            content: ""
           },
           {
             id: 3,
-            title: "Fokuserad målbild och resultatuppföljning",
-            description: "We're committed to your satisfaction with our work."
-          }
+            title: "Inte professionell hjälp",
+            description: "Vi erbjuder ditten och datten samt dutten.",
+            content: ""
+          },
         ],
         categories: categories
       };
