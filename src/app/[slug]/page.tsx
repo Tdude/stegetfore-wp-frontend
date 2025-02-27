@@ -5,6 +5,17 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
+// Define more specific types
+type SlugParam = {
+  slug: string;
+};
+
+// For Next.js App Router pages
+type PageProps = {
+  params: SlugParam;
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
 async function Page({ slug }: { slug: string }) {
   const page = await fetchPage(slug);
 
@@ -46,10 +57,9 @@ async function Page({ slug }: { slug: string }) {
   }
 }
 
-// Use any type to bypass type checking temporarily
-export default async function PageWrapper(props: any) {
-  const { params } = props;
-
+// Define the component using the specific PageProps type
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default async function PageWrapper({ params, searchParams }: PageProps) {
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
@@ -59,9 +69,9 @@ export default async function PageWrapper(props: any) {
   );
 }
 
-// Use any type to bypass type checking temporarily
-export async function generateMetadata(props: any) {
-  const { params } = props;
+// For metadata generation
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function generateMetadata({ params, searchParams }: PageProps) {
   const page = await fetchPage(params.slug);
 
   if (!page) {
