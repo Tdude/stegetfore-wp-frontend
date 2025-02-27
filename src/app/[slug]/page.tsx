@@ -72,7 +72,7 @@ export default async function PageWrapper(props: PageParams) {
 // Use the standard metadata export signature that Next.js expects
 export async function generateMetadata(
   props: PageParams,
-  parent: ResolvingMetadata
+  //parent: ResolvingMetadata
 ) {
   const { params } = props;
   const page = await fetchPage(params.slug);
