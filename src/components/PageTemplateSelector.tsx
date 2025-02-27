@@ -3,7 +3,11 @@
 
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { PageTemplate, PageTemplateSelectorProps } from '@/lib/types';
+import {
+  PageTemplate,
+  PageTemplateSelectorProps,
+  LocalPage
+} from '@/lib/types';
 import HomepageTemplate from './templates/HomepageTemplate';
 import DefaultTemplate from './templates/DefaultTemplate';
 import FullWidthTemplate from './templates/FullWidthTemplate';
@@ -13,17 +17,12 @@ import EvaluationTemplate from './templates/EvaluationTemplate';
 import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
 
-
 export default function PageTemplateSelector({
   page,
   isHomePage = false,
-  homepageData = {
-    featured_posts: [],
-    categories: {}
-  }
+  homepageData = {}
 }: PageTemplateSelectorProps) {
-  const template = page.template;
-
+  const template = page?.template;
 
   // Debug information
   React.useEffect(() => {
@@ -54,8 +53,11 @@ export default function PageTemplateSelector({
           case PageTemplate.EVALUATION:
             return <EvaluationTemplate key="evaluation" evaluationId={page.evaluationId ? Number(page.evaluationId) : undefined} />;
           case PageTemplate.CIRCLE_CHART:
-            return <CircleChartTemplate key="circle-chart" chartData={page.chartData ?? undefined}
-            title={page.title.rendered} />;
+            return <CircleChartTemplate
+              key="circle-chart"
+              chartData={page.chartData ?? undefined}
+              title={page.title?.rendered}
+            />;
           case PageTemplate.CONTACT:
             return <ContactFormTemplate key="contact-form" page={page} />;
           case undefined:

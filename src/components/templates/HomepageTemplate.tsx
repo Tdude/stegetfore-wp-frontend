@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Page } from '@/lib/types';
+import { HomepageTemplateProps, HomepageData } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import HeroSection from '@/components/homepage/HeroSection';
 import FeaturedPosts from '@/components/homepage/FeaturedPosts';
@@ -12,23 +12,33 @@ import SellingPoints from '@/components/homepage/SellingPoints';
 import GallerySection from '@/components/homepage/GallerySection';
 import StatsSection from '@/components/homepage/StatsSection';
 
-interface HomepageTemplateProps {
-  page: Page;
-  homepage?: any; // Homepage data from the custom endpoint
-}
-
 export default function HomepageTemplate({ page, homepage }: HomepageTemplateProps) {
   // Homepage data from custom endpoint or fallback
-  const homepageData = homepage || {};
+  // Parse homepage if it's a string, or use as is if it's already an object
+  const [homepageData, setHomepageData] = React.useState<HomepageData>({});
 
   // Client-side only rendering for HTML content
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
+    // Parse the homepage data if it's a string
+    if (typeof homepage === 'string') {
+      try {
+        const parsed = JSON.parse(homepage);
+        setHomepageData(parsed || {});
+      } catch (e) {
+        console.error('Failed to parse homepage data:', e);
+        setHomepageData({});
+      }
+    } else {
+      // Otherwise use it as is (already an object)
+      setHomepageData(homepage || {});
+    }
+
     setMounted(true);
     console.log('🏠 HomepageTemplate mounted');
     console.log('📄 Homepage data:', homepageData);
-  }, [homepageData]);
+  }, [homepage]);
 
   // Get hero image from various possible sources
   const getHeroImage = () => {
@@ -73,7 +83,10 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
 
           {/* Selling Points */}
           {homepageData.selling_points && homepageData.selling_points.length > 0 && (
-            <SellingPoints points={homepageData.selling_points} />
+            <SellingPoints
+              points={homepageData.selling_points}
+              title={homepageData.selling_points_title || "Våra fördelar"}
+            />
           )}
 
           {/* Stats Section */}
@@ -86,9 +99,12 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
             />
           )}
 
-          {/* Gallery Section - Maybe? */}
+          {/* Gallery Section */}
           {homepageData.gallery && homepageData.gallery.length > 0 && (
-            <GallerySection items={homepageData.gallery} />
+            <GallerySection
+              items={homepageData.gallery}
+              title={homepageData.gallery_title}
+            />
           )}
 
           {/* Testimonials Section */}

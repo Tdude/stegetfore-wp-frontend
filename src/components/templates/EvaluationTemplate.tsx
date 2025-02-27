@@ -269,6 +269,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ evaluatio
           id: 'loading-data', // Replace the loading toast
         });
       } catch (error) {
+        console.error('Error:' + error);
         toast.error('Kunde inte hämta utvärderingen', {
           id: 'loading-data', // Replace the loading toast
         });
@@ -308,6 +309,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ evaluatio
       });
 
     } catch (error) {
+      console.error('Error: ' + error);
       // Dismiss loading toast and show error
       toast.dismiss(loadingToast);
       toast.error('Kunde inte spara utvärderingen', {

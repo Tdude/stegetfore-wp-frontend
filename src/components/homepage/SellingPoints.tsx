@@ -1,23 +1,11 @@
 // src/components/homepage/SellingPoints.tsx
+'use client';
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SellingPointsProps } from '@/lib/types';
 
-interface SellingPoint {
-  id: number;
-  title: string;
-  description: string;
-  icon?: string; // SVG path or icon identifier
-}
-
-interface SellingPointsProps {
-  points: SellingPoint[];
-  title?: string;
-}
-
-export default function SellingPoints({
-  points,
-  title = "Varför välja oss"
-}: SellingPointsProps) {
+export default function SellingPoints({ points, title }: SellingPointsProps) {
   // Define standard icons when custom ones are not provided
   const defaultIcons = [
     `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>`, // Shield
@@ -61,7 +49,13 @@ export default function SellingPoints({
                 <CardTitle className="text-2xl font-bold">{point.title}</CardTitle>
               </CardHeader>
               <CardContent className="pt-0 flex-grow">
-                <p className="text-muted-foreground text-lg">{point.description}</p>
+                {/* Use content property for HTML content or description for plain text */}
+                {point.content ? (
+                  <div className="text-muted-foreground text-lg"
+                    dangerouslySetInnerHTML={{ __html: point.content }} />
+                ) : (
+                  <p className="text-muted-foreground text-lg">{point.description}</p>
+                )}
               </CardContent>
 
               {/* Golden ratio decorative element */}

@@ -15,19 +15,7 @@ import {
   CarouselPrevious
 } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-interface Testimonial {
-  id: number;
-  content: string;
-  author_name: string;
-  author_position: string;
-  author_image?: string;
-}
-
-interface TestimonialsSectionProps {
-  testimonials: Testimonial[];
-  title: string;
-}
+import { TestimonialsSectionProps } from '@/lib/types';
 
 export default function TestimonialsSection({
   testimonials,

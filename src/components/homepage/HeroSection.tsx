@@ -2,17 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
-
-interface HeroSectionProps {
-  title: string;
-  intro: string;
-  imageUrl: string | string[] | null | false;
-  ctaButtons: Array<{
-    text: string;
-    url: string;
-    style: 'primary' | 'secondary' | 'outline';
-  }>;
-}
+import { HeroSectionProps } from '@/lib/types';
 
 export default function HeroSection({
   title,
@@ -37,14 +27,14 @@ export default function HeroSection({
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <Image
-        src={finalImageUrl}
-        alt="Hero background"
-        className="w-full h-full object-cover"
-        onError={(e) => {
-          // Fallback if image fails to load
-          e.currentTarget.src = '/images/hero-fallback.jpg';
-        }}
-        fill
+          src={finalImageUrl}
+          alt="Hero background"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback if image fails to load
+            e.currentTarget.src = '/images/hero-fallback.jpg';
+          }}
+          fill
         />
         {/* Overlay to improve text visibility */}
         <div className="absolute inset-0 bg-black/30"></div>
