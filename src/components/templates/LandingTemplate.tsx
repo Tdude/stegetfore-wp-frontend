@@ -1,9 +1,10 @@
 // src/components/templates/LandingTemplate.tsx
 'use client';
 
-import React, { useEffect } from 'react';
-import { Page, PageTemplate } from '@/lib/types';
+import React from 'react';
+import { Page } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+import Image from 'next/image';
 
 export default function LandingTemplate({ page }: { page: Page }) {
   const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
@@ -12,11 +13,12 @@ export default function LandingTemplate({ page }: { page: Page }) {
         <div>This should be the Landing/Start </div>
       <article className="max-w-3xl mx-auto">
         {featuredImage && (
-          <img
-            src={featuredImage}
-            alt={page.title.rendered}
-            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-          />
+        <Image
+          src={featuredImage}
+          alt={page.title.rendered}
+          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          fill
+        />
         )}
 
         <h1

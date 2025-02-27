@@ -1,4 +1,3 @@
-// src/lib/api.ts
 import {
   Post,
   Page,
@@ -6,6 +5,8 @@ import {
   MenuItem,
   WPCF7Form,
   WPCF7SubmissionResponse,
+  LocalPage,
+  HomepageData,
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,10 +20,10 @@ if (!THEME_SLUG) {
   throw new Error("THEME_SLUG is not defined");
 }
 
-async function fetchAPI(
+async function fetchAPI<T>(
   endpoint: string,
   options: { revalidate?: number } = {}
-) {
+): Promise<T> {
   const url = `${API_URL}${endpoint}`;
   console.log("Fetching:", url);
 
@@ -45,16 +46,21 @@ async function fetchAPI(
     }
 
     const data = await response.json();
-    return data;
+    return data as T;
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;
   }
 }
 
-export async function testConnection() {
+export async function testConnection(): Promise<{
+  success: boolean;
+  message: string;
+}> {
   try {
-    return await fetchAPI(`/${THEME_SLUG}/v1/test`);
+    return await fetchAPI<{ success: boolean; message: string }>(
+      `/${THEME_SLUG}/v1/test`
+    );
   } catch (error) {
     console.error("API Connection Error:", error);
     throw error;
@@ -64,13 +70,13 @@ export async function testConnection() {
 export async function fetchPosts(): Promise<Post[]> {
   try {
     // Cache posts list for 1 hour
-    const posts = await fetchAPI("/wp/v2/posts?_embed&per_page=12", {
+    const posts = await fetchAPI<Post[]>("/wp/v2/posts?_embed&per_page=12", {
       revalidate: 3600,
     });
 
     // Map the response to match our Post interface
     return Array.isArray(posts)
-      ? posts.map((post: any) => ({
+      ? posts.map((post: Post) => ({
           id: post.id,
           slug: post.slug,
           title: {
@@ -96,7 +102,7 @@ export async function fetchPosts(): Promise<Post[]> {
 export async function fetchPost(slug: string): Promise<Post | null> {
   try {
     // Cache individual posts for 20 minutes
-    const posts = await fetchAPI(`/wp/v2/posts?slug=${slug}&_embed`, {
+    const posts = await fetchAPI<Post[]>(`/wp/v2/posts?slug=${slug}&_embed`, {
       revalidate: 1200,
     });
 
@@ -128,12 +134,18 @@ export async function fetchPost(slug: string): Promise<Post | null> {
   }
 }
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 // Fetch all categories
 export async function fetchCategories(): Promise<
   Record<number, { id: number; name: string; slug: string }>
 > {
   try {
-    const categories = await fetchAPI("/wp/v2/categories", {
+    const categories = await fetchAPI<Category[]>("/wp/v2/categories", {
       revalidate: 3600, // Cache for 1 hour
     });
 
@@ -152,7 +164,7 @@ export async function fetchCategories(): Promise<
 export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
   try {
     const featuredTagId = 17; // Actual "fokus" tag ID (17)
-    const posts = await fetchAPI(
+    const posts = await fetchAPI<Post[]>(
       `/wp/v2/posts?_embed&per_page=${count}&categories=${featuredTagId}`,
       {
         revalidate: 3600, // Cache for 1 hour
@@ -161,7 +173,7 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
 
     // Map the response to match our Post interface
     return Array.isArray(posts)
-      ? posts.map((post: any) => ({
+      ? posts.map((post: Post) => ({
           id: post.id,
           slug: post.slug,
           title: {
@@ -188,7 +200,7 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
 export async function fetchSiteInfo(): Promise<SiteInfo> {
   try {
     // Cache site info for 1 hour
-    const data = await fetchAPI(`/${THEME_SLUG}/v1/site-info`, {
+    const data = await fetchAPI<SiteInfo>(`/${THEME_SLUG}/v1/site-info`, {
       revalidate: 3600,
     });
     return {
@@ -210,12 +222,12 @@ export async function fetchSiteInfo(): Promise<SiteInfo> {
 export async function fetchMainMenu(): Promise<MenuItem[]> {
   try {
     // Cache menu for 1 hour
-    const data = await fetchAPI(`/${THEME_SLUG}/v1/menu/primary`, {
+    const data = await fetchAPI<MenuItem[]>(`/${THEME_SLUG}/v1/menu/primary`, {
       revalidate: 3600,
     });
 
     // Process menu items to ensure they match our MenuItem type
-    const processMenuItems = (items: any[]): MenuItem[] => {
+    const processMenuItems = (items: MenuItem[]): MenuItem[] => {
       if (!Array.isArray(items)) return [];
 
       return items.map((item) => ({
@@ -235,20 +247,22 @@ export async function fetchMainMenu(): Promise<MenuItem[]> {
   }
 }
 
-export async function fetchPages(): Promise<Page[]> {
+export async function fetchPages(): Promise<LocalPage[]> {
   try {
     // Cache pages list for 20 minutes
-    const pages = await fetchAPI("/wp/v2/pages?_embed", { revalidate: 1200 });
+    const pages = await fetchAPI<Page[]>("/wp/v2/pages?_embed", {
+      revalidate: 1200,
+    });
 
     return Array.isArray(pages)
-      ? pages.map((page: any) => ({
-          id: page.id,
-          slug: page.slug,
+      ? pages.map((page: Page) => ({
+          id: page.id ?? 0,
+          slug: page.slug ?? "",
           title: {
             rendered: page.title.rendered,
           },
           excerpt: {
-            rendered: page.excerpt.rendered,
+            rendered: page.excerpt?.rendered ?? "",
           },
           content: {
             rendered: page.content.rendered,
@@ -266,10 +280,10 @@ export async function fetchPages(): Promise<Page[]> {
   }
 }
 
-export async function fetchPage(slug: string): Promise<Page | null> {
+export async function fetchPage(slug: string): Promise<LocalPage | null> {
   try {
     // Cache individual pages for 20 minutes
-    const pages = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {
+    const pages = await fetchAPI<Page[]>(`/wp/v2/pages?slug=${slug}&_embed`, {
       revalidate: 1200,
     });
 
@@ -280,13 +294,13 @@ export async function fetchPage(slug: string): Promise<Page | null> {
     const page = pages[0];
 
     return {
-      id: page.id,
-      slug: page.slug,
+      id: page.id ?? 0,
+      slug: page.slug ?? "",
       title: {
         rendered: page.title.rendered,
       },
       excerpt: {
-        rendered: page.excerpt.rendered,
+        rendered: page.excerpt?.rendered ?? "",
       },
       content: {
         rendered: page.content.rendered,
@@ -303,7 +317,7 @@ export async function fetchPage(slug: string): Promise<Page | null> {
   }
 }
 
-export async function fetchHomepageData(): Promise<any> {
+export async function fetchHomepageData(): Promise<HomepageData> {
   try {
     const [response, categories] = await Promise.all([
       fetch(`${API_URL}/startpage/v1/homepage-data`, {
@@ -316,7 +330,9 @@ export async function fetchHomepageData(): Promise<any> {
       throw new Error(`Failed to fetch homepage data: ${response.status}`);
     }
 
-    const homepageData = await response.json();
+    const homepageData = (await response.json()) as HomepageData & {
+      featured_post_ids?: number[];
+    };
 
     // Fetch featured posts or fallback to the latest 3 posts
     const featuredPosts = homepageData.featured_post_ids?.length
@@ -337,7 +353,7 @@ export async function fetchHomepageData(): Promise<any> {
 /**
  * Fetches posts by their IDs
  */
-export async function fetchPostsByIds(ids: number[]): Promise<any[]> {
+export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
   try {
     const response = await fetch(
       `${API_URL}/wp-json/wp/v2/posts?include=${ids.join(",")}&_embed=true`,
@@ -348,10 +364,10 @@ export async function fetchPostsByIds(ids: number[]): Promise<any[]> {
       throw new Error(`Failed to fetch posts by IDs: ${response.status}`);
     }
 
-    const posts = await response.json();
+    const posts = (await response.json()) as Post[];
 
     // Process posts to add featured image URL
-    return posts.map((post: any) => ({
+    return posts.map((post: Post) => ({
       ...post,
       featured_image_url:
         post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,

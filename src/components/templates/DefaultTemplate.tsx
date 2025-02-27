@@ -2,10 +2,11 @@
 'use client';
 
 import React from 'react';
-import { Page } from '@/lib/types';
+import { LocalPage } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+import Image from 'next/image';
 
-export default function DefaultTemplate({ page }: { page: Page }) {
+export default function DefaultTemplate({ page }: { page: LocalPage }) {
   // Add null checks for all properties
   const featuredMedia = page?._embedded?.['wp:featuredmedia']?.[0];
   const featuredImage = featuredMedia?.source_url;
@@ -17,13 +18,14 @@ export default function DefaultTemplate({ page }: { page: Page }) {
 
   return (
     <TemplateTransitionWrapper>
-      <article className="max-w-2xl mx-auto px-4 py-8">
+      <article className="max-w-2xl mx-auto px-4 py-8 border-primary">
         {featuredImage && (
-          <img
-            src={featuredImage}
-            alt={imageAlt}
-            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-            loading="lazy"
+          <Image
+          src={featuredImage}
+          alt={imageAlt}
+          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+          loading="lazy"
+          fill
           />
         )}
 

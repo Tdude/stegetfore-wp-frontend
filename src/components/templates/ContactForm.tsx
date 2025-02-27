@@ -141,7 +141,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         setDialogOpen(true);
       }
     } catch (error) {
-      console.error("Never used? My ass: " + error);
+      console.error("Error submitting form: ", error);
       setStatus('error');
       setDialogMessage('Kunde inte skicka iväg. Försök igen om en stund. Errormeddelande: ' + error);
       setDialogOpen(true);
@@ -149,9 +149,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 bg-red-500">
       <h1 className="mb-10 text-center text-3xl font-bold">{title}</h1>
-
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Form Column */}
         <div className="lg:col-span-7">
@@ -166,7 +165,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className="form-input w-full border-0 border-b-2 border-border bg-transparent px-0 py-2 focus:border-primary focus:ring-transparent"
+                className="form-input w-full border-b-2 border-border bg-background px-0 py-2 focus:border-primary focus:ring-transparent"
                 placeholder="Your name"
               />
               {errors.name && (
@@ -184,7 +183,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="form-input w-full border-0 border-b-2 border-border bg-transparent px-0 py-2 focus:border-primary focus:ring-transparent"
+                className="form-input w-full border-b-2 border-border bg-background px-0 py-2 focus:border-primary focus:ring-transparent"
                 placeholder="john.doe@email.com"
               />
               {errors.email && (
@@ -202,7 +201,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 value={formData.message}
                 onChange={handleChange}
                 rows={4}
-                className="form-input w-full resize-y border-0 border-b-2 border-border bg-transparent px-0 py-2 focus:border-primary focus:ring-transparent"
+                className="form-input w-full resize-y border-b-2 border-border bg-background px-0 py-2 focus:border-primary focus:ring-transparent"
                 placeholder="Write here your detailed message..."
               />
               {errors.message && (
@@ -215,9 +214,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
               variant="primary"
               size="lg"
               disabled={status === 'submitting'}
-              asChild
             >
-              {status === 'submitting' ? 'Skickar...' : 'Skicka meddelandet'}
+              <span>{status === 'submitting' ? 'Skickar...' : 'Skicka meddelandet'}</span>
             </Button>
           </form>
         </div>

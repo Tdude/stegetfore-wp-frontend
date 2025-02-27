@@ -1,7 +1,32 @@
-// src/lib/types.ts
+import * as React from "react";
+
+// Obsverktyget
+export interface FormData {
+  anknytning: {
+    narvaro: string;
+    dialog1: string;
+    dialog2: string;
+    blick: string;
+    beroring: string;
+    konflikt: string;
+    fortroende: string;
+    comments: Record<string, string>;
+  };
+  ansvar: {
+    impulskontroll: string;
+    forberedd: string;
+    fokus: string;
+    turtagning: string;
+    instruktion: string;
+    arbeta_sjalv: string;
+    tid: string;
+    comments: Record<string, string>;
+  };
+}
 
 export interface MenuItem {
   ID: number;
+  id?: number; // Added for compatibility
   title: string;
   url: string;
   slug: string;
@@ -29,13 +54,43 @@ export interface Post {
   content: {
     rendered: string;
   };
-  template?: string;
   featured_image_url?: string | null;
   categories: number[];
+  _embedded?: {
+    "wp:featuredmedia"?: [
+      {
+        source_url: string;
+      }
+    ];
+  };
+  template?: string;
 }
 
 export interface Page {
-  chartData: { segments: number[] } | undefined;
+  id?: number;
+  slug?: string;
+  _embedded?: {
+    "wp:featuredmedia"?: Array<{
+      source_url: string;
+    }>;
+  };
+  title: {
+    rendered: string;
+  };
+  content: {
+    rendered: string;
+  };
+  excerpt?: {
+    rendered: string;
+  };
+  template?: string;
+  chartData?: {
+    segments: number[];
+  } | null;
+}
+
+export interface LocalPage {
+  chartData: { segments: number[] } | undefined | null;
   id: number;
   title: {
     rendered: string;
@@ -67,6 +122,12 @@ export interface Page {
     }>;
   };
   evaluationId?: string;
+}
+
+export interface HomepageData {
+  featured_posts: Post[];
+  categories: Record<number, { id: number; name: string; slug: string }>;
+  [key: string]: unknown;
 }
 
 export interface WPCF7Form {
@@ -114,3 +175,106 @@ export enum PageTemplate {
   CIRCLE_CHART = "templates/circle-chart.php",
   CONTACT = "templates/contact",
 }
+
+export interface PageTemplateSelectorProps<T = HomepageData> {
+  page: LocalPage & {
+    type?: string;
+    template?: string;
+    id?: number;
+    slug?: string;
+    title?: { rendered: string };
+  };
+  isHomePage?: boolean; // New prop to force homepage template
+  homepageData?: T; // Generic type with default
+}
+
+// Types for saving evaluation
+//interface SaveResponse {
+//  success: boolean;
+//  id: number;
+//  message: string;
+//}
+//
+//interface LoadedData {
+//  id: number;
+//  formData: FormData;
+//  last_updated: string;
+//}
+
+export interface LocalFormData {
+  anknytning: {
+    narvaro: string;
+    dialog1: string;
+    dialog2: string;
+    blick: string;
+    beroring: string;
+    konflikt: string;
+    fortroende: string;
+    comments: Record<string, string>;
+  };
+  ansvar: {
+    impulskontroll: string;
+    forberedd: string;
+    fokus: string;
+    turtagning: string;
+    instruktion: string;
+    arbeta_sjalv: string;
+    tid: string;
+    comments: Record<string, string>;
+  };
+}
+
+export interface SubSectionProps {
+  title: string;
+  name: string;
+  options: Array<{
+    value: string;
+    label: string;
+    stage: "ej" | "trans" | "full";
+  }>;
+  value: string;
+  onChange: (value: string) => void;
+  onCommentChange: (value: string) => void;
+  comment: string;
+  sectionKey: keyof FormData;
+  fieldName: string;
+  calculateProgress: (section: keyof FormData, field: string) => number;
+}
+
+export interface ProgressBarProps {
+  value: number;
+  type: "section" | "total";
+  stage?: "ej" | "trans" | "full";
+}
+
+// Initial form state
+export const initialFormState: LocalFormData = {
+  anknytning: {
+    narvaro: "",
+    dialog1: "",
+    dialog2: "",
+    blick: "",
+    beroring: "",
+    konflikt: "",
+    fortroende: "",
+    comments: {},
+  },
+  ansvar: {
+    impulskontroll: "",
+    forberedd: "",
+    fokus: "",
+    turtagning: "",
+    instruktion: "",
+    arbeta_sjalv: "",
+    tid: "",
+    comments: {},
+  },
+};
+
+export interface HomepageTemplateProps {
+  page: Page;
+  homepage?: HomepageData;
+}
+
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}

@@ -13,90 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-
-// Types
-interface SaveResponse {
-  success: boolean;
-  id: number;
-  message: string;
-}
-
-interface LoadedData {
-  id: number;
-  formData: FormData;
-  last_updated: string;
-}
-
-interface FormData {
-  anknytning: {
-    narvaro: string;
-    dialog1: string;
-    dialog2: string;
-    blick: string;
-    beroring: string;
-    konflikt: string;
-    fortroende: string;
-    comments: Record<string, string>;
-  };
-  ansvar: {
-    impulskontroll: string;
-    forberedd: string;
-    fokus: string;
-    turtagning: string;
-    instruktion: string;
-    arbeta_sjalv: string;
-    tid: string;
-    comments: Record<string, string>;
-  };
-}
-
-interface SubSectionProps {
-  title: string;
-  name: string;
-  options: Array<{
-    value: string;
-    label: string;
-    stage: 'ej' | 'trans' | 'full';
-  }>;
-  value: string;
-  onChange: (value: string) => void;
-  onCommentChange: (value: string) => void;
-  comment: string;
-  sectionKey: keyof FormData;
-  fieldName: string;
-  calculateProgress: (section: keyof FormData, field: string) => number;
-}
-
-
-interface ProgressBarProps {
-  value: number;
-  type: 'section' | 'total';
-  stage?: 'ej' | 'trans' | 'full';
-}
-
-// Initial form state
-const initialFormState: FormData = {
-  anknytning: {
-    narvaro: '',
-    dialog1: '',
-    dialog2: '',
-    blick: '',
-    beroring: '',
-    konflikt: '',
-    fortroende: '',
-    comments: {}
-  },
-  ansvar: {
-    impulskontroll: '',
-    forberedd: '',
-    fokus: '',
-    turtagning: '',
-    instruktion: '',
-    arbeta_sjalv: '',
-    tid: '',
-    comments: {}
-  }
-};
+import { FormData, initialFormState, ProgressBarProps, SubSectionProps } from '@/lib/types';
 
 // Styling classes
 const stageClasses = {
@@ -110,7 +27,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, type, stage }) => {
   const baseClasses = "h2 rounded-full transition-all duration-300";
   const typeClasses = type === 'section' ? 'h-1' : 'h-6';
 
-  const getProgressColor = (value: number, stage?: string) => {
+  const getProgressColor = (value: number, stage?: 'ej' | 'trans' | 'full') => {
     if (type === 'total' && stage === 'ej') return 'bg-red-500';
     if (value < 33) return 'bg-red-500';
     if (value < 66) return 'bg-amber-500';
@@ -142,6 +59,12 @@ const SubSection: React.FC<SubSectionProps> = ({
 }) => {
   const progress = calculateProgress(sectionKey, fieldName);
 
+  // Group options by stage
+  const groupedOptions = options.reduce((acc, opt) => {
+    if (!acc[opt.stage]) acc[opt.stage] = [];
+    acc[opt.stage].push(opt);
+    return acc;
+  }, {} as Record<string, typeof options>);
 
   return (
     <div className="mb-6">
@@ -149,14 +72,10 @@ const SubSection: React.FC<SubSectionProps> = ({
       <ProgressBar value={progress} type="section" />
 
       <RadioGroup value={value} onValueChange={onChange} className="mt-4">
-        {Object.entries(options.reduce((acc, opt) => {
-          if (!acc[opt.stage]) acc[opt.stage] = [];
-          acc[opt.stage].push(opt);
-          return acc;
-        }, {} as Record<string, typeof options>)).map(([stage, stageOptions]) => (
+        {Object.entries(groupedOptions).map(([stage, stageOptions]) => (
           <div key={stage} className={stageClasses[stage as keyof typeof stageClasses]}>
             {stageOptions.map((option) => (
-              <div key={option.value} className="flex items-start space-x-2 py-1">
+              <div key={option.value} className="flex items-start space-x-2">
                 <RadioGroupItem value={option.value} id={`${name}-${option.value}`} />
                 <Label
                   htmlFor={`${name}-${option.value}`}
@@ -180,6 +99,36 @@ const SubSection: React.FC<SubSectionProps> = ({
   );
 };
 
+// Progress Header Component
+interface ProgressHeaderProps {
+  stages: Array<{
+    label: string;
+    type: 'ej' | 'trans' | 'full';
+  }>;
+}
+
+const ProgressHeader: React.FC<ProgressHeaderProps> = ({ stages }) => {
+  const headerStageClasses = {
+    ej: 'border-b-4 border-red-200',
+    trans: 'border-b-4 border-amber-200',
+    full: 'border-b-4 border-green-200'
+  };
+
+  return (
+    <div className="flex justify-between mb-2">
+      {stages.map((stage) => (
+        <div
+          key={stage.type}
+          className={`flex-1 text-center p-2 text-lg font-bold ${headerStageClasses[stage.type]}`}
+        >
+          {stage.label}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Options definitions
 const narvaroOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Kommer inte till skolan', stage: 'ej' },
   { value: '2', label: 'Kommer till skolan, ej till lektion', stage: 'ej' },
@@ -188,15 +137,13 @@ const narvaroOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'f
   { value: '5', label: 'Kommer till andras lektioner', stage: 'full' }
 ];
 
-
-// Add these option arrays after the existing narvaroOptions
 const dialog1Options: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Helt tyst', stage: 'ej' },
   { value: '2', label: 'Säger enstaka ord till mig', stage: 'ej' },
   { value: '3', label: 'Vi pratar ibland', stage: 'trans' },
   { value: '4', label: 'Har full dialog med mig', stage: 'trans' },
   { value: '5', label: 'Har dialog med andra vuxna', stage: 'full' }
-]
+];
 
 const dialog2Options: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Pratar oavbrutet', stage: 'ej' },
@@ -204,7 +151,7 @@ const dialog2Options: { value: string; label: string; stage: 'ej' | 'trans' | 'f
   { value: '3', label: 'Lyssnar på mig', stage: 'trans' },
   { value: '4', label: 'Har full dialog med mig', stage: 'trans' },
   { value: '5', label: 'Dialog med vissa andra vuxna', stage: 'full' }
-]
+];
 
 const blickOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Möter inte min blick', stage: 'ej' },
@@ -212,7 +159,7 @@ const blickOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'ful
   { value: '3', label: 'Håller fast ögonkontakt', stage: 'trans' },
   { value: '4', label: '"Pratar" med ögonen', stage: 'trans' },
   { value: '5', label: 'Möter andras blickar', stage: 'full' }
-]
+];
 
 const beroringOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Jag får inte närma mig', stage: 'ej' },
@@ -220,7 +167,7 @@ const beroringOptions: { value: string; label: string; stage: 'ej' | 'trans' | '
   { value: '3', label: 'Tillåter beröring av mig', stage: 'trans' },
   { value: '4', label: 'Söker fysisk kontakt, ex. kramar', stage: 'trans' },
   { value: '5', label: 'Tillåter beröring av andra vuxna', stage: 'full' }
-]
+];
 
 const konfliktOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Försvinner från skolan vid konflikt', stage: 'ej' },
@@ -228,7 +175,7 @@ const konfliktOptions: { value: string; label: string; stage: 'ej' | 'trans' | '
   { value: '3', label: 'Kommer tillbaka till mig', stage: 'trans' },
   { value: '4', label: 'Förklarar för mig efter konflikt', stage: 'trans' },
   { value: '5', label: 'Kommer tillbaka till andra vuxna', stage: 'full' }
-]
+];
 
 const fortroendeOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Delar inte med sig', stage: 'ej' },
@@ -236,8 +183,7 @@ const fortroendeOptions: { value: string; label: string; stage: 'ej' | 'trans' |
   { value: '3', label: 'Vill dela med sig till mig', stage: 'trans' },
   { value: '4', label: 'Ger mig förtroenden', stage: 'trans' },
   { value: '5', label: 'Ger även förtroenden till vissa andra', stage: 'full' }
-]
-
+];
 
 const impulskontrollOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Helt impulsstyrd', stage: 'ej' },
@@ -245,7 +191,7 @@ const impulskontrollOptions: { value: string; label: string; stage: 'ej' | 'tran
   { value: '3', label: 'Skäms över negativa beteenden', stage: 'trans' },
   { value: '4', label: 'Kan ta mot tillsägelse', stage: 'trans' },
   { value: '5', label: 'Kan prata om det som hänt', stage: 'full' }
-]
+];
 
 const forberedddOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Aldrig', stage: 'ej' },
@@ -253,7 +199,7 @@ const forberedddOptions: { value: string; label: string; stage: 'ej' | 'trans' |
   { value: '3', label: 'Försöker vara förberedd som andra', stage: 'trans' },
   { value: '4', label: 'Pratar om förberedelse', stage: 'trans' },
   { value: '5', label: 'Planerar och har ordning', stage: 'full' }
-]
+];
 
 const fokusOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Kan inte koncentrera sig', stage: 'ej' },
@@ -261,7 +207,7 @@ const fokusOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'ful
   { value: '3', label: 'Kan fokusera självmant tillsammans med andra', stage: 'trans' },
   { value: '4', label: 'Pratar om fokus och förbättrar sig', stage: 'trans' },
   { value: '5', label: 'Kan fokusera och koncentrera sig', stage: 'full' }
-]
+];
 
 const turtagningOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Klarar ej', stage: 'ej' },
@@ -269,7 +215,7 @@ const turtagningOptions: { value: string; label: string; stage: 'ej' | 'trans' |
   { value: '3', label: 'Gör som andra, räcker upp handen', stage: 'trans' },
   { value: '4', label: 'Kan komma överens om hur turtagning fungerar', stage: 'trans' },
   { value: '5', label: 'Full turtagning', stage: 'full' }
-]
+];
 
 const instruktionOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Tar inte/förstår inte instruktion', stage: 'ej' },
@@ -277,7 +223,7 @@ const instruktionOptions: { value: string; label: string; stage: 'ej' | 'trans' 
   { value: '3', label: 'Tar/förstår instruktion i flera led, kan lösa uppgift ibland', stage: 'trans' },
   { value: '4', label: 'Kan prata om uppgiftslösning', stage: 'trans' },
   { value: '5', label: 'Genomför uppgifter', stage: 'full' }
-]
+];
 
 const arbetaSjalvOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Klarar inte', stage: 'ej' },
@@ -285,7 +231,7 @@ const arbetaSjalvOptions: { value: string; label: string; stage: 'ej' | 'trans' 
   { value: '3', label: 'Kan klara uppgifter självständigt i klassrummet', stage: 'trans' },
   { value: '4', label: 'Gör ofta läxor och pratar om dem', stage: 'trans' },
   { value: '5', label: 'Tar ansvar för självständigt arbete utanför skolan', stage: 'full' }
-]
+];
 
 const tidOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full' }[] = [
   { value: '1', label: 'Ingen tidsuppfattning', stage: 'ej' },
@@ -293,12 +239,14 @@ const tidOptions: { value: string; label: string; stage: 'ej' | 'trans' | 'full'
   { value: '3', label: 'Har begrepp för en kvart', stage: 'trans' },
   { value: '4', label: 'Kan beskriva tidslängd och ordningsförlopp', stage: 'trans' },
   { value: '5', label: 'God tidsuppfattning', stage: 'full' }
-]
+];
 
+interface StudentEvaluationFormProps {
+  evaluationId?: number;
+}
 
-const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
+const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ evaluationId }) => {
   const [formData, setFormData] = useState<FormData>(initialFormState);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // For data loading
@@ -330,36 +278,7 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
     fetchData();
   }, [evaluationId]);
 
-  // For unsaved changes warning
-  const handleFieldChange = (newValue: any) => {
-    setFormData(newValue);
-    toast.info('Kom ihåg att spara dina ändringar!', {
-      id: 'unsaved-changes', // Only show one of these at a time
-      duration: 2000,
-    });
-  };
-
-  // For validation errors
-  const validateForm = () => {
-    const errors: string[] = []; // Your validation logic here
-
-    if (errors.length > 0) {
-      toast.error('Vänligen åtgärda följande:', {
-        description: (
-          <ul className="list-disc pl-4">
-            {errors.map((error, i) => (
-              <li key={i}>{error}</li>
-            ))}
-          </ul>
-        ),
-        duration: 5000,
-      });
-      return false;
-    }
-    return true;
-  };
-
-  // Loading notifications
+  // For form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -399,7 +318,6 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
       setIsSaving(false);
     }
   };
-
 
   // Handle form value changes
   const handleValueChange = (section: keyof FormData, field: string) => (value: string) => {
@@ -455,130 +373,79 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
     return 'full';
   };
 
-  // Progress Header Props
-  interface ProgressHeaderProps {
-    stages: Array<{
-      label: string;
-      type: 'ej' | 'trans' | 'full';
-    }>;
-  }
+  // Group criteria for better layout
+  const anknytningGroup1 = [
+    { title: 'Närvaro', name: 'narvaro', options: narvaroOptions },
+    { title: 'Dialog 1', name: 'dialog1', options: dialog1Options },
+    { title: 'Dialog 2', name: 'dialog2', options: dialog2Options },
+  ];
 
-  // Progress Header Component
-  const ProgressHeader: React.FC<ProgressHeaderProps> = ({ stages }) => {
-    const headerStageClasses = {
-      ej: 'border-b-4 border-red-200',
-      trans: 'border-b-4 border-amber-200',
-      full: 'border-b-4 border-green-200'
-    };
+  const anknytningGroup2 = [
+    { title: 'Blick, kroppsspråk', name: 'blick', options: blickOptions },
+    { title: 'Beröring', name: 'beroring', options: beroringOptions },
+    { title: 'Vid konflikt', name: 'konflikt', options: konfliktOptions },
+    { title: 'Förtroende', name: 'fortroende', options: fortroendeOptions },
+  ];
 
-    return (
-      <div className="flex justify-between mb-2">
-        {stages.map((stage) => (
-          <div
-            key={stage.type}
-            className={`flex-1 text-center p-2 text-lg font-bold ${headerStageClasses[stage.type]}`}
-          >
-            {stage.label}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const ansvarGroup1 = [
+    { title: 'Impulskontroll', name: 'impulskontroll', options: impulskontrollOptions },
+    { title: 'Förberedd', name: 'forberedd', options: forberedddOptions },
+    { title: 'Fokus', name: 'fokus', options: fokusOptions },
+  ];
 
-
+  const ansvarGroup2 = [
+    { title: 'Turtagning', name: 'turtagning', options: turtagningOptions },
+    { title: 'Instruktion', name: 'instruktion', options: instruktionOptions },
+    { title: 'Arbeta själv', name: 'arbeta_sjalv', options: arbetaSjalvOptions },
+    { title: 'Tid', name: 'tid', options: tidOptions },
+  ];
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 p-6">
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-8 p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Anknytningstecken</CardTitle>
+          <CardTitle className="text-2xl">Anknytningstecken</CardTitle>
         </CardHeader>
         <CardContent>
-        <div className="h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <SubSection
-            title="Närvaro"
-            name="narvaro"
-            options={narvaroOptions}
-            value={formData?.anknytning?.narvaro ?? ''}
-            onChange={handleValueChange('anknytning', 'narvaro')}
-            onCommentChange={handleCommentChange('anknytning', 'narvaro')}
-            comment={formData?.anknytning?.comments?.narvaro ?? ''}
-            sectionKey="anknytning"
-            fieldName="narvaro"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Dialog 1"
-            name="dialog1"
-            options={dialog1Options}
-            value={formData?.anknytning?.dialog1 ?? ''}
-            onChange={handleValueChange('anknytning', 'dialog1')}
-            onCommentChange={handleCommentChange('anknytning', 'dialog1')}
-            comment={formData?.anknytning?.comments?.dialog1 ?? ''}
-            sectionKey="anknytning"
-            fieldName="dialog1"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Dialog 2"
-            name="dialog2"
-            options={dialog2Options}
-            value={formData?.anknytning?.dialog2 ?? ''}
-            onChange={handleValueChange('anknytning', 'dialog2')}
-            onCommentChange={handleCommentChange('anknytning', 'dialog2')}
-            comment={formData?.anknytning?.comments?.dialog2 ?? ''}
-            sectionKey="anknytning"
-            fieldName="dialog2"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Blick, kroppsspråk"
-            name="blick"
-            options={blickOptions}
-            value={formData?.anknytning?.blick ?? ''}
-            onChange={handleValueChange('anknytning', 'blick')}
-            onCommentChange={handleCommentChange('anknytning', 'blick')}
-            comment={formData?.anknytning?.comments?.blick ?? ''}
-            sectionKey="anknytning"
-            fieldName="blick"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Beröring"
-            name="beroring"
-            options={beroringOptions}
-            value={formData?.anknytning?.beroring ?? ''}
-            onChange={handleValueChange('anknytning', 'beroring')}
-            onCommentChange={handleCommentChange('anknytning', 'beroring')}
-            comment={formData?.anknytning?.comments?.beroring ?? ''}
-            sectionKey="anknytning"
-            fieldName="beroring"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Vid konflikt"
-            name="konflikt"
-            options={konfliktOptions}
-            value={formData?.anknytning?.konflikt ?? ''}
-            onChange={handleValueChange('anknytning', 'konflikt')}
-            onCommentChange={handleCommentChange('anknytning', 'konflikt')}
-            comment={formData?.anknytning?.comments?.konflikt ?? ''}
-            sectionKey="anknytning"
-            fieldName="konflikt"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Förtroende"
-            name="fortroende"
-            options={fortroendeOptions}
-            value={formData?.anknytning?.fortroende ?? ''}
-            onChange={handleValueChange('anknytning', 'fortroende')}
-            onCommentChange={handleCommentChange('anknytning', 'fortroende')}
-            comment={formData?.anknytning?.comments?.fortroende ?? ''}
-            sectionKey="anknytning"
-            fieldName="fortroende"
-            calculateProgress={calculateSectionProgress}
-          />
+          {/* Two column layout for bigger screens */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* First column */}
+            <div className="md:w-1/2">
+              {anknytningGroup1.map((item) => (
+                <SubSection
+                  key={item.name}
+                  title={item.title}
+                  name={item.name}
+                  options={item.options}
+                  value={String(formData?.anknytning?.[item.name as keyof typeof formData.anknytning] || '')}
+                  onChange={handleValueChange('anknytning', item.name)}
+                  onCommentChange={handleCommentChange('anknytning', item.name)}
+                  comment={formData?.anknytning?.comments?.[item.name] ?? ''}
+                  sectionKey="anknytning"
+                  fieldName={item.name}
+                  calculateProgress={calculateSectionProgress}
+                />
+              ))}
+            </div>
+
+            {/* Second column */}
+            <div className="md:w-1/2">
+              {anknytningGroup2.map((item) => (
+                <SubSection
+                  key={item.name}
+                  title={item.title}
+                  name={item.name}
+                  options={item.options}
+                  value={String(formData?.anknytning?.[item.name as keyof typeof formData.anknytning] || '')}
+                  onChange={handleValueChange('anknytning', item.name)}
+                  onCommentChange={handleCommentChange('anknytning', item.name)}
+                  comment={formData?.anknytning?.comments?.[item.name] ?? ''}
+                  sectionKey="anknytning"
+                  fieldName={item.name}
+                  calculateProgress={calculateSectionProgress}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="mt-8">
@@ -600,98 +467,55 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ansvarstecken</CardTitle>
+          <CardTitle className="text-2xl">Ansvarstecken</CardTitle>
         </CardHeader>
         <CardContent>
-          <SubSection
-            title="Impulskontroll"
-            name="impulskontroll"
-            options={impulskontrollOptions}
-            value={formData?.ansvar?.impulskontroll ?? ''}
-            onChange={handleValueChange('ansvar', 'impulskontroll')}
-            onCommentChange={handleCommentChange('ansvar', 'impulskontroll')}
-            comment={formData?.ansvar?.comments?.impulskontroll ?? ''}
-            sectionKey="ansvar"
-            fieldName="impulskontroll"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Förberedd"
-            name="forberedd"
-            options={forberedddOptions}
-            value={formData?.ansvar?.forberedd ?? ''}
-            onChange={handleValueChange('ansvar', 'forberedd')}
-            onCommentChange={handleCommentChange('ansvar', 'forberedd')}
-            comment={formData?.ansvar?.comments?.forberedd ?? ''}
-            sectionKey="ansvar"
-            fieldName="forberedd"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Fokus"
-            name="fokus"
-            options={fokusOptions}
-            value={formData?.ansvar?.fokus ?? ''}
-            onChange={handleValueChange('ansvar', 'fokus')}
-            onCommentChange={handleCommentChange('ansvar', 'fokus')}
-            comment={formData?.ansvar?.comments?.fokus ?? ''}
-            sectionKey="ansvar"
-            fieldName="fokus"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Turtagning"
-            name="turtagning"
-            options={turtagningOptions}
-            value={formData?.ansvar?.turtagning ?? ''}
-            onChange={handleValueChange('ansvar', 'turtagning')}
-            onCommentChange={handleCommentChange('ansvar', 'turtagning')}
-            comment={formData?.ansvar?.comments?.turtagning ?? ''}
-            sectionKey="ansvar"
-            fieldName="turtagning"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Instruktion"
-            name="instruktion"
-            options={instruktionOptions}
-            value={formData?.ansvar?.instruktion ?? ''}
-            onChange={handleValueChange('ansvar', 'instruktion')}
-            onCommentChange={handleCommentChange('ansvar', 'instruktion')}
-            comment={formData?.ansvar?.comments?.instruktion ?? ''}
-            sectionKey="ansvar"
-            fieldName="instruktion"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Arbeta själv"
-            name="arbeta_sjalv"
-            options={arbetaSjalvOptions}
-            value={formData?.ansvar?.arbeta_sjalv ?? ''}
-            onChange={handleValueChange('ansvar', 'arbeta_sjalv')}
-            onCommentChange={handleCommentChange('ansvar', 'arbeta_sjalv')}
-            comment={formData?.ansvar?.comments?.arbeta_sjalv ?? ''}
-            sectionKey="ansvar"
-            fieldName="arbeta_sjalv"
-            calculateProgress={calculateSectionProgress}
-          />
-          <SubSection
-            title="Tid"
-            name="tid"
-            options={tidOptions}
-            value={formData?.ansvar?.tid ?? ''}
-            onChange={handleValueChange('ansvar', 'tid')}
-            onCommentChange={handleCommentChange('ansvar', 'tid')}
-            comment={formData?.ansvar?.comments?.tid ?? ''}
-            sectionKey="ansvar"
-            fieldName="tid"
-            calculateProgress={calculateSectionProgress}
-          />
+          {/* Two column layout for bigger screens */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* First column */}
+            <div className="md:w-1/2">
+              {ansvarGroup1.map((item) => (
+                <SubSection
+                  key={item.name}
+                  title={item.title}
+                  name={item.name}
+                  options={item.options}
+                  value={String(formData?.ansvar?.[item.name as keyof typeof formData.ansvar] || '')}
+                  onChange={handleValueChange('ansvar', item.name)}
+                  onCommentChange={handleCommentChange('ansvar', item.name)}
+                  comment={formData?.ansvar?.comments?.[item.name] ?? ''}
+                  sectionKey="ansvar"
+                  fieldName={item.name}
+                  calculateProgress={calculateSectionProgress}
+                />
+              ))}
+            </div>
+
+            {/* Second column */}
+            <div className="md:w-1/2">
+              {ansvarGroup2.map((item) => (
+                <SubSection
+                  key={item.name}
+                  title={item.title}
+                  name={item.name}
+                  options={item.options}
+                  value={String(formData?.ansvar?.[item.name as keyof typeof formData.ansvar] || '')}
+                  onChange={handleValueChange('ansvar', item.name)}
+                  onCommentChange={handleCommentChange('ansvar', item.name)}
+                  comment={formData?.ansvar?.comments?.[item.name] ?? ''}
+                  sectionKey="ansvar"
+                  fieldName={item.name}
+                  calculateProgress={calculateSectionProgress}
+                />
+              ))}
+            </div>
+          </div>
 
           <div className="mt-8">
             <ProgressHeader
               stages={[
                 { label: 'Ej elev', type: 'ej' },
+                //{ label: 'Under utveckling', type: 'trans' },
                 { label: 'Elev', type: 'full' }
               ]}
             />
@@ -704,16 +528,17 @@ const StudentEvaluationForm = ({ evaluationId }: { evaluationId?: number }) => {
         </CardContent>
       </Card>
 
-      <Button
-        type="submit"
-        className="w-full md:w-auto"
-        disabled={isSaving}
-      >
-        {isSaving ? 'Sparar...' : 'Spara'}
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          type="submit"
+          className="px-8 py-2 text-lg"
+          disabled={isSaving}
+        >
+          {isSaving ? 'Sparar...' : 'Spara utvärdering'}
+        </Button>
+      </div>
     </form>
   );
-
 };
 
 export default StudentEvaluationForm;

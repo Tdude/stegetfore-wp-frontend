@@ -1,7 +1,7 @@
 // src/components/templates/TemplateTransitionWrapper.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 

@@ -1,6 +1,7 @@
 // src/components/homepage/HeroSection.tsx
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import Image from 'next/image';
 
 interface HeroSectionProps {
   title: string;
@@ -35,14 +36,15 @@ export default function HeroSection({
     <section className="relative w-full h-[80vh] min-h-[500px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
-        <img
-          src={finalImageUrl}
-          alt="Hero background"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback if image fails to load
-            e.currentTarget.src = '/images/hero-fallback.jpg';
-          }}
+        <Image
+        src={finalImageUrl}
+        alt="Hero background"
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          // Fallback if image fails to load
+          e.currentTarget.src = '/images/hero-fallback.jpg';
+        }}
+        fill
         />
         {/* Overlay to improve text visibility */}
         <div className="absolute inset-0 bg-black/30"></div>

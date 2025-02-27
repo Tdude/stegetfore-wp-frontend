@@ -75,7 +75,7 @@ async function BlogPostsList() {
                 )}
 
                 <h2
-                  className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors"
+                  className="text-xl font-semibold mb-2 group-hover:text-orange-600 transition-colors"
                   dangerouslySetInnerHTML={{ __html: post.title.rendered }}
                 />
 

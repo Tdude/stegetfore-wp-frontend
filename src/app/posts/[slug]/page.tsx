@@ -44,7 +44,7 @@ async function Post({ slug }: { slug: string }) {
       <div className="mt-8">
         <Link
           href="/"
-          className="text-blue-600 hover:text-blue-800"
+          className="text-orange-400 hover:text-orange-600"
         >
           ← Till Start
         </Link>

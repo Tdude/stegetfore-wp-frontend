@@ -1,9 +1,9 @@
 // src/components/templates/SidebarTemplate.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 
-import { Page, PageTemplate } from '@/lib/types';
+import { Page } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
 export default function SidebarTemplate({ page }: { page: Page }) {
