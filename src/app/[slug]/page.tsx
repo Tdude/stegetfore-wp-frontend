@@ -6,12 +6,11 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-
-// Helper function to safely get params
-async function getSlugFromParams(params: { slug: string }) {
-  const result = await Promise.resolve(params);
-  return result.slug;
-}
+// Define the correct type for Next.js App Router page props
+type PageProps = {
+  params: { slug: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
 async function Page({ slug }: { slug: string }) {
   const page = await fetchPage(slug);
@@ -33,10 +32,12 @@ async function Page({ slug }: { slug: string }) {
       <article className="max-w-3xl mx-auto">
         {featuredImage && (
           <Image
-          src={featuredImage}
-          alt={page.title.rendered}
-          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-          fill
+            src={featuredImage}
+            alt={page.title.rendered}
+            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
+            width={1200}
+            height={630}
+            priority
           />
         )}
         <h1
@@ -54,15 +55,11 @@ async function Page({ slug }: { slug: string }) {
 
 export default async function PageWrapper({
   params
-}: {
-  params: { slug: string }
-}) {
-  const slug = await getSlugFromParams(params);
-
+}: PageProps) {
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
-        <Page slug={slug} />
+        <Page slug={params.slug} />
       </Suspense>
     </main>
   );
@@ -70,11 +67,8 @@ export default async function PageWrapper({
 
 export async function generateMetadata({
   params
-}: {
-  params: { slug: string }
-}) {
-  const slug = await getSlugFromParams(params);
-  const page = await fetchPage(slug);
+}: PageProps) {
+  const page = await fetchPage(params.slug);
 
   if (!page) {
     return { title: 'Page Not Found' };
