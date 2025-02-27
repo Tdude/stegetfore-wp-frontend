@@ -1,3 +1,4 @@
+// app/[slug]/page.tsx
 import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
@@ -5,17 +6,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-// Define more specific types
-type SlugParam = {
-  slug: string;
-};
-
-// For Next.js App Router pages
-type PageProps = {
-  params: SlugParam;
-  searchParams?: Record<string, string | string[] | undefined>;
-};
-
+// Using Next.js built-in types instead of custom types
 async function Page({ slug }: { slug: string }) {
   const page = await fetchPage(slug);
 
@@ -57,9 +48,12 @@ async function Page({ slug }: { slug: string }) {
   }
 }
 
-// Define the component using the specific PageProps type
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default async function PageWrapper({ params, searchParams }: PageProps) {
+// Using Next.js's built-in types instead of custom PageProps
+export default async function PageWrapper({
+  params,
+}: {
+  params: { slug: string }
+}) {
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
@@ -70,8 +64,11 @@ export default async function PageWrapper({ params, searchParams }: PageProps) {
 }
 
 // For metadata generation
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function generateMetadata({ params, searchParams }: PageProps) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}) {
   const page = await fetchPage(params.slug);
 
   if (!page) {
