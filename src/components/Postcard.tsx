@@ -21,11 +21,11 @@ export default function Postcard({ post }: { post: Post }) {
         <div className="p-4">
           <h2
             className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-            dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+            dangerouslySetInnerHTML={{ __html: post.title.rendered || '' }}
           />
           <div
             className="text-gray-700 line-clamp-3"
-            dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
+            dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered || '' }}
           />
           <div className="mt-4 text-orange-600 font-medium">
             Läs mer →
