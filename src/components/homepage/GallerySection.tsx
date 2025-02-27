@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { GallerySectionProps, GalleryItem } from "@/lib/types";
+import { GallerySectionProps } from "@/lib/types";
 import Image from 'next/image';
 
 export default function GallerySection({

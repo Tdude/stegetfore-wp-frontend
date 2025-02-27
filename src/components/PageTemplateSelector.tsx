@@ -6,7 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import {
   PageTemplate,
   PageTemplateSelectorProps,
-  LocalPage
+
 } from '@/lib/types';
 import HomepageTemplate from './templates/HomepageTemplate';
 import DefaultTemplate from './templates/DefaultTemplate';

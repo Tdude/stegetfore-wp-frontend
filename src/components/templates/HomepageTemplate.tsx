@@ -21,7 +21,6 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    // Parse the homepage data if it's a string
     if (typeof homepage === 'string') {
       try {
         const parsed = JSON.parse(homepage);
@@ -31,16 +30,20 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
         setHomepageData({});
       }
     } else {
-      // Otherwise use it as is (already an object)
+      // Otherwise already an object
       setHomepageData(homepage || {});
     }
 
     setMounted(true);
     console.log('🏠 HomepageTemplate mounted');
-    console.log('📄 Homepage data:', homepageData);
   }, [homepage]);
 
-  // Get hero image from various possible sources
+  // Adds a separate effect to log the homepageData after it changes
+  React.useEffect(() => {
+    console.log('📄 Homepage data:', homepageData);
+  }, [homepageData]);
+
+  // Get hero image from here and there
   const getHeroImage = () => {
     // First check the hero.image from homepage data
     if (homepageData.hero?.image) {
@@ -51,12 +54,11 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
       }
     }
 
-    // Then check if page has a featured image
     if (page?._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
       return page._embedded['wp:featuredmedia'][0].source_url;
     }
 
-    // Fallback to a default image
+    // Fallback?
     return "/images/hero-fallback.jpg";
   };
 

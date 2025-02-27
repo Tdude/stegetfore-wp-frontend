@@ -1,7 +1,7 @@
 // src/lib/api.ts
 import {
   Post,
-  Page,
+  // Page,
   SiteInfo,
   MenuItem,
   WPCF7Form,
@@ -21,7 +21,7 @@ import {
 
 import {
   adaptWordPressPost,
-  adaptWordPressPage,
+  // adaptWordPressPage,
   adaptWordPressPageToLocalPage,
   adaptWordPressHomepageData,
   adaptWordPressSiteInfo,

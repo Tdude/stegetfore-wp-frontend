@@ -51,7 +51,7 @@ interface BaseContent {
 }
 
 // Generic props type for all page templates
-export interface PageTemplateProps<T = Record<string, any>> {
+export interface PageTemplateProps<T = Record<string, unknown>> {
   page: LocalPage;
   additionalData?: T;
 }
@@ -362,8 +362,15 @@ export interface ProgressBarProps {
   stage?: "ej" | "trans" | "full";
 }
 
+/**
+ * TextareaProps extends HTMLTextAreaAttributes (without adding new properties)
+ * for type consistency across components
+ */
 export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Custom property for project-specific features */
+  customProp?: string;
+}
 
 // Type aliases for backward compatibility
 export type WPCF7Form = WordPressWPCF7Form;
