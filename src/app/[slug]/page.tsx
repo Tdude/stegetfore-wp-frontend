@@ -6,11 +6,14 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-// Define the correct type for Next.js App Router page props
-type PageProps = {
+// Import the Next.js types directly
+import { ResolvingMetadata } from 'next';
+
+// Define a type that uses the generated Next.js type
+interface PageParams {
   params: { slug: string };
   searchParams?: { [key: string]: string | string[] | undefined };
-};
+}
 
 async function Page({ slug }: { slug: string }) {
   const page = await fetchPage(slug);
@@ -53,9 +56,10 @@ async function Page({ slug }: { slug: string }) {
   }
 }
 
-export default async function PageWrapper({
-  params
-}: PageProps) {
+// Use the standard export signature that Next.js expects
+export default async function PageWrapper(props: PageParams) {
+  const { params } = props;
+
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
@@ -65,9 +69,12 @@ export default async function PageWrapper({
   );
 }
 
-export async function generateMetadata({
-  params
-}: PageProps) {
+// Use the standard metadata export signature that Next.js expects
+export async function generateMetadata(
+  props: PageParams,
+  parent: ResolvingMetadata
+) {
+  const { params } = props;
   const page = await fetchPage(params.slug);
 
   if (!page) {
