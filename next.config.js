@@ -1,7 +1,5 @@
-// next.config.ts
-import { NextConfig } from "next";
-
-const config: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     domains: ["stegetfore.nu"],
   },
@@ -41,4 +39,4 @@ const config: NextConfig = {
   },
 };
 
-export default config;
+module.exports = nextConfig;
