@@ -1,13 +1,9 @@
-// src/app/[slug]/page.tsx
 import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
-
-// Import the Next.js types directly
-import { ResolvingMetadata } from 'next';
 
 // Define a type that uses the generated Next.js type
 interface PageParams {
@@ -70,10 +66,7 @@ export default async function PageWrapper(props: PageParams) {
 }
 
 // Use the standard metadata export signature that Next.js expects
-export async function generateMetadata(
-  props: PageParams,
-  //parent: ResolvingMetadata
-) {
+export async function generateMetadata(props: PageParams) {
   const { params } = props;
   const page = await fetchPage(params.slug);
 
