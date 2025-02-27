@@ -48,14 +48,14 @@ export default function PostsList({ posts, categories }: PostsListProps) {
             )}
             <CardTitle className="text-xl line-clamp-2">
               <Link href={`/posts/${post.slug}`} className="hover:underline">
-                <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+                <span dangerouslySetInnerHTML={{ __html: post.title?.rendered  || '' }} />
               </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p
               className="text-muted-foreground line-clamp-3"
-              dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
+              dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered  || '' }}
             />
           </CardContent>
           <CardFooter>
