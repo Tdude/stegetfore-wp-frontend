@@ -40,8 +40,8 @@ export default async function HomePage() {
           title: "Ta Steget Före",
           intro: "Upptäck en smartare vardag - för dig och för eleven.",
           buttons: [
-            { text: "Upptäck mer", url: "/om-oss", style: "primary" },
-            { text: "Kontakta oss", url: "/kontakt", style: "outline" }
+            { text: "Upptäck mer", url: "/om-oss", style: "primary" as const },
+            { text: "Kontakta oss", url: "/kontakt", style: "outline" as const }
           ],
           image: "/images/hero-fallback.jpg" // Provide a fallback image path
         },

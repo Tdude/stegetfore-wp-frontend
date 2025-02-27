@@ -81,7 +81,7 @@ async function BlogPostsList() {
 
                 <div
                   className="text-gray-600 line-clamp-3 mb-4"
-                  dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
+                  dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered || '' }}
                 />
               </Link>
 
