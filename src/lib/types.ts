@@ -1,19 +1,16 @@
 // src/lib/types.ts - Application Types Section
 
 import * as React from "react";
-import {
-  // WordPressPost,
-  // WordPressPage,
-  // WordPressCategory,
-  // WordPressSellingPoint,
-  // WordPressStat,
-  // WordPressGalleryItem,
-  // WordPressTestimonial,
-  // WordPressCTA,
-  // WordPressHomepageData,
-  WordPressWPCF7Form,
-  WordPressWPCF7SubmissionResponse,
-} from "./types-wordpress";
+import // WordPressPost,
+// WordPressPage,
+// WordPressCategory,
+// WordPressSellingPoint,
+// WordPressStat,
+// WordPressGalleryItem,
+// WordPressTestimonial,
+// WordPressCTA,
+// WordPressHomepageData,
+"./types-wordpress";
 
 // Base types with common fields for application use
 interface BaseContent {
@@ -65,7 +62,7 @@ export enum PageTemplate {
   LANDING = "templates/landing.php",
   EVALUATION = "templates/evaluation.php",
   CIRCLE_CHART = "templates/circle-chart.php",
-  CONTACT = "templates/contact",
+  CONTACT = "templates/contact.php",
 }
 
 // More specific content types extending base content for application use
@@ -79,6 +76,12 @@ export interface Page extends BaseContent {
   chartData?: {
     segments: number[];
   } | null;
+}
+
+export interface PageParams {
+  params: {
+    slug: string;
+  };
 }
 
 // Enhanced local version with more strict typing
@@ -371,7 +374,3 @@ export interface TextareaProps
   /** Custom property for project-specific features */
   customProp?: string;
 }
-
-// Type aliases for backward compatibility
-export type WPCF7Form = WordPressWPCF7Form;
-export type WPCF7SubmissionResponse = WordPressWPCF7SubmissionResponse;

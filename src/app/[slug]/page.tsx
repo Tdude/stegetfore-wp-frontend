@@ -1,4 +1,4 @@
-// app/[slug]/page.tsx
+// src/app/[slug]/page.tsx
 import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
@@ -6,29 +6,34 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-// Remove all custom type definitions
-// @ts-expect-error - Bypassing Netlify's type errors
-export default async function Page(props) {
-  const { params } = props;
+// Define a type that matches the exact structure expected by Next.js
+type SlugParams = {
+  slug: string;
+};
+
+// Non-async wrapper component that directly handles the params object
+export default function Page(props: { params: SlugParams }) {
+  // Extract slug in a non-async context first to avoid the error
+  const slug = props.params.slug;
 
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
-        <PageContent slug={params.slug} />
+        <PageContent slug={slug} />
       </Suspense>
     </main>
   );
 }
 
-// The actual page content component
+// Move all async operations to a separate component
 async function PageContent({ slug }: { slug: string }) {
+  // Now we can safely use the slug without issue
   const page = await fetchPage(slug);
 
   if (!page) {
     notFound();
   }
 
-  // Fallback to default template rendering if something goes wrong
   try {
     return <PageTemplateSelector page={page} />;
   } catch (error) {
@@ -62,16 +67,26 @@ async function PageContent({ slug }: { slug: string }) {
   }
 }
 
-// @ts-expect-error - Bypassing Netlify's type errors
-export async function generateMetadata(props) {
-  const page = await fetchPage(props.params.slug);
+// Metadata function that follows the exact same pattern
+export async function generateMetadata(props: { params: SlugParams }) {
+  // Extract slug in a non-async context first
+  const slug = props.params.slug;
+
+  // Then use it in the async operation
+  const page = await fetchPage(slug);
 
   if (!page) {
     return { title: 'Page Not Found' };
   }
 
+  // Create stripped text for meta description
+  const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, '');
+  const description = page.excerpt?.rendered
+    ? stripHtml(page.excerpt.rendered).slice(0, 155) + '...'
+    : stripHtml(page.content.rendered).slice(0, 155) + '...';
+
   return {
     title: page.title.rendered,
-    description: page.content.rendered.replace(/<[^>]*>/g, '').slice(0, 155) + '...',
+    description,
   };
 }

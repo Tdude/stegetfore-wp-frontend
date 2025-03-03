@@ -4,8 +4,6 @@ import {
   // Page,
   SiteInfo,
   MenuItem,
-  WPCF7Form,
-  WPCF7SubmissionResponse,
   LocalPage,
   HomepageData,
 } from "./types";
@@ -17,6 +15,8 @@ import {
   WordPressSiteInfo,
   WordPressMenuItem,
   WordPressHomepageData,
+  WPCF7Form,
+  WPCF7SubmissionResponse,
 } from "./types-wordpress";
 
 import {
@@ -316,47 +316,229 @@ export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
   }
 }
 
-// Get WPCF7 Form by ID
-export async function getContactForm(
-  formId: number
-): Promise<WPCF7Form | null> {
+/**
+ * Fetches Contact Form 7 structure from the custom WordPress endpoint
+ */
+export async function fetchContactForm(formId: string): Promise<WPCF7Form> {
+  const endpoint = `${API_URL}/steget/v1/cf7/form/${formId}`;
+
+  console.log(`Fetching form from endpoint: ${endpoint}`);
+
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp-json/contact-form-7/v1/contact-forms/${formId}`
-    );
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch contact form: ${response.status}`);
+      let errorDetails = "";
+      try {
+        // Try to get detailed error message
+        errorDetails = await response.text();
+      } catch (e) {
+        errorDetails = "Could not extract error details";
+      }
+
+      console.error(
+        `Error fetching form: ${response.status} ${response.statusText}`
+      );
+      console.error(`Error details: ${errorDetails}`);
+      throw new Error(`Failed to fetch form: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log("Form data received:", data);
+
+    // Validate the form structure
+    if (!data || !data.fields || !Array.isArray(data.fields)) {
+      console.error("Invalid form structure received:", data);
+      throw new Error("Invalid form structure received from API");
+    }
+
+    return data as WPCF7Form;
   } catch (error) {
-    console.error("Error fetching contact form:", error);
-    return null;
+    console.error("Error in fetchContactForm:", error);
+    throw error;
   }
 }
 
-// Submit WPCF7 Form
+/**
+ * Submits Contact Form 7 data with enhanced debugging
+ */
 export async function submitContactForm(
-  formId: number,
+  formId: string,
   formData: FormData
 ): Promise<WPCF7SubmissionResponse> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp-json/contact-form-7/v1/contact-forms/${formId}/feedback`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://stegetfore.nu/wp-json";
+  const endpoint = `${API_URL}/steget/v1/cf7/submit/${formId}`;
 
-    return await response.json();
+  console.log(`Submitting form to endpoint: ${endpoint}`);
+
+  // Log the form data being sent
+  console.log("Form data being submitted:");
+  const formDataObj: Record<string, any> = {};
+  for (const pair of formData.entries()) {
+    console.log(`${pair[0]}: ${pair[1]}`);
+    formDataObj[pair[0]] = pair[1];
+  }
+
+  // Create a JSON version of the form data for fallback
+  const jsonData = JSON.stringify(formDataObj);
+  console.log("JSON version of form data:", jsonData);
+
+  try {
+    // Try using FormData first (preferred method)
+    console.log("Attempting submission with FormData...");
+    const response = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+      mode: "cors",
+      credentials: "include",
+    });
+
+    // If that fails, try using JSON
+    if (!response.ok && response.status === 500) {
+      console.log("FormData submission failed. Trying JSON approach...");
+      const jsonResponse = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonData,
+        mode: "cors",
+        credentials: "include",
+      });
+
+      if (!jsonResponse.ok) {
+        let errorText = "";
+        try {
+          // Try to get the error details
+          errorText = await jsonResponse.text();
+        } catch (e) {
+          errorText = "Could not extract error details";
+        }
+
+        console.error("All submission attempts failed");
+        console.error(
+          `JSON attempt error: ${jsonResponse.status} ${jsonResponse.statusText}`
+        );
+        console.error(`Error details: ${errorText}`);
+        throw new Error(`Failed to submit form: ${jsonResponse.statusText}`);
+      }
+
+      const data = await jsonResponse.json();
+      console.log("Form submission response (JSON method):", data);
+      return data as WPCF7SubmissionResponse;
+    }
+
+    // Process the original FormData response
+    let responseText = "";
+    try {
+      responseText = await response.text();
+      console.log("Raw response text:", responseText);
+
+      // Try to parse as JSON
+      const data = JSON.parse(responseText);
+      console.log("Form submission response:", data);
+      return data as WPCF7SubmissionResponse;
+    } catch (parseError) {
+      console.error("Error parsing response:", parseError);
+      console.error("Raw response was:", responseText);
+
+      throw new Error("Invalid response format from server");
+    }
   } catch (error) {
-    console.error("Error submitting contact form:", error);
+    console.error("Error in submitContactForm:", error);
+
+    // Create a fallback error response
     return {
-      status: "mail_failed",
+      status: "error",
       message:
-        "There was an error submitting the form. Please try again later.",
-    };
+        error instanceof Error ? error.message : "Unknown error occurred",
+    } as WPCF7SubmissionResponse;
+  }
+}
+
+/**
+ * Submits Contact Form 7 data using the simplified TEST endpoint
+ */
+/**
+ * Submits Contact Form 7 data without requiring credentials
+ */
+export async function submitContactFormSimple(
+  formId: string,
+  formValues: Record<string, string>
+): Promise<WPCF7SubmissionResponse> {
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://stegetfore.nu/wp-json";
+  const endpoint = `${API_URL}/steget/v1/cf7/simple-submit/${formId}`;
+
+  console.log(`Submitting form to endpoint: ${endpoint}`);
+  console.log("Form data being submitted:", formValues);
+
+  try {
+    // Try the Next.js API route first (avoids CORS)
+    const proxyEndpoint = `/api/cf7-proxy?formId=${formId}`;
+    console.log(`Trying proxy endpoint: ${proxyEndpoint}`);
+
+    try {
+      const proxyResponse = await fetch(proxyEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formValues),
+      });
+
+      if (proxyResponse.ok) {
+        const data = await proxyResponse.json();
+        console.log("Proxy submission successful:", data);
+        return data as WPCF7SubmissionResponse;
+      } else {
+        console.warn("Proxy submission failed, trying direct submission");
+      }
+    } catch (proxyError) {
+      console.warn("Proxy error, falling back to direct method:", proxyError);
+    }
+
+    // If proxy fails, try direct submission WITHOUT credentials
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formValues),
+      mode: "cors",
+      // Remove credentials: "include" which was causing the CORS issue
+    });
+
+    if (!response.ok) {
+      let errorDetails = "";
+      try {
+        errorDetails = await response.text();
+      } catch (e) {
+        errorDetails = "Could not extract error details";
+      }
+
+      console.error(
+        `Error submitting form: ${response.status} ${response.statusText}`
+      );
+      console.error(`Error details: ${errorDetails}`);
+      throw new Error(`Failed to submit form: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Form submission response:", data);
+    return data as WPCF7SubmissionResponse;
+  } catch (error) {
+    console.error("Error in submitContactFormSimple:", error);
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Unknown error occurred",
+    } as WPCF7SubmissionResponse;
   }
 }

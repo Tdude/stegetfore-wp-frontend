@@ -104,32 +104,62 @@ export interface WordPressSiteInfo {
 }
 
 // WordPress Contact Form 7
-export interface WordPressWPCF7Form {
-  id: number;
+export interface WPCF7Field {
+  id: string;
+  type: string;
+  basetype: string;
+  name: string;
+  required: boolean;
+  placeholder?: string;
+  raw_values: string[];
+  values: string[];
+  labels: string[];
+  options?: string[];
+}
+
+export interface WPCF7Form {
+  id: string;
   title: string;
-  properties: {
-    form: string;
-    mail: {
-      subject: string;
-      sender: string;
-      body: string;
-      recipient: string;
-      additional_headers: string;
-      attachments: string;
-      use_html: boolean;
-      exclude_blank: boolean;
-    };
+  fields: WPCF7Field[];
+  additional_settings: string;
+  locale?: string;
+  messages?: {
+    mail_sent_ok: string;
+    mail_sent_ng: string;
+    validation_error: string;
+    spam: string;
+    accept_terms: string;
+    invalid_required: string;
+    invalid_too_long: string;
+    invalid_too_short: string;
+    upload_failed: string;
+    upload_file_type_invalid: string;
+    upload_file_too_large: string;
+    upload_failed_php_error: string;
+    invalid_date: string;
+    date_too_early: string;
+    date_too_late: string;
+    invalid_number: string;
+    number_too_small: string;
+    number_too_large: string;
+    quiz_answer_not_correct: string;
+    invalid_email: string;
+    invalid_url: string;
+    invalid_tel: string;
+    captcha_not_match: string;
+    [key: string]: string;
   };
 }
 
-export interface WordPressWPCF7SubmissionResponse {
+export interface WPCF7SubmissionResponse {
   status:
     | "mail_sent"
     | "mail_failed"
     | "validation_failed"
     | "spam"
     | "aborted"
-    | "unaccepted_terms";
+    | "unaccepted_terms"
+    | string;
   message: string;
   postedData?: Record<string, string>;
   invalidFields?: Array<{
