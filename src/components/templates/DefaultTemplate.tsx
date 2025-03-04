@@ -2,15 +2,14 @@
 'use client';
 
 import React from 'react';
-import { LocalPage } from '@/lib/types';
+import OptimizedImage from '@/components/OptimizedImage';
+import { PageTemplateProps } from '@/lib/types';
+import { getFeaturedImageUrl } from '@/lib/imageUtils';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
-import Image from 'next/image';
 
-export default function DefaultTemplate({ page }: { page: LocalPage }) {
+export default function DefaultTemplate({ page }: PageTemplateProps) {
   // Add null checks for all properties
-  const featuredMedia = page?._embedded?.['wp:featuredmedia']?.[0];
-  const featuredImage = featuredMedia?.source_url;
-  const imageAlt = featuredMedia?.alt_text || (page?.title?.rendered || 'Page image');
+  const featuredImageUrl = getFeaturedImageUrl(page);
 
   // Handle cases where title or content might be undefined
   const pageTitle = page?.title?.rendered || '';
@@ -18,15 +17,18 @@ export default function DefaultTemplate({ page }: { page: LocalPage }) {
 
   return (
     <TemplateTransitionWrapper>
-      <article className="max-w-2xl mx-auto px-4 py-8 border-primary">
-        {featuredImage && (
-          <Image
-          src={featuredImage}
-          alt={imageAlt}
-          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-          loading="lazy"
-          fill
-          />
+      <article className="max-w-2xl mx-auto px-4 py-8">
+        {featuredImageUrl && (
+          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+            <OptimizedImage
+              src={featuredImageUrl}
+              htmlTitle={pageTitle}
+              fill={true}
+              containerType="default"
+              priority={true}
+              className="object-cover rounded-lg"
+            />
+          </div>
         )}
 
         {pageTitle && (

@@ -1,17 +1,16 @@
 // src/app/posts/[slug]/page.tsx
-// src/app/posts/[slug]/page.tsx
+// single blog page
 import { Suspense } from 'react';
 import { fetchPost } from '@/lib/api';
 import Link from 'next/link';
-import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import Image from 'next/image';
+import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 
-// This function seems to be causing the Promise-related type errors
-// @ts-expect-error - Bypassing Netlify's type errors
-async function getSlugFromParams(params) {
-  // Simplified to avoid Promise-related type issues
-  return params.slug;
+
+async function getSlugFromParams(params: { slug: string }) {
+  const result = await Promise.resolve(params);
+  return result.slug;
 }
 
 async function Post({ slug }: { slug: string }) {
@@ -24,14 +23,16 @@ async function Post({ slug }: { slug: string }) {
   return (
     <article className="max-w-3xl mx-auto">
       {post.featured_image_url && (
-      <div className="w-full h-64 md:h-96 rounded-lg mb-8 relative">
-        <Image
-          src={post.featured_image_url}
-          alt={post.title.rendered}
-          className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-          fill
-        />
-      </div>
+        <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+          <Image
+            src={post.featured_image_url}
+            alt={post.title.rendered.replace(/<[^>]*>/g, '')}
+            fill={true}
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1024px"
+            priority={true}
+            className="object-cover"
+          />
+        </div>
       )}
 
       <h1
@@ -45,18 +46,21 @@ async function Post({ slug }: { slug: string }) {
 
       <div className="mt-8">
         <Link
-          href="/"
-          className="text-orange-400 hover:text-orange-600"
+          href="/blog"
+          className="text-yellow-500 hover:text-yellow-600"
         >
-          ← Till Start
+          ← Alla inlägg
         </Link>
       </div>
     </article>
   );
 }
 
-// @ts-expect-error - Bypassing Netlify's type errors
-export default async function PostPage({ params }) {
+export default async function PostPage({
+  params
+}: {
+  params: { slug: string }
+}) {
   const slug = await getSlugFromParams(params);
 
   return (
@@ -66,22 +70,4 @@ export default async function PostPage({ params }) {
       </Suspense>
     </main>
   );
-}
-
-// Add metadata generation if needed
-// @ts-expect-error - Bypassing Netlify's type errors
-export async function generateMetadata({ params }) {
-  const slug = await getSlugFromParams(params);
-  const post = await fetchPost(slug);
-
-  if (!post) {
-    return { title: 'Post Not Found' };
-  }
-
-  return {
-    title: post.title.rendered,
-    description: post.excerpt?.rendered
-      ? post.excerpt.rendered.replace(/<[^>]*>/g, '').slice(0, 155) + '...'
-      : post.content.rendered.replace(/<[^>]*>/g, '').slice(0, 155) + '...',
-  };
 }

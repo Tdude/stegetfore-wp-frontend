@@ -3,90 +3,64 @@ import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
+import { PageParams, LocalPage } from '@/lib/types';
+import * as imageHelper from '@/lib/imageUtils';
+import { ResolvingMetadata, Metadata } from 'next';
 
-// Define a type that matches the exact structure expected by Next.js
-type SlugParams = {
-  slug: string;
-};
 
-// Non-async wrapper component that directly handles the params object
-export default function Page(props: { params: SlugParams }) {
-  // Extract slug in a non-async context first to avoid the error
-  const slug = props.params.slug;
-
-  return (
-    <main className="container mx-auto px-4 py-8 flex-grow">
-      <Suspense fallback={<SinglePostSkeleton />}>
-        <PageContent slug={slug} />
-      </Suspense>
-    </main>
-  );
+// Function to get page data by slug
+async function getPageData(slug: string): Promise<LocalPage | null> {
+  try {
+    return await fetchPage(slug);
+  } catch (error) {
+    console.error(`Error fetching page with slug ${slug}:`, error);
+    return null;
+  }
 }
 
-// Move all async operations to a separate component
+// Individual page component
 async function PageContent({ slug }: { slug: string }) {
-  // Now we can safely use the slug without issue
-  const page = await fetchPage(slug);
+  const page = await getPageData(slug);
 
   if (!page) {
     notFound();
   }
 
-  try {
-    return <PageTemplateSelector page={page} />;
-  } catch (error) {
-    console.error('Error rendering template:', error);
-
-    // Fallback to default layout
-    const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-
-    return (
-      <article className="max-w-3xl mx-auto">
-        {featuredImage && (
-          <Image
-            src={featuredImage}
-            alt={page.title.rendered}
-            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
-            width={1200}
-            height={630}
-            priority
-          />
-        )}
-        <h1
-          className="text-4xl font-bold mb-4"
-          dangerouslySetInnerHTML={{ __html: page.title.rendered }}
-        />
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.content.rendered }}
-        />
-      </article>
-    );
-  }
+  // Render the page using the template selector
+  return <PageTemplateSelector page={page} />;
 }
 
-// Metadata function that follows the exact same pattern
-export async function generateMetadata(props: { params: SlugParams }) {
-  // Extract slug in a non-async context first
-  const slug = props.params.slug;
+// Main page wrapper component
+export default async function PageWrapper({ params }: PageParams) {
+  return (
+    <main className="container mx-auto px-4 py-8 flex-grow">
+      <Suspense fallback={<SinglePostSkeleton />}>
+        <PageContent slug={params.slug} />
+      </Suspense>
+    </main>
+  );
+}
 
-  // Then use it in the async operation
-  const page = await fetchPage(slug);
+// Generate metadata for the page
+export async function generateMetadata(
+  { params }: PageParams,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  // Await the params to fix the error
+  const slug = params.slug;
+  const page = await getPageData(slug);
 
   if (!page) {
     return { title: 'Page Not Found' };
   }
 
-  // Create stripped text for meta description
-  const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, '');
-  const description = page.excerpt?.rendered
-    ? stripHtml(page.excerpt.rendered).slice(0, 155) + '...'
-    : stripHtml(page.content.rendered).slice(0, 155) + '...';
+  // Clean HTML from title and content for metadata
+  const cleanTitle = imageHelper.stripHtml(page.title.rendered);
+  const cleanDescription = imageHelper.stripHtml(page.content.rendered).slice(0, 155) + '...';
 
   return {
-    title: page.title.rendered,
-    description,
+    title: cleanTitle,
+    description: cleanDescription,
   };
 }

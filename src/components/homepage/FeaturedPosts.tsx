@@ -5,9 +5,8 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
-import Image from 'next/image';
+import OptimizedImage from '@/components/OptimizedImage';
 import { Post } from '@/lib/types';
-
 
 interface FeaturedPostProps {
   posts: Post[];
@@ -58,25 +57,22 @@ export default function FeaturedPosts({ posts, title, categories }: FeaturedPost
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
-            <Link key={post.id} href={`/posts/${post.slug}`} className="block h-full group">
+            <Link key={post.id} href={`/posts/${post.slug}`} className="block h-full">
               <Card className="h-full overflow-hidden">
                 {post.featured_image_url && (
-                <div className="relative aspect-video overflow-hidden rounded-lg mb-4">
-                  {post.featured_image_url ? (
-                    <Image
-                      src={post.featured_image_url}
-                      alt={post.title?.rendered ?
-                        post.title.rendered.replace(/<[^>]*>/g, '') :
-                        'Featured post'}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      fill
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400">Ingen bild</span>
-                    </div>
-                  )}
-                </div>
+                  <div className="aspect-video relative overflow-hidden">
+
+                <OptimizedImage
+                  src={post.featured_image_url}
+                  htmlTitle={post.title.rendered}
+                  alt={post.title?.rendered ?
+                    post.title.rendered.replace(/<[^>]*>/g, '') :
+                    'Featured post'}
+                  fill={true}
+                  containerType="card"
+                  className="object-cover transition-transform hover:scale-105"
+                />
+                  </div>
                 )}
                 <CardHeader className="pb-2">
                   {post.categories && categories && (

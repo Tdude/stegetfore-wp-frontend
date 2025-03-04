@@ -4,7 +4,6 @@ import { fetchPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-// This is a server component
 export default async function HomePage() {
   try {
     // Fetch homepage data first as our primary content source
@@ -33,9 +32,9 @@ export default async function HomePage() {
       // Create a minimal homepage data structure
       homepageData = {
         featured_posts: featuredPosts,
-        featured_posts_title: "Featured Articles",
+        featured_posts_title: "Artiklar i fokus",
         latest_posts: posts.slice(3), // The rest of the posts
-        latest_posts_title: "Latest Posts",
+        latest_posts_title: "Senaste inläggen",
         hero: {
           title: "Ta Steget Före",
           intro: "Upptäck en smartare vardag - för dig och för eleven.",
@@ -43,7 +42,7 @@ export default async function HomePage() {
             { text: "Upptäck mer", url: "/om-oss", style: "primary" as const },
             { text: "Kontakta oss", url: "/kontakt", style: "outline" as const }
           ],
-          image: "/images/hero-fallback.jpg" // Provide a fallback image path
+          image: "https://stegetfore.nu/wp-content/uploads/2024/09/framsida.png" // Provide a fallback image path
         },
         selling_points: [
           {
@@ -76,7 +75,7 @@ export default async function HomePage() {
         template: 'homepage', // Set template explicitly
         id: 0,
         slug: 'home',
-        title: { rendered: homepageData.hero?.title || 'Welcome' },
+        title: { rendered: homepageData.hero?.title ?? 'Welcome' },
         chartData: { segments: [] }, // Add default or mock data for chartData
         excerpt: { rendered: '' }, // Add default or mock data for excerpt
         content: { rendered: '' } // Add default or mock data for content

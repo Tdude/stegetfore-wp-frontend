@@ -1,369 +1,233 @@
+// src/components/templates/ContactForm.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { fetchContactForm, submitContactFormSimple } from '@/lib/api';
-import { WPCF7Form } from '@/lib/types-wordpress';
-import confetti from 'canvas-confetti';
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from 'sonner';
 
-interface ContactFormProps {
-  formId: string;
+interface FormState {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
 }
 
-export default function ContactForm({ formId }: ContactFormProps) {
-  const [form, setForm] = useState<WPCF7Form | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [formValues, setFormValues] = useState<Record<string, string>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitResult, setSubmitResult] = useState<{
-    status: string;
-    message: string;
-  } | null>(null);
+interface FormErrors {
+  name?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+}
 
-  // Fetch form data on component mount
-  useEffect(() => {
-    const getForm = async () => {
-      try {
-        setLoading(true);
-        const formData = await fetchContactForm(formId);
-        setForm(formData);
+interface ContactFormProps {
+  title?: string;
+  subtitle?: string;
+}
 
-        // Initialize form values with empty strings
-        const initialValues: Record<string, string> = {};
-        formData.fields.forEach(field => {
-          initialValues[field.name] = '';
-        });
-        setFormValues(initialValues);
-      } catch (error) {
-        console.error('Error fetching form:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+// Initial form state
+const initialFormState: FormState = {
+  name: '',
+  email: '',
+  subject: '',
+  message: ''
+};
 
-    if (formId) {
-      getForm();
+export default function ContactForm({
+  title = "Kontakta oss",
+  subtitle = "Fyll i formuläret så återkommer vi till dig inom kort."
+}: ContactFormProps) {
+  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+
+    // Validate name
+    if (!formData.name.trim()) {
+      newErrors.name = 'Namn är obligatoriskt';
+      isValid = false;
     }
-  }, [formId]);
 
-  // Effect to trigger confetti when form is successfully submitted.
-  // Read more: https://www.kirilv.com/canvas-confetti/
-  useEffect(() => {
-    if (submitResult?.status === 'mail_sent') {
-
-
-      var defaults = {
-        spread: 360,
-        ticks: 50,
-        gravity: 0,
-        decay: 0.94,
-        startVelocity: 30,
-        colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8']
-      };
-
-      function shoot() {
-        confetti({
-          ...defaults,
-          particleCount: 40,
-          scalar: 1.2,
-          shapes: ['star']
-        });
-
-        confetti({
-          ...defaults,
-          particleCount: 10,
-          scalar: 0.75,
-          shapes: ['circle']
-        });
-      }
-
-      setTimeout(shoot, 0);
-      setTimeout(shoot, 250);
-      setTimeout(shoot, 800);
-
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'E-post är obligatoriskt';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Ange en giltig e-postadress';
+      isValid = false;
     }
-  }, [submitResult]);
 
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    // Validate subject
+    if (!formData.subject.trim()) {
+      newErrors.subject = 'Ämne är obligatoriskt';
+      isValid = false;
+    }
+
+    // Validate message
+    if (!formData.message.trim()) {
+      newErrors.message = 'Meddelande är obligatoriskt';
+      isValid = false;
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Meddelandet är för kort (minst 10 tecken)';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormValues(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
 
-    // Clear error for this field when user types
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
+    // Clear error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: undefined
+      }));
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-
-// Handle form submission
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  // Reset states
-  setErrors({});
-  setSubmitResult(null);
-  setSubmitting(true);
-
-  try {
-    // Use the simple endpoint instead
-    const response = await submitContactFormSimple(formId, formValues);
-
-    // Handle validation errors
-    if (response.status === 'validation_failed' && response.invalidFields) {
-      const newErrors: Record<string, string> = {};
-      response.invalidFields.forEach(field => {
-        newErrors[field.field] = field.message;
-      });
-      setErrors(newErrors);
-    } else {
-      // Show success or other message
-      setSubmitResult({
-        status: response.status,
-        message: response.message
-      });
-
-      // Reset form values on success
-      if (response.status === 'mail_sent') {
-        const initialValues: Record<string, string> = {};
-        form?.fields.forEach(field => {
-          initialValues[field.name] = '';
-        });
-        setFormValues(initialValues);
-      }
+    if (!validateForm()) {
+      toast.error('Vänligen åtgärda formuläret');
+      return;
     }
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    setSubmitResult({
-      status: 'error',
-      message: 'Ett fel uppstod. Vänligen försök igen senare.'
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse flex flex-col space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
-          <div className="h-24 bg-gray-200 rounded"></div>
-          <div className="h-12 bg-gray-200 rounded w-1/4"></div>
-        </div>
-      </div>
-    );
-  }
+    setIsSubmitting(true);
 
-  // Show error if form not loaded
-  if (!form) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          <p>Kunde inte ladda formuläret. Vänligen försök igen senare.</p>
-        </div>
-      </div>
-    );
-  }
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Success
+      toast.success('Tack för ditt meddelande!');
+      setFormData(initialFormState);
+      setIsSubmitted(true);
+    } catch (error) {
+      toast.error('Något gick fel. Försök igen senare.');
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset the submitted state if the user starts typing again
+  useEffect(() => {
+    if (isSubmitted &&
+        (formData.name || formData.email || formData.subject || formData.message)) {
+      setIsSubmitted(false);
+    }
+  }, [formData, isSubmitted]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-semibold mb-6">{form.title}</h2>
-
-      {/* Success/Error Message */}
-      {submitResult && (
-        <div
-          className={`mb-6 px-4 py-3 rounded ${
-            submitResult.status === 'mail_sent'
-              ? 'bg-green-50 border border-green-200 text-green-700'
-              : 'bg-red-50 border border-red-200 text-red-700'
-          }`}
-        >
-          <p>{submitResult.message}</p>
-        </div>
-      )}
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {form.fields.map((field) => (
-          <div key={field.id} className="space-y-2">
-            <label
-              htmlFor={field.id}
-              className="block text-sm font-medium text-gray-700"
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
+        {subtitle && (
+          <p className="text-center text-muted-foreground mt-2">{subtitle}</p>
+        )}
+      </CardHeader>
+      <CardContent>
+        {isSubmitted ? (
+          <div className="text-center py-8">
+            <h3 className="text-xl font-semibold mb-4">Tack för ditt meddelande!</h3>
+            <p className="mb-6">Vi återkommer till dig så snart som möjligt.</p>
+            <Button
+              onClick={() => setIsSubmitted(false)}
+              variant="outline"
             >
-              {field.labels[0] || field.name}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-
-            {/* Render different inputs based on field type */}
-            {field.basetype === 'text' && (
-              <input
-                type="text"
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                placeholder={field.placeholder || ''}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              />
-            )}
-
-            {field.basetype === 'email' && (
-              <input
-                type="email"
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                placeholder={field.placeholder || ''}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              />
-            )}
-
-            {field.basetype === 'tel' && (
-              <input
-                type="tel"
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                placeholder={field.placeholder || ''}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              />
-            )}
-
-            {field.basetype === 'url' && (
-              <input
-                type="url"
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                placeholder={field.placeholder || ''}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              />
-            )}
-
-            {field.basetype === 'textarea' && (
-              <textarea
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                placeholder={field.placeholder || ''}
-                required={field.required}
-                rows={5}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              />
-            )}
-
-            {field.basetype === 'select' && (
-              <select
-                id={field.id}
-                name={field.name}
-                value={formValues[field.name] || ''}
-                onChange={handleChange}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              >
-                <option value="">Välj...</option>
-                {field.values.map((value, index) => (
-                  <option key={index} value={value}>
-                    {field.labels[index+1] || value}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {/* Checkbox - special handling */}
-            {field.basetype === 'checkbox' && (
-              <div className="flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    type="checkbox"
-                    id={field.id}
-                    name={field.name}
-                    checked={!!formValues[field.name]}
-                    onChange={(e) => handleChange({
-                      ...e,
-                      target: {
-                        ...e.target,
-                        name: field.name,
-                        value: e.target.checked ? 'on' : ''
-                      }
-                    } as any)}
-                    required={field.required}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-yellow-500"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor={field.id} className="font-medium text-gray-700">
-                    {field.labels[0] || field.name}
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Radio buttons */}
-            {field.basetype === 'radio' && (
-              <div className="space-y-2">
-                {field.values.map((value, index) => (
-                  <div key={index} className="flex items-center">
-                    <input
-                      type="radio"
-                      id={`${field.id}-${index}`}
-                      name={field.name}
-                      value={value}
-                      checked={formValues[field.name] === value}
-                      onChange={handleChange}
-                      required={field.required}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-yellow-500"
-                    />
-                    <label
-                      htmlFor={`${field.id}-${index}`}
-                      className="ml-3 block text-sm font-medium text-gray-700"
-                    >
-                      {field.labels[index+1] || value}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Error message */}
-            {errors[field.name] && (
-              <p className="mt-1 text-sm text-red-600">{errors[field.name]}</p>
-            )}
+              Skicka ett nytt meddelande
+            </Button>
           </div>
-        ))}
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Namn</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Ditt namn"
+                className={errors.name ? "border-red-500" : ""}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name}</p>
+              )}
+            </div>
 
-        {/* Submit button */}
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`px-6 py-2 bg-yellow-500 text-white rounded shadow-sm font-medium
-              ${submitting
-                ? 'opacity-70 cursor-not-allowed'
-                : 'hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'
-              }`}
-          >
-            {submitting ? 'Skickar...' : 'Skicka'}
-          </button>
-        </div>
-      </form>
-    </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">E-post</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="din.epost@exempel.se"
+                className={errors.email ? "border-red-500" : ""}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subject">Ämne</Label>
+              <Input
+                id="subject"
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                placeholder="Vad gäller ditt meddelande?"
+                className={errors.subject ? "border-red-500" : ""}
+              />
+              {errors.subject && (
+                <p className="text-red-500 text-sm">{errors.subject}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="message">Meddelande</Label>
+              <Textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="Beskriv ditt ärende..."
+                rows={5}
+                className={errors.message ? "border-red-500" : ""}
+              />
+              {errors.message && (
+                <p className="text-red-500 text-sm">{errors.message}</p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Skickar..." : "Skicka meddelande"}
+            </Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   );
 }

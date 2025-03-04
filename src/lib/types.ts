@@ -1,5 +1,16 @@
 // src/lib/types.ts - Application Types Section
 
+declare namespace NodeJS {
+  export interface ProcessEnv {
+    NEXT_PUBLIC_API_URL: string;
+    NEXT_PUBLIC_WORDPRESS_URL: string;
+    NEXT_PUBLIC_THEME_SLUG: string;
+    REVALIDATION_TOKEN: string;
+    HOMEPAGE_ID: string;
+    NODE_ENV: "development" | "production" | "test";
+  }
+}
+
 import * as React from "react";
 import // WordPressPost,
 // WordPressPage,
@@ -45,6 +56,27 @@ interface BaseContent {
     }>;
   };
   featured_image_url?: string | null;
+}
+
+// Image container types for the OptimizedImage component
+export type ImageContainer =
+  | "hero"
+  | "featured"
+  | "card"
+  | "gallery"
+  | "default";
+
+// Image-related helper functions
+export interface ImageHelper {
+  getImageUrl: (media: any, size?: string) => string;
+  getImageAlt: (media: any, fallback?: string) => string;
+  stripHtml: (html: string) => string;
+}
+
+// Additional props for components that use featured images
+export interface WithFeaturedImageProps {
+  featuredImageUrl?: string;
+  featuredImageAlt?: string;
 }
 
 // Generic props type for all page templates

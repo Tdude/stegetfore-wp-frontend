@@ -1,8 +1,10 @@
 // src/components/homepage/HeroSection.tsx
+'use client';
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import Image from 'next/image';
-import { HeroSectionProps } from '@/lib/types';
+import OptimizedImage from "@/components/OptimizedImage";
+import { HeroSectionProps } from "@/lib/types";
 
 export default function HeroSection({
   title,
@@ -11,31 +13,32 @@ export default function HeroSection({
   ctaButtons = []
 }: HeroSectionProps) {
   // Handle different possible formats of imageUrl
-  let finalImageUrl = '';
-
-  if (typeof imageUrl === 'string') {
-    finalImageUrl = imageUrl;
-  } else if (Array.isArray(imageUrl) && imageUrl.length > 0) {
-    finalImageUrl = imageUrl[0];
-  } else {
-    // Fallback image
-    finalImageUrl = '/images/hero-fallback.jpg';
-  }
+  const finalImageUrl = React.useMemo(() => {
+    if (typeof imageUrl === 'string') {
+      return imageUrl;
+    } else if (Array.isArray(imageUrl) && imageUrl.length > 0) {
+      return imageUrl[0];
+    } else {
+      // Fallback image
+      return '/images/hero-fallback.jpg';
+    }
+  }, [imageUrl]);
 
   return (
     <section className="relative w-full h-[80vh] min-h-[500px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
-        <Image
-          src={finalImageUrl}
-          alt="Hero background"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback if image fails to load
-            e.currentTarget.src = '/images/hero-fallback.jpg';
-          }}
-          fill
-        />
+        <div className="relative w-full h-full">
+          <OptimizedImage
+            src={finalImageUrl}
+            alt={title || "Hero background"}
+            fill={true}
+            containerType="hero"
+            priority={true}
+            className="object-cover"
+            fallbackSrc="/images/hero-fallback.jpg"
+          />
+        </div>
         {/* Overlay to improve text visibility */}
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
@@ -53,27 +56,17 @@ export default function HeroSection({
           )}
           {ctaButtons && ctaButtons.length > 0 && (
             <div className="flex flex-wrap gap-4 justify-center">
-              {ctaButtons.map((button, index) => {
-                // Determine the button variant
-                const variant = button.style === 'outline'
-                  ? 'outline'
-                  : button.style === 'secondary'
-                    ? 'secondary'
-                    : 'primary';
-
-                return (
-                  <Button
-                    key={index}
-                    size="lg"
-                    variant={variant}
-                    // Only add custom className for outline buttons, and make sure it doesn't conflict
-                    className={button.style === 'outline' ? 'border-white text-white hover:bg-white/20' : undefined}
-                    asChild
-                  >
-                    <a href={button.url}>{button.text}</a>
-                  </Button>
-                );
-              })}
+              {ctaButtons.map((button, index) => (
+                <Button
+                  key={index}
+                  size="lg"
+                  variant={button.style === 'outline' ? 'outline' : button.style === 'secondary' ? 'secondary' : 'primary'}
+                  className={button.style === 'outline' ? 'bg-transparent border-white text-white hover:bg-white/20' : ''}
+                  asChild
+                >
+                  <a href={button.url}>{button.text}</a>
+                </Button>
+              ))}
             </div>
           )}
         </div>

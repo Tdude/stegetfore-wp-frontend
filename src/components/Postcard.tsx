@@ -1,7 +1,7 @@
 // src/components/Postcard.tsx
 import Link from 'next/link';
-import { Post } from '@/lib/types';
 import Image from 'next/image';
+import { Post } from '@/lib/types';
 
 export default function Postcard({ post }: { post: Post }) {
   return (
@@ -11,23 +11,24 @@ export default function Postcard({ post }: { post: Post }) {
           <div className="relative h-48 overflow-hidden">
             <Image
               src={post.featured_image_url}
-              alt={post.title.rendered}
-              className="w-full h-full object-cover transition-transform hover:scale-105"
-              fill
-              style={{ objectFit: 'cover' }}
+              alt={post.title.rendered.replace(/<[^>]*>/g, '')}
+              fill={true}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover transition-transform hover:scale-105"
+              priority={false}
             />
           </div>
         )}
         <div className="p-4">
           <h2
             className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-            dangerouslySetInnerHTML={{ __html: post.title.rendered || '' }}
+            dangerouslySetInnerHTML={{ __html: post.title.rendered }}
           />
           <div
             className="text-gray-700 line-clamp-3"
             dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered || '' }}
           />
-          <div className="mt-4 text-orange-600 font-medium">
+          <div className="mt-4 text-blue-600 font-medium">
             Läs mer →
           </div>
         </div>

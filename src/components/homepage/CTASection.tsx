@@ -27,7 +27,7 @@ export default function CTASection({
           <p className="text-primary-foreground/90 md:text-xl">
             {description}
           </p>
-          <Button size="lg" asChild className="mt-4 bg-orange-600 text-white ">
+          <Button size="lg" asChild className="mt-4 bg-orange-500 text-white ">
             <a href={buttonUrl}>{buttonText}</a>
           </Button>
         </div>

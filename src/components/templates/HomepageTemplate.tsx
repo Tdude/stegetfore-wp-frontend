@@ -59,7 +59,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     }
 
     // Fallback?
-    return "/images/hero-fallback.jpg";
+    return "https://stegetfore.nu/wp-content/uploads/2024/09/framsida.png";
   };
 
   const heroImage = getHeroImage();
@@ -70,7 +70,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
         {/* Hero Section - Full width with centered content */}
         <HeroSection
           title={homepageData.hero?.title || "Välkommen till Steget Före"}
-          intro={homepageData.hero?.intro || "Sluta gå i sirap. Lär dig istället vad du ska göra åt det."}
+          intro={homepageData.hero?.intro || "Sluta gå i sirap. #lärdig istället vad du ska göra åt det."}
           ctaButtons={homepageData.hero?.buttons || []}
           imageUrl={heroImage}
         />
@@ -104,7 +104,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
           {/* Gallery Section */}
           {homepageData.gallery && homepageData.gallery.length > 0 && (
             <GallerySection
-              items={homepageData.gallery}
+              items={homepageData.gallery.map(item => ({ ...item, title: item.title || '' }))}
               title={homepageData.gallery_title}
             />
           )}
