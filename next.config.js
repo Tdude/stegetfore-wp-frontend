@@ -1,13 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["stegetfore.nu"],
+    domains: [
+      "stegetfore.nu",
+      "www.stegetfore.nu",
+      "secure.gravatar.com", // For WordPress avatars
+      "localhost", // For local development
+    ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.stegetfore.nu",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.wp.com", // For WordPress.com hosted images
+        pathname: "/**",
+      },
+    ],
   },
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-json/:path*`,
       },
       // Handle posts URLs internally without redirecting
       {

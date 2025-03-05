@@ -1,5 +1,6 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
+import { HomepageData, Page } from '@/lib/types';
 import { fetchPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
@@ -12,7 +13,7 @@ export default async function HomePage() {
 
     try {
       // Fetch the homepage from WP API
-      homepageData = await fetchHomepageData();
+      const homepageData: HomepageData = await fetchHomepageData();
 
       // Also fetch the page that might be set as homepage in WordPress
       page = await fetchPage('home');
@@ -53,13 +54,13 @@ export default async function HomePage() {
           },
           {
             id: 2,
-            title: "Hejsan svejsan",
-            description: "Vi erbjuder ditten och datten samt dutten.",
+            title: "Lär i din takt",
+            description: "Vi erbjuder också fnutten och givetvis fnatten.",
             content: ""
           },
           {
             id: 3,
-            title: "Inte professionell hjälp",
+            title: "Du kan sluta med brandsläckning",
             description: "Vi erbjuder ditten och datten samt dutten.",
             content: ""
           },
@@ -71,15 +72,13 @@ export default async function HomePage() {
     // Create a page object if none was fetched
     if (!page) {
       page = {
-        type: 'homepage',
-        template: 'homepage', // Set template explicitly
+        template: 'templates/homepage.php',
         id: 0,
         slug: 'home',
-        title: { rendered: homepageData.hero?.title ?? 'Welcome' },
-        chartData: { segments: [] }, // Add default or mock data for chartData
-        excerpt: { rendered: '' }, // Add default or mock data for excerpt
-        content: { rendered: '' } // Add default or mock data for content
-      };
+        title: { rendered: homepageData.hero?.title || 'Welcome' },
+        excerpt: { rendered: '' },
+        content: { rendered: '' }
+      } as Page;
     }
 
     // Pass the data to the page template

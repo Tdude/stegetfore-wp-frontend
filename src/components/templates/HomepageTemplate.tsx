@@ -87,7 +87,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
           {homepageData.selling_points && homepageData.selling_points.length > 0 && (
             <SellingPoints
               points={homepageData.selling_points}
-              title={homepageData.selling_points_title || "Våra fördelar"}
+              title={homepageData.selling_points_title || "Vad du kan få"}
             />
           )}
 

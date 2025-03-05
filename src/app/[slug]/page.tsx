@@ -8,7 +8,10 @@ import { PageParams, LocalPage } from '@/lib/types';
 import * as imageHelper from '@/lib/imageUtils';
 import { ResolvingMetadata, Metadata } from 'next';
 
-
+// Nextjs routing analism
+async function getSlugFromParams(params: { slug: string }) {
+  return params.slug;
+}
 // Function to get page data by slug
 async function getPageData(slug: string): Promise<LocalPage | null> {
   try {
@@ -18,6 +21,8 @@ async function getPageData(slug: string): Promise<LocalPage | null> {
     return null;
   }
 }
+
+
 
 // Individual page component
 async function PageContent({ slug }: { slug: string }) {
@@ -48,7 +53,7 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   // Await the params to fix the error
-  const slug = params.slug;
+  const slug = await getSlugFromParams(params);
   const page = await getPageData(slug);
 
   if (!page) {
