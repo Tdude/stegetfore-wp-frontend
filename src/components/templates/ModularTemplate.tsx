@@ -8,6 +8,7 @@ import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
+// Define ModularTemplateProps interface with a LocalPage that definitely has modules
 interface ModularTemplateProps {
   page: LocalPage;
 }
@@ -15,7 +16,8 @@ interface ModularTemplateProps {
 export default function ModularTemplate({ page }: ModularTemplateProps) {
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const modules = page.modules || [];
+  // Ensure modules is always an array, even if page.modules is undefined
+  const modules: Module[] = page.modules || [];
 
   // For debugging in development
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
       {Array.isArray(modules) && modules.length > 0 ? (
         <>
           {/* Render all modules */}
-          {modules.map((module, index) => (
+          {modules.map((module: Module, index: number) => (
             <ModuleRenderer key={module.id || index} module={module} />
           ))}
 
@@ -57,7 +59,7 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
 
                   <h3 className="font-medium mt-4 mb-2">Modules ({modules.length})</h3>
                   <ul className="space-y-2">
-                    {modules.map((module, index) => (
+                    {modules.map((module: Module, index: number) => (
                       <li key={index} className="p-2 bg-white rounded border">
                         <div className="flex justify-between">
                           <span className="font-medium">{module.type}</span>

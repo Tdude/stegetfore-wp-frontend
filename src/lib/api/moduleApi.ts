@@ -39,9 +39,16 @@ export async function fetchModules(
       revalidate: 600,
     });
 
-    return Array.isArray(modules)
-      ? modules.map((module: any) => adaptWordPressModule(module))
-      : [];
+    // Ensure we have an array of modules and they're properly adapted
+    if (!Array.isArray(modules)) {
+      console.warn(`fetchModules: expected array but got ${typeof modules}`);
+      return [];
+    }
+
+    // Make sure to return a properly typed array
+    return modules
+      .map((module: any) => adaptWordPressModule(module))
+      .filter(Boolean) as Module[];
   } catch (error) {
     console.error("Error fetching modules:", error);
     return [];

@@ -2,8 +2,23 @@
 'use client';
 
 import React, { Suspense, lazy, ReactNode } from 'react';
-import { Module } from '@/lib/types';
+import { Module } from '@/lib/types/moduleTypes';
 import { cn } from '@/lib/utils';
+import {
+  isHeroModule,
+  isCTAModule,
+  isSellingPointsModule,
+  isTestimonialsModule,
+  isFeaturedPostsModule,
+  isStatsModule,
+  isGalleryModule,
+  isTextModule,
+  isFormModule,
+  isAccordionModule,
+  isTabsModule,
+  isVideoModule,
+  isChartModule
+} from '@/lib/typeGuards';
 
 // Import basic placeholder components
 import ModulePlaceholder from './ModulePlaceholder';
@@ -13,7 +28,7 @@ import ModuleErrorBoundary from './ModuleErrorBoundary';
 const safeImport = (modulePath: string, fallbackComponent: ReactNode = null) => {
   return lazy(() =>
     import(`./${modulePath}`)
-      .catch(err => {
+      .catch((err: Error) => {
         console.warn(`Module ${modulePath} could not be loaded:`, err.message);
         // Return a minimal component that won't break rendering
         return {
@@ -77,47 +92,47 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
         <Suspense fallback={<ModulePlaceholder type={module.type} />}>
           <ModuleErrorBoundary type={module.type}>
             {(() => {
-              switch (module.type) {
-                case 'hero':
-                  return <HeroModule module={module} />;
-                case 'cta':
-                  return <CTAModule module={module} />;
-                case 'selling-points':
-                  return <SellingPointsModule module={module} />;
-                case 'testimonials':
-                  return <TestimonialsModule module={module} />;
-                case 'featured-posts':
-                  return <FeaturedPostsModule module={module} />;
-                case 'stats':
-                  return <StatsModule module={module} />;
-                case 'gallery':
-                  return <GalleryModule module={module} />;
-                case 'text':
-                  return <TextModule module={module} />;
-                case 'form':
-                  return <FormModule module={module} />;
-                case 'accordion':
-                  return <AccordionModule module={module} />;
-                case 'tabs':
-                  return <TabsModule module={module} />;
-                case 'video':
-                  return <VideoModule module={module} />;
-                case 'chart':
-                  return <ChartModule module={module} />;
-                default:
-                  // Fallback for unknown module types
-                  return (
-                    <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                      <h3 className="font-medium text-yellow-800">Unknown Module Type: {module.type}</h3>
-                      {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
-                      {module.content && (
-                        <div
-                          className="mt-2 prose-sm max-w-none text-yellow-700"
-                          dangerouslySetInnerHTML={{ __html: module.content }}
-                        />
-                      )}
-                    </div>
-                  );
+              // Use type guards to properly type each module
+              if (isHeroModule(module)) {
+                return <HeroModule module={module} />;
+              } else if (isCTAModule(module)) {
+                return <CTAModule module={module} />;
+              } else if (isSellingPointsModule(module)) {
+                return <SellingPointsModule module={module} />;
+              } else if (isTestimonialsModule(module)) {
+                return <TestimonialsModule module={module} />;
+              } else if (isFeaturedPostsModule(module)) {
+                return <FeaturedPostsModule module={module} />;
+              } else if (isStatsModule(module)) {
+                return <StatsModule module={module} />;
+              } else if (isGalleryModule(module)) {
+                return <GalleryModule module={module} />;
+              } else if (isTextModule(module)) {
+                return <TextModule module={module} />;
+              } else if (isFormModule(module)) {
+                return <FormModule module={module} />;
+              } else if (isAccordionModule(module)) {
+                return <AccordionModule module={module} />;
+              } else if (isTabsModule(module)) {
+                return <TabsModule module={module} />;
+              } else if (isVideoModule(module)) {
+                return <VideoModule module={module} />;
+              } else if (isChartModule(module)) {
+                return <ChartModule module={module} />;
+              } else {
+                // Fallback for unknown module types
+                return (
+                  <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
+                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module.type}</h3>
+                    {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
+                    {module.content && (
+                      <div
+                        className="mt-2 prose-sm max-w-none text-yellow-700"
+                        dangerouslySetInnerHTML={{ __html: module.content }}
+                      />
+                    )}
+                  </div>
+                );
               }
             })()}
           </ModuleErrorBoundary>
@@ -139,13 +154,13 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
         {renderModuleContent()}
       </div>
     );
-  } catch (error) {
+  } catch (error: unknown) {
     // Handle any runtime errors
     console.error('Error rendering module:', error);
     return (
       <div className="p-4 border border-red-200 rounded bg-red-50">
         <h3 className="font-medium text-red-800">Module Rendering Error</h3>
-        <p className="mt-2 text-red-700">{error.message}</p>
+        <p className="mt-2 text-red-700">{(error as Error).message}</p>
       </div>
     );
   }

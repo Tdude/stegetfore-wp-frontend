@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-import { FormData, initialFormState, ProgressBarProps, SubSectionProps } from '@/lib/types';
+
+// This is where the types for the Evaluation Template, OBSschemat form should be
+import { FormData, initialFormState, ProgressBarProps, SubSectionProps } from '@/lib/types/formTypesEvaluation';
 
 // Styling classes
 const stageClasses = {

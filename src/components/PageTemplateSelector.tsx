@@ -6,7 +6,8 @@ import { AnimatePresence } from 'framer-motion';
 import {
   PageTemplate,
   PageTemplateSelectorProps,
-  Module
+  Module,
+  LocalPage
 } from '@/lib/types';
 import { FEATURES } from '@/lib/featureFlags';
 
@@ -21,13 +22,13 @@ import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
 
 // Conditionally import ModularTemplate to avoid errors if not yet created
-let ModularTemplate: React.ComponentType<{ page: PageTemplateSelectorProps['page'] }> | undefined;
+let ModularTemplate: React.ComponentType<{ page: LocalPage }> | undefined;
 if (FEATURES.USE_MODULAR_TEMPLATES) {
   try {
     // Dynamic import (but synchronous during initialization)
     ModularTemplate = require('./templates/ModularTemplate').default;
-  } catch (err) {
-    console.warn('ModularTemplate not available yet:', err.message);
+  } catch (err: unknown) {
+    console.warn('ModularTemplate not available yet:', (err as Error).message);
   }
 }
 
@@ -45,8 +46,8 @@ export default function PageTemplateSelector({
     console.log('🎨 Template value:', template);
     console.log('🏠 Is Homepage:', isHomePage);
 
-    // Log whether the page has modules
-    if (page.modules?.length) {
+    // Log whether the page has modules - with proper type checking
+    if (page.modules && Array.isArray(page.modules) && page.modules.length) {
       console.log('📦 Page has modules:', page.modules.length);
     }
 
@@ -63,7 +64,7 @@ export default function PageTemplateSelector({
         }
 
         // Check if we should use the modular template
-        const hasModules = Array.isArray(page.modules) && page.modules.length > 0;
+        const hasModules = page.modules && Array.isArray(page.modules) && page.modules.length > 0;
         const isModularTemplate = template === PageTemplate.MODULAR;
 
         // Use modular template if:

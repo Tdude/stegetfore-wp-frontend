@@ -1,4 +1,5 @@
 // src/lib/types/contentTypes.ts
+import { Module } from "./moduleTypes";
 
 /**
  * Base interface for content items (posts, pages, etc.)
@@ -61,6 +62,7 @@ export interface Page extends BaseContent {
   chartData?: {
     segments: number[];
   } | null;
+  modules?: Module[]; // Add modules to base Page
 }
 
 /**
@@ -73,7 +75,7 @@ export interface LocalPage extends BaseContent {
   } | null;
   evaluationId?: string;
   type?: string;
-  modules?: any[]; // Will be replaced with Module[] from moduleTypes when imported
+  modules?: Module[]; // Explicitly typed as Module[]
 }
 
 /**
@@ -83,114 +85,4 @@ export interface PageParams {
   params: {
     slug: string;
   };
-}
-
-/**
- * Site information
- */
-export interface SiteInfo {
-  name: string;
-  description: string;
-  url?: string;
-  admin_email?: string;
-  language?: string;
-  logo_url?: string;
-  favicon_url?: string;
-  social_links?: {
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-    linkedin?: string;
-    youtube?: string;
-  };
-}
-
-/**
- * Menu item
- */
-export interface MenuItem {
-  ID: number;
-  id?: number; // Added for compatibility
-  title: string;
-  url: string;
-  slug: string;
-  target: string;
-  classes?: string[];
-  description?: string;
-  attr_title?: string;
-  xfn?: string;
-  children?: MenuItem[];
-}
-
-/**
- * Category
- */
-export interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  parent?: number;
-  count?: number;
-}
-
-/**
- * Tag
- */
-export interface Tag {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  count?: number;
-}
-
-/**
- * Media item
- */
-export interface Media {
-  id: number;
-  source_url: string;
-  alt_text?: string;
-  title?: {
-    rendered: string;
-  };
-  caption?: {
-    rendered: string;
-  };
-  description?: {
-    rendered: string;
-  };
-  media_type?: string;
-  mime_type?: string;
-  media_details?: {
-    width?: number;
-    height?: number;
-    sizes?: Record<
-      string,
-      {
-        source_url: string;
-        width: number;
-        height: number;
-      }
-    >;
-  };
-}
-
-/**
- * Image container types for the OptimizedImage component
- */
-export type ImageContainer =
-  | "hero"
-  | "featured"
-  | "card"
-  | "gallery"
-  | "default";
-
-/**
- * Additional props for components that use featured images
- */
-export interface WithFeaturedImageProps {
-  featuredImageUrl?: string;
-  featuredImageAlt?: string;
 }

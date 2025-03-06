@@ -4,9 +4,24 @@ import { Post } from "./contentTypes";
 /**
  * Base module interface
  */
+export type ModuleType =
+  | "hero"
+  | "cta"
+  | "selling-points"
+  | "testimonials"
+  | "featured-posts"
+  | "stats"
+  | "gallery"
+  | "text"
+  | "form"
+  | "accordion"
+  | "tabs"
+  | "video"
+  | "chart";
+
 export interface BaseModule {
   id: number;
-  type: string;
+  type: ModuleType;
   title?: string;
   content?: string;
   order?: number;

@@ -17,8 +17,14 @@ import { adaptWordPressPosts } from "./postAdapter";
  * @param wpModule WordPress module data
  * @returns Module object formatted for the application
  */
-export function adaptWordPressModule(wpModule: any): Module {
+export function adaptWordPressModule(wpModule: any): Module | null {
   if (!wpModule) return null;
+
+  // Check for required fields - id and type are required
+  if (typeof wpModule.id !== "number" || typeof wpModule.type !== "string") {
+    console.warn("Invalid module data: missing id or type", wpModule);
+    return null;
+  }
 
   // Determine the module type and use the appropriate adapter
   switch (wpModule.type) {
@@ -50,6 +56,8 @@ export function adaptWordPressModule(wpModule: any): Module {
       return adaptChartModule(wpModule);
     default:
       console.warn(`Unknown module type: ${wpModule.type}`);
+
+      // Return a base module with common fields
       return {
         id: wpModule.id || 0,
         type: wpModule.type || "unknown",
@@ -57,7 +65,7 @@ export function adaptWordPressModule(wpModule: any): Module {
         content: wpModule.content || "",
         order: wpModule.order || 0,
         settings: wpModule.settings || {},
-      };
+      } as Module; // Force casting to Module as this is a generic case
   }
 }
 
@@ -462,5 +470,8 @@ export function adaptWordPressHomepageData(wpHomepageData: any): HomepageData {
 export function adaptWordPressModules(wpModules: any[]): Module[] {
   if (!Array.isArray(wpModules)) return [];
 
-  return wpModules.map((module) => adaptWordPressModule(module));
+  // Filter out null results from adaptWordPressModule
+  return wpModules
+    .map((module) => adaptWordPressModule(module))
+    .filter((module): module is Module => module !== null);
 }

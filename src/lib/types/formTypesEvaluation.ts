@@ -47,3 +47,37 @@ export const initialFormState: FormData = {
     comments: {},
   },
 };
+
+// Added from old types file
+export interface SubSectionProps {
+  title: string;
+  name: string;
+  options: Array<{
+    value: string;
+    label: string;
+    stage: "ej" | "trans" | "full";
+  }>;
+  value: string;
+  onChange: (value: string) => void;
+  onCommentChange: (value: string) => void;
+  comment: string;
+  sectionKey: keyof FormData;
+  fieldName: string;
+  calculateProgress: (section: keyof FormData, field: string) => number;
+}
+
+export interface ProgressBarProps {
+  value: number;
+  type: "section" | "total";
+  stage?: "ej" | "trans" | "full";
+}
+
+/**
+ * TextareaProps extends HTMLTextAreaAttributes (without adding new properties)
+ * for type consistency across components
+ */
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Custom property for project-specific features */
+  customProp?: string;
+}
