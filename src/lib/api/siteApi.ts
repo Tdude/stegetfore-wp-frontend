@@ -1,8 +1,8 @@
 // src/lib/api/siteApi.ts
-import { fetchApi } from './baseApi';
-import { SiteInfo, MenuItem } from '@/lib/types/contentTypes';
-import { THEME_SLUG } from './baseApi';
-import { adaptWordPressSiteInfo } from '@/lib/adapters/siteAdapter';
+import { fetchApi } from "./baseApi";
+import { SiteInfo, MenuItem } from "@/lib/types/contentTypes";
+import { THEME_SLUG } from "./baseApi";
+import { adaptWordPressSiteInfo } from "@/lib/adapters/siteAdapter";
 
 /**
  * Fetch site information
@@ -47,7 +47,7 @@ export async function fetchMainMenu(): Promise<MenuItem[]> {
  * Fetch categories
  * @returns Record of category objects keyed by ID
  */
-export async function fetchCategories(): Promise
+export async function fetchCategories(): Promise<
   Record<number, { id: number; name: string; slug: string }>
 > {
   try {
