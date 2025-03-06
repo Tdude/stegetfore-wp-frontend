@@ -86,3 +86,28 @@ export interface PageParams {
     slug: string;
   };
 }
+
+export interface SiteInfo {
+  name: string;
+  description: string;
+  url?: string;
+  admin_email?: string;
+  language?: string;
+  logo_url?: string;
+  favicon_url?: string;
+  social_links?: Record<string, string>;
+}
+
+export interface MenuItem {
+  ID: number;
+  id?: number; // For compatibility
+  title: string;
+  url: string;
+  slug: string;
+  target: string;
+  classes?: string[];
+  description?: string;
+  attr_title?: string;
+  xfn?: string;
+  children?: MenuItem[];
+}
