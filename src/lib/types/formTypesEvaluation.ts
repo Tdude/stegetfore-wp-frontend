@@ -48,7 +48,28 @@ export const initialFormState: FormData = {
   },
 };
 
-// Added from old types file
+/**
+ * TextareaProps extends HTMLTextAreaAttributes (without adding new properties)
+ * for type consistency across components
+ */
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Custom property for project-specific features */
+  customProp?: string;
+}
+
+/**
+ * Props for the progress bar component
+ */
+export interface ProgressBarProps {
+  value: number;
+  type: "section" | "total";
+  stage?: "ej" | "trans" | "full";
+}
+
+/**
+ * Evaluation Template props for the SubSection component
+ */
 export interface SubSectionProps {
   title: string;
   name: string;
@@ -64,20 +85,4 @@ export interface SubSectionProps {
   sectionKey: keyof FormData;
   fieldName: string;
   calculateProgress: (section: keyof FormData, field: string) => number;
-}
-
-export interface ProgressBarProps {
-  value: number;
-  type: "section" | "total";
-  stage?: "ej" | "trans" | "full";
-}
-
-/**
- * TextareaProps extends HTMLTextAreaAttributes (without adding new properties)
- * for type consistency across components
- */
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  /** Custom property for project-specific features */
-  customProp?: string;
 }

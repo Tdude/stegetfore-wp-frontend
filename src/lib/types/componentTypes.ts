@@ -51,35 +51,6 @@ export interface ModularTemplateProps {
 }
 
 /**
- * Props for the progress bar component
- */
-export interface ProgressBarProps {
-  value: number;
-  type: "section" | "total";
-  stage?: "ej" | "trans" | "full";
-}
-
-/**
- * Props for the SubSection component in the evaluation template
- */
-export interface SubSectionProps {
-  title: string;
-  name: string;
-  options: Array<{
-    value: string;
-    label: string;
-    stage: "ej" | "trans" | "full";
-  }>;
-  value: string;
-  onChange: (value: string) => void;
-  onCommentChange: (value: string) => void;
-  comment: string;
-  sectionKey: keyof FormData;
-  fieldName: string;
-  calculateProgress: (section: keyof FormData, field: string) => number;
-}
-
-/**
  * Props for the ModuleRenderer component
  */
 export interface ModuleRendererProps {
