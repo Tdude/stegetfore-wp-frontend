@@ -70,6 +70,8 @@ export interface Page extends BaseContent {
  * Includes modules array for modular pages
  */
 export interface LocalPage extends BaseContent {
+  id: number;
+  slug: string;
   chartData?: {
     segments: number[];
   } | null;
