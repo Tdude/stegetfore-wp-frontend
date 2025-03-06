@@ -60,7 +60,7 @@ export default function PostsList({ posts, categories }: PostsListProps) {
               />
             </CardContent>
             <CardFooter>
-              <div className="text-sm text-primary hover:underline">
+              <div className="text-md text-primary hover:underline">
                 Läs mer →
               </div>
             </CardFooter>

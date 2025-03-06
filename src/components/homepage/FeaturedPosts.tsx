@@ -107,7 +107,7 @@ export default function FeaturedPosts({ posts, title, categories }: FeaturedPost
                   )}
                 </CardContent>
                 <CardFooter>
-                  <div className="text-sm text-primary hover:underline">
+                  <div className="text-md text-primary hover:underline">
                     Läs mer →
                   </div>
                 </CardFooter>

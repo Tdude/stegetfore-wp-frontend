@@ -1,5 +1,10 @@
 // src/lib/types.ts - Application Types Section
 
+// Re-export all types from the new location
+// This maintains backward compatibility with existing code
+export * from "./types/index";
+
+// And all the old stuff:
 declare namespace NodeJS {
   export interface ProcessEnv {
     NEXT_PUBLIC_API_URL: string;
@@ -95,6 +100,7 @@ export enum PageTemplate {
   EVALUATION = "templates/evaluation.php",
   CIRCLE_CHART = "templates/circle-chart.php",
   CONTACT = "templates/contact.php",
+  MODULAR = "MODULAR",
 }
 
 // More specific content types extending base content for application use
