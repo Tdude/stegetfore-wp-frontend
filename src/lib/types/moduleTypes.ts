@@ -242,7 +242,8 @@ export type Module =
   | AccordionModule
   | TabsModule
   | VideoModule
-  | ChartModule;
+  | ChartModule
+  | BaseModule;
 
 /**
  * Complete homepage data

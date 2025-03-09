@@ -2,7 +2,7 @@
 'use client';
 
 import React, { Suspense, lazy, ReactNode } from 'react';
-import { Module } from '@/lib/types/moduleTypes';
+import { Module } from '@/lib/types/';
 import { cn } from '@/lib/utils';
 import {
   isHeroModule,
@@ -123,9 +123,9 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
                 // Fallback for unknown module types
                 return (
                   <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module.type}</h3>
-                    {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
-                    {module.content && (
+                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module?.type}</h3>
+                    {module?.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
+                    {module?.content && (
                       <div
                         className="mt-2 prose-sm max-w-none text-yellow-700"
                         dangerouslySetInnerHTML={{ __html: module.content }}

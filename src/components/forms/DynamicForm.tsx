@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { WPCF7Form, WPCF7Field } from '@/lib/types';
-import { validateFormData, createInitialFormValues, getFieldErrorMessage } from '@/services/formService';
+import { validateFormData, createInitialFormValues, getFieldErrorMessage } from '@/services';
 import { formatFormDataForSubmission } from '@/lib/adapters';
 import { submitForm } from '@/lib/api';
+import { WPCF7Field, WPCF7Form } from '@/lib/types';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -246,7 +246,8 @@ export default function DynamicForm({
       required,
       placeholder: placeholder || '',
       disabled: isSubmitting,
-      'aria-invalid': error ? 'true' : 'false',
+      'aria-invalid': Boolean(error),
+      'aria-describedby': error ? `${fieldId}-error` : undefined,
       onBlur: () => handleBlur(name),
     };
 

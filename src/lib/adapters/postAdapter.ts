@@ -7,7 +7,7 @@ import { getOptimalImageSize } from "@/lib/imageUtils";
  * @param wpPost WordPress post data
  * @returns Post object formatted for the application
  */
-export function adaptWordPressPost(wpPost: any): Post {
+export function adaptWordPressPost(wpPost: any): Post | null {
   if (!wpPost) return null;
 
   return {
@@ -42,10 +42,12 @@ export function adaptWordPressPost(wpPost: any): Post {
  * @param wpPosts Array of WordPress post data
  * @returns Array of Post objects formatted for the application
  */
-export function adaptWordPressPosts(wpPosts: any[]): Post[] {
+export function adaptWordPressPosts(wpPosts: any[]): (Post | null)[] {
   if (!Array.isArray(wpPosts)) return [];
 
-  return wpPosts.map((post) => adaptWordPressPost(post));
+  return wpPosts
+    .map((post) => adaptWordPressPost(post))
+    .filter((post): post is Post => post !== null); // Remove null values
 }
 
 /**

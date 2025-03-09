@@ -46,7 +46,7 @@ export default function PageTemplateSelector({
     console.log('🎨 Template value:', template);
     console.log('🏠 Is Homepage:', isHomePage);
 
-    // Log whether the page has modules - with proper type checking
+        // Log whether the page has modules - with proper type checking
     if (page.modules && Array.isArray(page.modules) && page.modules.length) {
       console.log('📦 Page has modules:', page.modules.length);
     }
@@ -63,8 +63,10 @@ export default function PageTemplateSelector({
           return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
         }
 
-        // Check if we should use the modular template
-        const hasModules = page.modules && Array.isArray(page.modules) && page.modules.length > 0;
+        // Make sure modules is always an array, even if page.modules is undefined
+        // Explicitly cast modules to ensure type compatibility
+        const pageModules: Module[] = Array.isArray(page.modules) ? page.modules : [];
+        const hasModules = pageModules.length > 0;
         const isModularTemplate = template === PageTemplate.MODULAR;
 
         // Use modular template if:

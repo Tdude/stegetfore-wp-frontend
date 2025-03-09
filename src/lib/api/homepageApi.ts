@@ -1,14 +1,18 @@
 // src/lib/api/homepageApi.ts
-import { fetchApi } from "./baseApi";
+import {
+  fetchApi,
+  fetchPostsByIds,
+  fetchFeaturedPosts,
+  fetchCategories,
+  fetchModules,
+} from "../api";
 import {
   HomepageData,
   HeroModule,
   CTAModule,
   SellingPointsModule,
-} from "@/lib/types/moduleTypes";
-import { adaptWordPressHomepageData } from "@/lib/adapters/moduleAdapter";
-import { fetchPostsByIds, fetchFeaturedPosts } from "./postApi";
-import { fetchCategories } from "./siteApi";
+} from "@/lib/types";
+import { adaptWordPressHomepageData } from "@/lib/adapters";
 
 /**
  * Fetch complete homepage data from the v2 endpoint
@@ -16,11 +20,12 @@ import { fetchCategories } from "./siteApi";
  */
 export async function fetchHomepageData(): Promise<HomepageData> {
   try {
-    const [homepageResponse, categories] = await Promise.all([
+    const [homepageResponse, categories, modules] = await Promise.all([
       fetchApi("/startpage/v2/homepage-data", {
         revalidate: 60, // Cache for 60 seconds
       }),
       fetchCategories(),
+      fetchModules({ category: "homepage" }), // Fetch modules for homepage
     ]);
 
     // Fetch featured posts or fallback to the latest 3 posts
@@ -32,6 +37,7 @@ export async function fetchHomepageData(): Promise<HomepageData> {
       ...adaptWordPressHomepageData(homepageResponse),
       featured_posts: featuredPosts,
       categories,
+      modules, // Add modules to homepage data
     };
   } catch (error) {
     console.error("Error in fetchHomepageData:", error);

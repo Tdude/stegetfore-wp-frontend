@@ -49,16 +49,6 @@ export const initialFormState: FormData = {
 };
 
 /**
- * TextareaProps extends HTMLTextAreaAttributes (without adding new properties)
- * for type consistency across components
- */
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  /** Custom property for project-specific features */
-  customProp?: string;
-}
-
-/**
  * Props for the progress bar component
  */
 export interface ProgressBarProps {

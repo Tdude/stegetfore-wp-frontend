@@ -17,7 +17,7 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // Ensure modules is always an array, even if page.modules is undefined
-  const modules: Module[] = page.modules || [];
+  const modules = Array.isArray(page.modules) ? page.modules : [];
 
   // For debugging in development
   useEffect(() => {

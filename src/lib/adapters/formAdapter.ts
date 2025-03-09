@@ -7,7 +7,40 @@ import { WPCF7Form, WPCF7Field } from "@/lib/types";
  * @returns WPCF7Form object formatted for the application
  */
 export function adaptWordPressForm(wpForm: any): WPCF7Form {
-  if (!wpForm) return null;
+  if (!wpForm) {
+    return {
+      id: "",
+      title: "",
+      fields: [],
+      additional_settings: "",
+      locale: "",
+      messages: {
+        mail_sent_ok: "",
+        mail_sent_ng: "",
+        validation_error: "",
+        spam: "",
+        accept_terms: "",
+        invalid_required: "",
+        invalid_too_long: "",
+        invalid_too_short: "",
+        upload_failed: "",
+        upload_file_type_invalid: "",
+        upload_file_too_large: "",
+        upload_failed_php_error: "",
+        invalid_date: "",
+        date_too_early: "",
+        date_too_late: "",
+        invalid_number: "",
+        number_too_small: "",
+        number_too_large: "",
+        quiz_answer_not_correct: "",
+        invalid_email: "",
+        invalid_url: "",
+        invalid_tel: "",
+        captcha_not_match: "",
+      },
+    };
+  }
 
   return {
     id: wpForm.id || "",

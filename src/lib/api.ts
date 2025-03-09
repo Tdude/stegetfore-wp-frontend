@@ -2,6 +2,8 @@
 import { Post, Page, SiteInfo, MenuItem } from "./types";
 import { getOptimalImageSize } from "./imageUtils";
 
+export * from "./api/index";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG;
 

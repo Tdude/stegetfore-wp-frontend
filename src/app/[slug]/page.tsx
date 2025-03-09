@@ -8,10 +8,8 @@ import { PageParams, LocalPage } from '@/lib/types';
 import * as imageHelper from '@/lib/imageUtils';
 import { ResolvingMetadata, Metadata } from 'next';
 
-// Nextjs routing analism
-async function getSlugFromParams(params: { slug: string }) {
-  return params.slug;
-}
+export const dynamic = 'force-dynamic';
+
 // Function to get page data by slug
 async function getPageData(slug: string): Promise<LocalPage | null> {
   try {
@@ -21,8 +19,6 @@ async function getPageData(slug: string): Promise<LocalPage | null> {
     return null;
   }
 }
-
-
 
 // Individual page component
 async function PageContent({ slug }: { slug: string }) {
@@ -37,11 +33,15 @@ async function PageContent({ slug }: { slug: string }) {
 }
 
 // Main page wrapper component
-export default async function PageWrapper({ params }: PageParams) {
+export default async function PageWrapper({ params }: any) {
+  // Await the entire params object first
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
-        <PageContent slug={params.slug} />
+        <PageContent slug={slug} />
       </Suspense>
     </main>
   );
@@ -49,11 +49,12 @@ export default async function PageWrapper({ params }: PageParams) {
 
 // Generate metadata for the page
 export async function generateMetadata(
-  { params }: PageParams,
+  { params }: any,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Await the params to fix the error
-  const slug = await getSlugFromParams(params);
+  // Await the entire params object first
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
   const page = await getPageData(slug);
 
   if (!page) {

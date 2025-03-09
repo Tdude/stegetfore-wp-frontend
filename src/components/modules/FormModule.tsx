@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FormModule as FormModuleType } from '@/lib/types';
+import { WPCF7Form, FormModule as FormModuleType } from '@/lib/types';
 import { fetchFormStructure, submitForm } from '@/lib/api';
 import DynamicForm from '@/components/forms/DynamicForm';
 import { cn } from '@/lib/utils';
@@ -14,9 +14,9 @@ interface FormModuleProps {
 }
 
 export default function FormModule({ module, className }: FormModuleProps) {
-  const [form, setForm] = useState(null);
+  const [form, setForm] = useState<WPCF7Form | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadForm = async () => {
@@ -36,21 +36,19 @@ export default function FormModule({ module, className }: FormModuleProps) {
   }, [module.form_id]);
 
   // Handle form submission
-  const handleSubmit = async (formData) => {
-    try {
-      const response = await submitForm(module.form_id, formData);
+  const handleSubmit = async (formData: Record<string, any>): Promise<void> => {
+      try {
+        const response = await submitForm(module.form_id, formData);
 
-      // Check if redirect URL is set
-      if (response.status === 'mail_sent' && module.redirect_url) {
-        window.location.href = module.redirect_url;
+        // Check if redirect URL is set
+        if (response.status === 'mail_sent' && module.redirect_url) {
+          window.location.href = module.redirect_url;
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        throw error;
       }
-
-      return response;
-    } catch (error) {
-      console.error('Form submission error:', error);
-      throw error;
-    }
-  };
+    };
 
   // Loading state
   if (isLoading) {

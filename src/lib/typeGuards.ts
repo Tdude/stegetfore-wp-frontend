@@ -14,7 +14,7 @@ import {
   TabsModule,
   VideoModule,
   ChartModule,
-} from "@/lib/types/moduleTypes";
+} from "@/lib/types";
 
 /**
  * Type guard to check if a module is a HeroModule
@@ -45,7 +45,10 @@ export function isSellingPointsModule(
 export function isTestimonialsModule(
   module: Module
 ): module is TestimonialsModule {
-  return module.type === "testimonials";
+  return (
+    module.type === "testimonials" &&
+    Array.isArray((module as TestimonialsModule).testimonials)
+  );
 }
 
 /**

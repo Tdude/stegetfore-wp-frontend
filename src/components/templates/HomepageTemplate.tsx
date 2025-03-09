@@ -2,22 +2,20 @@
 'use client';
 
 import React from 'react';
-import { HomepageTemplateProps, HomepageData } from '@/lib/types';
+import { HomepageTemplateProps, HomepageData, Module } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import HeroSection from '@/components/homepage/HeroSection';
 import FeaturedPosts from '@/components/homepage/FeaturedPosts';
 import CTASection from '@/components/homepage/CTASection';
-import TestimonialsSection from '@/components/homepage/TestimonialsSection';
 import SellingPoints from '@/components/homepage/SellingPoints';
 import GallerySection from '@/components/homepage/GallerySection';
 import StatsSection from '@/components/homepage/StatsSection';
+import ModuleRenderer from '@/components/modules/ModuleRenderer';
+import { isTestimonialsModule } from '@/lib/typeGuards';
 
 export default function HomepageTemplate({ page, homepage }: HomepageTemplateProps) {
   // Homepage data from custom endpoint or fallback
-  // Parse homepage if it's a string, or use as is if it's already an object
   const [homepageData, setHomepageData] = React.useState<HomepageData>({});
-
-  // Client-side only rendering for HTML content
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -43,7 +41,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     console.log('📄 Homepage data:', homepageData);
   }, [homepageData]);
 
-  // Get hero image from here and there
+  // Get hero image
   const getHeroImage = () => {
     // First check the hero.image from homepage data
     if (homepageData.hero?.image) {
@@ -58,11 +56,17 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
       return page._embedded['wp:featuredmedia'][0].source_url;
     }
 
-    // Fallback?
+    // Fallback
     return "https://stegetfore.nu/wp-content/uploads/2024/09/framsida.png";
   };
 
   const heroImage = getHeroImage();
+
+  // Get testimonial modules from the page
+  const testimonialModules = React.useMemo(() => {
+    if (!Array.isArray(homepageData.modules)) return [];
+    return homepageData.modules.filter(module => module.type === 'testimonials');
+  }, [homepageData.modules]);
 
   return (
     <TemplateTransitionWrapper>
@@ -109,13 +113,43 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
             />
           )}
 
-          {/* Testimonials Section */}
-          {homepageData.testimonials && homepageData.testimonials.length > 0 && (
-            <TestimonialsSection
-              testimonials={homepageData.testimonials}
-              title={homepageData.testimonials_title || "Vad våra klienter säger"}
-            />
-          )}
+          {/* Testimonials Section - Using Modules */}
+          {testimonialModules.length > 0 ? (
+            testimonialModules.map(module => (
+              <ModuleRenderer key={module.id} module={module} />
+            ))
+          ) : homepageData.testimonials && homepageData.testimonials.length > 0 ? (
+            // Fallback to old testimonials data format if no modules found
+            <section className="py-16 bg-background">
+              <div className="container px-4 md:px-6 mx-auto">
+                <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
+                  {homepageData.testimonials_title || "Vad våra klienter säger"}
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {homepageData.testimonials.map((testimonial, index) => (
+                    <div key={testimonial.id || index} className="p-6 bg-muted/10 rounded-lg">
+                      <div className="text-lg mb-4" dangerouslySetInnerHTML={{ __html: testimonial.content }} />
+                      <div className="flex items-center gap-4">
+                        {testimonial.author_image && (
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                            <img
+                              src={testimonial.author_image}
+                              alt={testimonial.author_name}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{testimonial.author_name}</p>
+                          <p className="text-sm text-muted-foreground">{testimonial.author_position}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {/* CTA Section */}
           {homepageData.cta && (

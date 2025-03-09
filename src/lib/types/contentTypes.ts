@@ -47,9 +47,10 @@ export interface Post extends BaseContent {
   categories: number[];
   tags?: number[];
   author?: number;
-  comment_status?: string;
+  comment_status?: "open" | "closed";
   author_name?: string;
   author_avatar?: string;
+  meta?: Record<string, unknown>;
 }
 
 /**
@@ -58,7 +59,7 @@ export interface Post extends BaseContent {
 export interface Page extends BaseContent {
   parent?: number;
   menu_order?: number;
-  comment_status?: string;
+  comment_status?: "open" | "closed";
   chartData?: {
     segments: number[];
   } | null;
@@ -85,7 +86,7 @@ export interface LocalPage extends BaseContent {
  */
 export interface PageParams {
   params: {
-    slug: string;
+    slug: string | Promise<string>;
   };
 }
 

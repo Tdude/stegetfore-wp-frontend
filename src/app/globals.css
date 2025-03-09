@@ -3,12 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
   /* Still use CSS variables for HSL values */
   :root {
     --background: 0 0% 100%;
@@ -65,8 +59,17 @@
     --chart-5: 340 75% 55%;
   }
 
+  * {
+    @apply border-border;
+    @apply border-border outline-ring/50;
+  }
+
   body {
+    @apply bg-background text-foreground;
     @apply font-sans;
+  }
+  main.container {
+    @apply text-xl;
   }
 
   h1,
@@ -77,7 +80,7 @@
   h6 {
     @apply font-heading;
   }
-}
+} /* end base layer */
 
 @layer components {
   article {
@@ -126,6 +129,7 @@
 }
 .navbar-nav {
   @apply flex-col lg:flex-row;
+  @apply text-lg;
 }
 
 .nav-item {
@@ -134,23 +138,4 @@
 
 .nav-dropdown:hover .nav-dropdown-list {
   @apply lg:block;
-}
-
-.btn {
-  @apply inline-flex items-center justify-center rounded-md text-center;
-}
-
-.btn-primary {
-  @apply bg-primary text-white hover:bg-primary/90;
-}
-
-
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }

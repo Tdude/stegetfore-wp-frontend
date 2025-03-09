@@ -8,6 +8,8 @@ import {
   WordPressSiteInfo,
 } from "./types-wordpress";
 
+export * from "./adapters/index";
+
 /**
  * Adapts WordPress post data to the application Post format
  */
