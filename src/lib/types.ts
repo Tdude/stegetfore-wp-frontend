@@ -124,6 +124,7 @@ export interface PageParams {
 
 // Enhanced local version with more strict typing
 export interface LocalPage extends BaseContent {
+  modules: any;
   id: number;
   slug: string;
   chartData?: {
@@ -365,14 +366,6 @@ export interface GalleryItem {
 export interface GallerySectionProps {
   items: GalleryItem[];
   title?: string;
-}
-
-export interface CTASectionProps {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-  backgroundColor?: string;
 }
 
 export interface FeaturedPostsProps {

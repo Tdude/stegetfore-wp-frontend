@@ -9,6 +9,7 @@ import {
   StatsModule,
   GalleryModule,
   HomepageData,
+  Post,
 } from "@/lib/types";
 import { adaptWordPressPosts } from "./postAdapter";
 
@@ -20,14 +21,11 @@ import { adaptWordPressPosts } from "./postAdapter";
 export function adaptWordPressModule(wpModule: any): Module | null {
   if (!wpModule) return null;
 
-  // Check for required fields - id and type are required
-  if (typeof wpModule.id !== "number" || typeof wpModule.type !== "string") {
-    console.warn("Invalid module data: missing id or type", wpModule);
-    return null;
-  }
+  // Determine module type from WordPress template field
+  const moduleType = wpModule.type || wpModule.template;
 
-  // Determine the module type and use the appropriate adapter
-  switch (wpModule.type) {
+  // Process module based on type
+  switch (moduleType) {
     case "hero":
       return adaptHeroModule(wpModule);
     case "cta":
@@ -55,17 +53,8 @@ export function adaptWordPressModule(wpModule: any): Module | null {
     case "chart":
       return adaptChartModule(wpModule);
     default:
-      console.warn(`Unknown module type: ${wpModule.type}`);
-
-      // Return a base module with common fields
-      return {
-        id: wpModule.id || 0,
-        type: wpModule.type || "unknown",
-        title: wpModule.title || "",
-        content: wpModule.content || "",
-        order: wpModule.order || 0,
-        settings: wpModule.settings || {},
-      } as Module; // Force casting to Module as this is a generic case
+      console.warn(`Unknown module type: ${moduleType}`);
+      return null;
   }
 }
 
@@ -98,17 +87,18 @@ function adaptHeroModule(wpModule: any): HeroModule {
  * @returns CTAModule object
  */
 function adaptCTAModule(wpModule: any): CTAModule {
+  console.log("in moduleAdapter - Adapting CTA module:", wpModule);
   return {
     id: wpModule.id || 0,
-    type: "cta",
+    type: "cta", // Normalize to expected type regardless of WordPress template field
     title: wpModule.title || "",
-    description: wpModule.description || "",
-    buttonText: wpModule.button_text || "",
-    buttonUrl: wpModule.button_url || "",
-    backgroundColor: wpModule.background_color,
-    textColor: wpModule.text_color,
-    alignment: wpModule.alignment || "center",
-    image: wpModule.image,
+    description: wpModule.content || wpModule.description || "",
+    buttonText: wpModule.buttons?.[0]?.text || "",
+    buttonUrl: wpModule.buttons?.[0]?.url || "",
+    backgroundColor: wpModule.background_color || "",
+    textColor: wpModule.text_color || "",
+    alignment: wpModule.layout || "center",
+    image: wpModule.featured_image || "",
     order: wpModule.order || 0,
     settings: wpModule.settings || {},
   };
@@ -177,7 +167,9 @@ function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
     type: "featured-posts",
     title: wpModule.title || "",
     posts: Array.isArray(wpModule.posts)
-      ? adaptWordPressPosts(wpModule.posts)
+      ? adaptWordPressPosts(wpModule.posts).filter(
+          (post): post is Post => post !== null
+        )
       : [],
     display_style: wpModule.display_style || "grid",
     columns: wpModule.columns || 3,

@@ -15,6 +15,10 @@ export interface BaseModule {
   settings?: Record<string, any>;
 }
 
+export interface ModuleWithCategories extends Module {
+  categories?: string[];
+}
+
 /**
  * Hero module
  */

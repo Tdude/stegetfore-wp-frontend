@@ -21,16 +21,28 @@ import EvaluationTemplate from './templates/EvaluationTemplate';
 import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
 
-// Conditionally import ModularTemplate to avoid errors if not yet created
-let ModularTemplate: React.ComponentType<{ page: LocalPage }> | undefined;
-if (FEATURES.USE_MODULAR_TEMPLATES) {
-  try {
-    // Dynamic import (but synchronous during initialization)
-    ModularTemplate = require('./templates/ModularTemplate').default;
-  } catch (err: unknown) {
-    console.warn('ModularTemplate not available yet:', (err as Error).message);
-  }
-}
+
+// Type for template map
+type TemplateMap = {
+  [key in PageTemplate]: React.ComponentType<any>;
+};
+
+// Create a map of templates
+const templates: Partial<TemplateMap> = {
+  [PageTemplate.DEFAULT]: DefaultTemplate,
+  [PageTemplate.HOMEPAGE]: HomepageTemplate,
+  [PageTemplate.FULL_WIDTH]: FullWidthTemplate,
+  [PageTemplate.SIDEBAR]: SidebarTemplate,
+  [PageTemplate.LANDING]: LandingTemplate,
+  [PageTemplate.EVALUATION]: EvaluationTemplate,
+  [PageTemplate.CIRCLE_CHART]: CircleChartTemplate,
+  [PageTemplate.CONTACT]: ContactFormTemplate,
+};
+
+// Lazy load ModularTemplate
+const ModularTemplate = FEATURES.USE_MODULAR_TEMPLATES
+  ? React.lazy(() => import('./templates/ModularTemplate'))
+  : undefined;
 
 export default function PageTemplateSelector({
   page,
@@ -39,75 +51,81 @@ export default function PageTemplateSelector({
 }: PageTemplateSelectorProps) {
   const template = page?.template;
 
-  // Debug information
-  React.useEffect(() => {
-    console.log('🚀 PageTemplateSelector mounted');
-    console.log('📄 Page data:', page);
-    console.log('🎨 Template value:', template);
-    console.log('🏠 Is Homepage:', isHomePage);
+  // Debug logging hook
+  useDebugLogging({ page, template: template as PageTemplate | undefined, isHomePage });
 
-        // Log whether the page has modules - with proper type checking
-    if (page.modules && Array.isArray(page.modules) && page.modules.length) {
-      console.log('📦 Page has modules:', page.modules.length);
+  // Helper function to determine if page has modules
+  const hasModules = React.useMemo(() => {
+    const pageModules: Module[] = Array.isArray(page?.modules) ? page.modules : [];
+    return pageModules.length > 0;
+  }, [page?.modules]);
+
+  // Render template based on conditions
+  const renderTemplate = React.useCallback(() => {
+    // Force homepage template if isHomePage is true
+    if (isHomePage) {
+      return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
     }
 
-    // Log if modular template is available
-    console.log('🧩 ModularTemplate available:', !!ModularTemplate);
-  }, [page, template, isHomePage]);
+    // Handle modular template
+    if (FEATURES.USE_MODULAR_TEMPLATES && ModularTemplate && (hasModules || template === PageTemplate.MODULAR)) {
+      return (
+        <React.Suspense fallback={<DefaultTemplate key="default" page={page} />}>
+          <ModularTemplate key="modular" page={page} />
+        </React.Suspense>
+      );
+    }
+
+    // Get template component from map
+    const TemplateComponent = templates[template as PageTemplate] || templates[PageTemplate.DEFAULT];
+
+    // Ensure TemplateComponent is not undefined
+    if (!TemplateComponent) {
+      return <DefaultTemplate key="default" page={page} />;
+    }
+
+    // Render appropriate template with correct props
+    return React.createElement(TemplateComponent, {
+      key: template || 'default',
+      page,
+      ...(template === PageTemplate.EVALUATION && { evaluationId: Number(page.evaluationId) }),
+      ...(template === PageTemplate.CIRCLE_CHART && {
+        chartData: page.chartData,
+        title: page.title?.rendered
+      }),
+      ...(template === PageTemplate.HOMEPAGE && { homepage: homepageData })
+    });
+  }, [template, page, isHomePage, hasModules, homepageData]);
 
   return (
     <AnimatePresence mode="wait">
-      {(() => {
-        // Force homepage template if isHomePage is true
-        if (isHomePage) {
-          return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
-        }
-
-        // Make sure modules is always an array, even if page.modules is undefined
-        // Explicitly cast modules to ensure type compatibility
-        const pageModules: Module[] = Array.isArray(page.modules) ? page.modules : [];
-        const hasModules = pageModules.length > 0;
-        const isModularTemplate = template === PageTemplate.MODULAR;
-
-        // Use modular template if:
-        // 1. Feature flag is enabled
-        // 2. ModularTemplate component is available
-        // 3. Either the page has modules or the template is explicitly set to MODULAR
-        if (FEATURES.USE_MODULAR_TEMPLATES && ModularTemplate && (hasModules || isModularTemplate)) {
-          return <ModularTemplate key="modular" page={page} />;
-        }
-
-        // Otherwise use the template from the page
-        switch (template) {
-          case PageTemplate.HOMEPAGE:
-            return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
-          case PageTemplate.FULL_WIDTH:
-            return <FullWidthTemplate key="full-width" page={page} />;
-          case PageTemplate.SIDEBAR:
-            return <SidebarTemplate key="sidebar" page={page} />;
-          case PageTemplate.LANDING:
-            return <LandingTemplate key="landing" page={page} />;
-          case PageTemplate.EVALUATION:
-            return <EvaluationTemplate key="evaluation" evaluationId={page.evaluationId ? Number(page.evaluationId) : undefined} />;
-          case PageTemplate.CIRCLE_CHART:
-            return <CircleChartTemplate
-              key="circle-chart"
-              chartData={page.chartData ?? undefined}
-              title={page.title?.rendered}
-            />;
-          case PageTemplate.CONTACT:
-            return <ContactFormTemplate key="contact-form" page={page} />;
-          case PageTemplate.MODULAR:
-            // If we get here, it means MODULAR template was specified but the feature flag is off
-            console.warn('ModularTemplate requested but feature flag is disabled or component not available');
-            return <DefaultTemplate key="default" page={page} />;
-          case undefined:
-          case '':
-          case PageTemplate.DEFAULT:
-          default:
-            return <DefaultTemplate key="default" page={page} />;
-        }
-      })()}
+      {renderTemplate()}
     </AnimatePresence>
   );
+}
+
+// Debug logging hook
+function useDebugLogging({ page, template, isHomePage }: {
+  page: LocalPage;
+  template: PageTemplate | undefined;
+  isHomePage: boolean;
+}) {
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚀 PageTemplateSelector mounted', {
+        page: page ? {
+          id: page.id,
+          slug: page.slug,
+          hasModules: !!page.modules,
+          moduleCount: page.modules?.length || 0,
+          moduleTypes: page.modules?.map((m: { type: any; }) => m.type)
+        } : 'No page',
+        template,
+        isHomePage,
+        modules: page?.modules?.length
+          ? `Found ${page.modules.length} modules: ${page.modules.map((m: { type: any; }) => m.type).join(', ')}`
+          : 'No modules found'
+      });
+    }
+  }, [page, template, isHomePage]);
 }

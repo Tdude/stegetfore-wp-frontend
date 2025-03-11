@@ -47,7 +47,8 @@ export function isTestimonialsModule(
 ): module is TestimonialsModule {
   return (
     module.type === "testimonials" &&
-    Array.isArray((module as TestimonialsModule).testimonials)
+    Array.isArray((module as TestimonialsModule).testimonials) &&
+    (module as TestimonialsModule).testimonials.length > 0
   );
 }
 

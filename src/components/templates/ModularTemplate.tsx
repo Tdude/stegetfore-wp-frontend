@@ -8,10 +8,6 @@ import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-// Define ModularTemplateProps interface with a LocalPage that definitely has modules
-interface ModularTemplateProps {
-  page: LocalPage;
-}
 
 export default function ModularTemplate({ page }: ModularTemplateProps) {
   const [showDebugInfo, setShowDebugInfo] = useState(false);

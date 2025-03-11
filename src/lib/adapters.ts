@@ -1,5 +1,5 @@
 // src/lib/adapters.ts
-import { Post, Page, LocalPage, HomepageData, SiteInfo } from "./types";
+import Page, { Post, LocalPage, HomepageData, SiteInfo } from "./types";
 
 import {
   WordPressPost,

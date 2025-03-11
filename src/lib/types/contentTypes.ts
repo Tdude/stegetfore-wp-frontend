@@ -17,6 +17,7 @@ export interface BaseContent {
     rendered: string;
   };
   template?: string;
+  modules?: Module[];
   _embedded?: {
     "wp:featuredmedia"?: Array<{
       source_url: string;
@@ -63,7 +64,6 @@ export interface Page extends BaseContent {
   chartData?: {
     segments: number[];
   } | null;
-  modules?: Module[]; // Add modules to base Page
 }
 
 /**
@@ -78,7 +78,6 @@ export interface LocalPage extends BaseContent {
   } | null;
   evaluationId?: string;
   type?: string;
-  modules?: Module[]; // Explicitly typed as Module[]
 }
 
 /**

@@ -12,7 +12,20 @@ interface CTAModuleProps {
   className?: string;
 }
 
+function stripHtml(html: string): string {
+  if (!html) return '';
+  // Remove WordPress comments
+  const withoutComments = html.replace(/<!--[\s\S]*?-->/g, '');
+  // Remove HTML tags
+  return withoutComments.replace(/<[^>]*>/g, '');
+}
+
 export default function CTAModule({ module, className }: CTAModuleProps) {
+  // Handle WordPress HTML content - extract plain text if needed
+  const description = module.description?.includes('<!-- wp:')
+    ? stripHtml(module.description)
+    : module.description;
+
   // Set alignment classes
   const alignmentClasses = {
     left: 'text-left items-start',

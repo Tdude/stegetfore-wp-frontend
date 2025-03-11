@@ -6,7 +6,7 @@ import { HomepageTemplateProps, HomepageData, Module } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import HeroSection from '@/components/homepage/HeroSection';
 import FeaturedPosts from '@/components/homepage/FeaturedPosts';
-import CTASection from '@/components/homepage/CTASection';
+//import CTASection from '@/components/homepage/CTASection';
 import SellingPoints from '@/components/homepage/SellingPoints';
 import GallerySection from '@/components/homepage/GallerySection';
 import StatsSection from '@/components/homepage/StatsSection';
@@ -35,6 +35,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     setMounted(true);
     console.log('🏠 HomepageTemplate mounted');
   }, [homepage]);
+
 
   // Adds a separate effect to log the homepageData after it changes
   React.useEffect(() => {
@@ -65,8 +66,35 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
   // Get testimonial modules from the page
   const testimonialModules = React.useMemo(() => {
     if (!Array.isArray(homepageData.modules)) return [];
-    return homepageData.modules.filter(module => module.type === 'testimonials');
+
+    // Filter for testimonials modules and ensure they have testimonials data
+    return homepageData.modules
+      .filter(module =>
+        module.type === 'testimonials' &&
+        Array.isArray(module.testimonials) &&
+        module.testimonials.length > 0
+      );
   }, [homepageData.modules]);
+
+  // Extract CTA modules from all modules
+  const ctaModules = React.useMemo(() => {
+    if (!Array.isArray(homepageData.modules)) return [];
+
+    // Map the modules to ensure each has a type property
+    const processedModules = homepageData.modules.map(module => {
+      if (!module.type && module.template) {
+        return { ...module, type: module.template };
+      }
+      return module;
+    });
+
+    // Then filter for CTA modules
+    return processedModules.filter(module =>
+      module.type === 'cta' || module.template === 'cta'
+    );
+  }, [homepageData.modules]);
+
+
 
   return (
     <TemplateTransitionWrapper>
@@ -74,10 +102,19 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
         {/* Hero Section - Full width with centered content */}
         <HeroSection
           title={homepageData.hero?.title || "Välkommen till Steget Före"}
-          intro={homepageData.hero?.intro || "Sluta gå i sirap. #lärdig istället vad du ska göra åt det."}
+          intro={homepageData.hero?.intro || "Sluta gå i sirap. #lärdig istället vad du ska göra åt det. Texten här är från React-mallen"}
           ctaButtons={homepageData.hero?.buttons || []}
           imageUrl={heroImage}
         />
+
+        {/* Render modules if available */}
+        {page?.modules?.length > 0 && (
+          <>
+            {page.modules.map((module: Module) => (
+              <ModuleRenderer key={module.id} module={module} />
+            ))}
+          </>
+        )}
 
         {/* The rest of our sections */}
         <div className="mx-auto">
@@ -118,49 +155,15 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
             testimonialModules.map(module => (
               <ModuleRenderer key={module.id} module={module} />
             ))
-          ) : homepageData.testimonials && homepageData.testimonials.length > 0 ? (
-            // Fallback to old testimonials data format if no modules found
-            <section className="py-16 bg-background">
-              <div className="container px-4 md:px-6 mx-auto">
-                <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
-                  {homepageData.testimonials_title || "Vad våra klienter säger"}
-                </h2>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {homepageData.testimonials.map((testimonial, index) => (
-                    <div key={testimonial.id || index} className="p-6 bg-muted/10 rounded-lg">
-                      <div className="text-lg mb-4" dangerouslySetInnerHTML={{ __html: testimonial.content }} />
-                      <div className="flex items-center gap-4">
-                        {testimonial.author_image && (
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden">
-                            <img
-                              src={testimonial.author_image}
-                              alt={testimonial.author_name}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">{testimonial.author_name}</p>
-                          <p className="text-sm text-muted-foreground">{testimonial.author_position}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
           ) : null}
 
-          {/* CTA Section */}
-          {homepageData.cta && (
-            <CTASection
-              title={homepageData.cta.title || "Redo att börja?"}
-              description={homepageData.cta.description || "Häng med redan idag. Den här texten kommer från hemsidemallen."}
-              buttonText={homepageData.cta.button_text || "Kontakta oss"}
-              buttonUrl={homepageData.cta.button_url || "/kontakt"}
-              backgroundColor={homepageData.cta.background_color || "bg-primary"}
-            />
-          )}
+          {/* CTA Section - Using Modules */}
+          {ctaModules.length > 0 ? (
+            ctaModules.map(module => (
+              <ModuleRenderer key={module.id} module={module} />
+            ))
+          ) : null}
+
 
           {/* Additional Page Content (if any) */}
           {page?.content?.rendered && mounted && (

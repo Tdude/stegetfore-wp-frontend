@@ -1,5 +1,5 @@
 // src/services/dataService.ts
-import { HomepageData, Module, Post, Page } from "@/lib/types";
+import Page, { HomepageData, Module, Post } from "@/lib/types";
 import {
   fetchHomepageData,
   fetchFeaturedPosts,
@@ -14,7 +14,7 @@ import { adaptWordPressHomepageData } from "@/lib/adapters";
 export async function getEnhancedHomepageData(): Promise<HomepageData> {
   try {
     // Fetch basic homepage data
-    const homepageData = await fetchHomepageData();
+    const homepageData: HomepageData = await fetchHomepageData();
 
     // If homepage data is complete, return it
     if (homepageData.featured_posts?.length && homepageData.categories) {

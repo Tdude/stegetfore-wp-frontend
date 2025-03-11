@@ -1,7 +1,7 @@
 // src/components/homepage/TestimonialsSection.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -21,20 +21,14 @@ export default function TestimonialsSection({
   testimonials,
   title
 }: TestimonialsSectionProps) {
-  // Client-side only rendering for HTML content
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Don't render if there are no testimonials
-  if (!testimonials || testimonials.length === 0) {
-    return null;
-  }
-
+  if (!testimonials || testimonials.length === 0) return null;
   if (!mounted) {
-    // Skeleton loader for server-side rendering
     return (
       <section className="py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto">
@@ -58,10 +52,17 @@ export default function TestimonialsSection({
           {title}
         </h2>
 
-        <Carousel className="w-full max-w-4xl mx-auto">
+        <Carousel
+          className="w-full max-w-4xl mx-auto relative"
+          opts={{
+            align: 'start', // Align items to the start
+            loop: true,     // Infinite loop
+            dragFree: false, // Allow free dragging
+          }}
+        >
           <CarouselContent>
             {testimonials.map((testimonial) => (
-              <CarouselItem key={testimonial.id}>
+              <CarouselItem key={testimonial.id} className="w-full">
                 <Card className="border-0 shadow-none">
                   <CardContent className="pt-6">
                     <div
@@ -86,8 +87,10 @@ export default function TestimonialsSection({
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-0 -translate-x-1/2" />
-          <CarouselNext className="right-0 translate-x-1/2" />
+          <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none">
+            <CarouselPrevious className="pointer-events-auto" />
+            <CarouselNext className="pointer-events-auto" />
+          </div>
         </Carousel>
       </div>
     </section>

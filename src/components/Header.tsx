@@ -108,7 +108,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
 
           {/* Login or other button - desktop */}
           <div className="hidden lg:flex items-center h-16">
-            <button className="px-4 py-1.5 bg-secondary/90 text-gray-600 border rounded hover:bg-secondary hover:text-black">
+            <button className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black">
               Börja nu
             </button>
           </div>

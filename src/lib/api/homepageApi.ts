@@ -4,50 +4,162 @@ import {
   fetchPostsByIds,
   fetchFeaturedPosts,
   fetchCategories,
-  fetchModules,
 } from "../api";
+
 import {
-  HomepageData,
-  HeroModule,
   CTAModule,
+  HeroModule,
+  HomepageData,
+  Module,
   SellingPointsModule,
 } from "@/lib/types";
-import { adaptWordPressHomepageData } from "@/lib/adapters";
+import {
+  adaptWordPressHomepageData,
+  adaptWordPressModules,
+} from "@/lib/adapters";
 
 /**
- * Fetch complete homepage data from the v2 endpoint
- * @returns The homepage data object
+ * Fetch complete homepage data including modules
+ * @returns The complete homepage data
  */
 export async function fetchHomepageData(): Promise<HomepageData> {
   try {
-    const [homepageResponse, categories, modules] = await Promise.all([
-      fetchApi("/startpage/v2/homepage-data", {
-        revalidate: 60, // Cache for 60 seconds
-      }),
-      fetchCategories(),
-      fetchModules({ category: "homepage" }), // Fetch modules for homepage
-    ]);
+    console.log("Fetching homepage data");
+    const rawData = await fetchApi("/steget/v1/homepage", {
+      revalidate: 300, // Cache for 5 minutes
+    });
 
-    // Fetch featured posts or fallback to the latest 3 posts
-    const featuredPosts = homepageResponse.featured_post_ids?.length
-      ? await fetchPostsByIds(homepageResponse.featured_post_ids)
-      : await fetchFeaturedPosts(3);
+    // Get categories for the posts if we have featured posts
+    const categories = rawData.featured_posts?.length
+      ? await fetchCategories()
+      : {};
+
+    // Adapt the data to our application's format
+    const homepageData = adaptWordPressHomepageData(rawData);
+
+    // Add categories to the homepage data
+    homepageData.categories = categories;
+
+    return homepageData;
+  } catch (error) {
+    console.error("Error fetching homepage data:", error);
+    // Return empty object in case of error
+    return {};
+  }
+}
+
+/**
+ * Fetch CTA section data
+ * @param id Optional ID for a specific CTA
+ * @returns A CTAModule object
+ */
+export async function fetchCTASection(id?: number): Promise<CTAModule | null> {
+  try {
+    const endpoint = id ? `/steget/v1/cta/${id}` : "/steget/v1/cta";
+    console.log(`Fetching CTA section from ${endpoint}`);
+
+    const ctaData = await fetchApi(endpoint, {
+      revalidate: 300, // Cache for 5 minutes
+    });
 
     return {
-      ...adaptWordPressHomepageData(homepageResponse),
-      featured_posts: featuredPosts,
-      categories,
-      modules, // Add modules to homepage data
+      type: "cta",
+      id: ctaData.id || 0,
+      title: ctaData.title || "",
+      description: ctaData.description || ctaData.content || "",
+      buttonText: ctaData.button_text || "",
+      buttonUrl: ctaData.button_url || "",
+      backgroundColor: ctaData.background_color || "",
+      textColor: ctaData.text_color || "",
+      alignment: ctaData.alignment || "center",
+      image: ctaData.image || "",
     };
   } catch (error) {
-    console.error("Error in fetchHomepageData:", error);
-    // Return a minimal homepage data structure
-    return {
-      hero: {
-        title: "Error Loading Homepage",
-        intro: "There was an error loading the homepage data.",
-      },
-    };
+    console.error(`Error fetching CTA section${id ? ` ${id}` : ""}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch modules for a specific page
+ * @param pageId The page ID
+ * @returns Array of Module objects
+ */
+export async function fetchModules(
+  params: {
+    page?: number;
+    pageId?: number;
+    template?: string;
+    category?: string;
+    perPage?: number;
+  } = {}
+): Promise<Module[]> {
+  try {
+    const { pageId, template, category, page = 1, perPage = 20 } = params;
+
+    // Build query string
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      per_page: perPage.toString(),
+    });
+
+    if (template) queryParams.append("template", template);
+
+    // For category, we need to handle it differently
+    if (category) {
+      // Try the taxonomy parameter format - may vary depending on your API
+      queryParams.append("module_category", category);
+    }
+
+    // Determine the endpoint based on whether we're fetching for a specific page
+    const endpoint = pageId
+      ? `/steget/v1/page/${pageId}/modules?${queryParams.toString()}`
+      : `/steget/v1/modules?${queryParams.toString()}`;
+
+    console.log("Modules endpoint:", endpoint); // Debug the actual URL
+
+    // Fetch modules
+    const result = await fetchApi(endpoint, {
+      revalidate: 600,
+    });
+
+    // Handle different response formats
+    const modules = result.modules || result;
+
+    // If no modules found with the category filter, try fetching all and filtering client-side
+    if (!modules.length && category) {
+      console.log(
+        "No modules found with category filter, trying client-side filtering"
+      );
+
+      // Fetch all modules
+      const allModulesResult = await fetchApi(
+        `/steget/v1/modules?per_page=${perPage}`,
+        {
+          revalidate: 600,
+        }
+      );
+
+      const allModules = allModulesResult.modules || allModulesResult;
+
+      // Filter modules that include the category in their categories array
+      const filteredModules = allModules.filter(
+        (module: { categories: any[] }) =>
+          Array.isArray(module.categories) &&
+          module.categories.some(
+            (cat) =>
+              typeof cat === "string" &&
+              cat.toLowerCase() === category.toLowerCase()
+          )
+      );
+
+      return adaptWordPressModules(filteredModules);
+    }
+
+    return adaptWordPressModules(Array.isArray(modules) ? modules : []);
+  } catch (error) {
+    console.error("Error fetching modules:", error);
+    return [];
   }
 }
 
@@ -74,34 +186,6 @@ export async function fetchHeroSection(
     };
   } catch (error) {
     console.error(`Error fetching hero section for page ${pageId}:`, error);
-    return null;
-  }
-}
-
-/**
- * Fetch CTA section data for a specific page
- * @param pageId The page ID
- * @returns A CTAModule object
- */
-export async function fetchCTASection(
-  pageId: number
-): Promise<CTAModule | null> {
-  try {
-    const ctaData = await fetchApi(`/steget/v1/cta/${pageId}`, {
-      revalidate: 300, // Cache for 5 minutes
-    });
-
-    return {
-      type: "cta",
-      id: ctaData.id || 0,
-      title: ctaData.title || "",
-      description: ctaData.description || "",
-      buttonText: ctaData.button_text || "",
-      buttonUrl: ctaData.button_url || "",
-      backgroundColor: ctaData.background_color || "",
-    };
-  } catch (error) {
-    console.error(`Error fetching CTA section for page ${pageId}:`, error);
     return null;
   }
 }

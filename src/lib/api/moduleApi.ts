@@ -27,7 +27,14 @@ export async function fetchModules(
     });
 
     if (template) queryParams.append("template", template);
-    if (category) queryParams.append("category", category);
+    // Try both taxonomy fields for category
+    if (category) {
+      // Try the standard "category" parameter
+      queryParams.append("category", category);
+
+      // If your endpoint supports it, also add a module_category parameter
+      queryParams.append("module_category", category);
+    }
 
     // Determine the endpoint based on whether we're fetching for a specific page
     const endpoint = pageId

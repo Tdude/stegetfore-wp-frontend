@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Page } from '@/lib/types';
+import Page from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import Image from 'next/image';
 

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { Suspense, lazy, ReactNode } from 'react';
-import { Module } from '@/lib/types/';
+import { Module } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   isHeroModule,
@@ -65,11 +65,18 @@ const VideoModule = safeImport('VideoModule');
 const ChartModule = safeImport('ChartModule');
 
 interface ModuleRendererProps {
-  module: Module;
+  module: Module & { template?: string };
   className?: string;
 }
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
+  console.log('🧩 Rendering module:', {
+    id: module.id,
+    type: module.type,
+    title: module.title,
+    template: module.template
+  });
+
   // Early return if no module provided
   if (!module) {
     return null;
@@ -77,7 +84,14 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
 
   // Try/catch block for module type checking to provide helpful errors
   try {
-    // Make sure module has a type
+    // Make sure module has a type - use template as fallback if type is missing
+    if (!module.type && module.template) {
+      console.log(`Module ${module.id} missing type, using template "${module.template}" as type`);
+      // @ts-ignore: Dynamic assignment to accommodate real-world data
+      module.type = module.template;
+    }
+
+    // Still no type after fallback attempt
     if (!module.type) {
       throw new Error('Module is missing required "type" property');
     }
@@ -87,6 +101,21 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
 
     // Render different components based on module type
     const renderModuleContent = () => {
+      if (!module) return null;
+
+      // Check to ensure type exists (should be guaranteed now)
+      if (!module.type) {
+        console.error("Module is missing required 'type' property:", module);
+        return (
+          <div className="p-4 border border-red-200 rounded bg-red-50">
+            <h3 className="font-medium text-red-800">Module Error</h3>
+            <p className="mt-2 text-red-700">
+              Module is missing required "type" property
+            </p>
+          </div>
+        );
+      }
+
       // Use Suspense to handle lazy-loaded components
       return (
         <Suspense fallback={<ModulePlaceholder type={module.type} />}>
@@ -123,9 +152,9 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
                 // Fallback for unknown module types
                 return (
                   <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module?.type}</h3>
-                    {module?.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
-                    {module?.content && (
+                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module.type}</h3>
+                    {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
+                    {module.content && (
                       <div
                         className="mt-2 prose-sm max-w-none text-yellow-700"
                         dangerouslySetInnerHTML={{ __html: module.content }}

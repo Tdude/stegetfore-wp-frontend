@@ -1,91 +1,93 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
-import { HomepageData, Page } from '@/lib/types';
+import { HomepageData, LocalPage, PageTemplate } from '@/lib/types';
 import { fetchPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
+
 export default async function HomePage() {
   try {
     // Fetch homepage data first as our primary content source
-    let homepageData;
-    let page;
+    let homepageData: HomepageData = {
+      hero: undefined,
+      modules: []
+    };
+    let page: LocalPage | null = null;
 
     try {
       // Fetch the homepage from WP API
-      const homepageData: HomepageData = await fetchHomepageData();
+      homepageData = await fetchHomepageData() as HomepageData;
+      console.log("HOMEPAGE DATA:", {
+        hasModules: Array.isArray(homepageData.modules),
+        moduleCount: Array.isArray(homepageData.modules) ? homepageData.modules.length : 0,
+        moduleTypes: Array.isArray(homepageData.modules) ? homepageData.modules.map(m => m.type) : []
+      });
 
       // Also fetch the page that might be set as homepage in WordPress
-      page = await fetchPage('home');
+      page = await fetchPage('home', true) as LocalPage;
+      console.log("PAGE DATA:", {
+        hasModules: !!page?.modules,
+        moduleCount: page?.modules?.length || 0,
+        moduleTypes: page?.modules?.map((m: any) => m.type)
+      });
+
+      // If no page was found, create a minimal page object
+      if (!page) {
+        console.log("No home page found, creating a minimal page object");
+        page = {
+          id: 0,
+          slug: 'home',
+          title: {
+            rendered: homepageData.hero?.title || 'Home',
+          },
+          content: {
+            rendered: '',
+          },
+          template: PageTemplate.HOMEPAGE, // Use the correct template (the value is "templates/homepage.php")
+          modules: homepageData.modules || [],
+        };
+      }
+
+      // If we have modules in homepageData but not in page, add them to page
+      if (Array.isArray(homepageData.modules) && homepageData.modules.length) {
+        console.log(`Found ${homepageData.modules.length} modules in homepageData`);
+
+        if (!page) {
+          console.log("Creating new page with modules");
+          page = {
+            id: 0,
+            slug: 'home',
+            title: {
+              rendered: homepageData.hero?.title || 'Home',
+            },
+            content: {
+              rendered: '',
+            },
+            template: PageTemplate.HOMEPAGE,
+            modules: [...homepageData.modules], // Create a new array copy
+          };
+        } else if (!page.modules || page.modules.length === 0) {
+          console.log("Adding modules to existing page");
+          page.modules = [...homepageData.modules]; // Create a new array copy
+        }
+
+        // Log the final page
+        console.log("FINAL PAGE:", {
+          hasModules: !!page?.modules,
+          moduleCount: page?.modules?.length || 0,
+          firstModuleType: page?.modules?.[0]?.type || 'none'
+        });
+      }
     } catch (error) {
       console.error("Error fetching homepage data:", error);
     }
 
-    // Fallback if homepage data fetch fails
-    if (!homepageData) {
-      // Fetch basic data that we know should work
-      const posts = await fetchPosts();
-      const categories = await fetchCategories();
-
-      // Use the first 3 posts as featured
-      const featuredPosts = posts.slice(0, 3);
-
-      // Create a minimal homepage data structure
-      homepageData = {
-        featured_posts: featuredPosts,
-        featured_posts_title: "Artiklar i fokus",
-        latest_posts: posts.slice(3), // The rest of the posts
-        latest_posts_title: "Senaste inläggen",
-        hero: {
-          title: "Ta Steget Före",
-          intro: "Upptäck en smartare vardag - för dig och för eleven.",
-          buttons: [
-            { text: "Upptäck mer", url: "/om-oss", style: "primary" as const },
-            { text: "Kontakta oss", url: "/kontakt", style: "outline" as const }
-          ],
-          image: "https://stegetfore.nu/wp-content/uploads/2024/09/framsida.png" // Provide a fallback image path
-        },
-        selling_points: [
-          {
-            id: 1,
-            title: "Professionell hjälp",
-            description: "Vi erbjuder ditten och datten samt dutten.",
-            content: ""
-          },
-          {
-            id: 2,
-            title: "Lär i din takt",
-            description: "Vi erbjuder också fnutten och givetvis fnatten.",
-            content: ""
-          },
-          {
-            id: 3,
-            title: "Du kan sluta med brandsläckning",
-            description: "Vi erbjuder ditten och datten samt dutten.",
-            content: ""
-          },
-        ],
-        categories: categories
-      };
-    }
-
-    // Create a page object if none was fetched
-    if (!page) {
-      page = {
-        template: 'templates/homepage.php',
-        id: 0,
-        slug: 'home',
-        title: { rendered: homepageData.hero?.title || 'Welcome' },
-        excerpt: { rendered: '' },
-        content: { rendered: '' }
-      } as Page;
-    }
-
-    // Pass the data to the page template
+    // Return the page template with both homepage data and modules
     return (
       <Suspense fallback={<div className="h-screen bg-muted/30 animate-pulse"></div>}>
         <PageTemplateSelector
-          page={page}
+          page={page!}
           isHomePage={true}
           homepageData={homepageData}
         />

@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { Post, Page, SiteInfo, MenuItem } from "./types";
+import { Page, Post, SiteInfo, MenuItem } from "./types";
 import { getOptimalImageSize } from "./imageUtils";
 
 export * from "./api/index";
@@ -248,7 +248,10 @@ export async function fetchPages(): Promise<Page[]> {
   }
 }
 
-export async function fetchPage(slug: string): Promise<Page | null> {
+export async function fetchPage(
+  slug: string,
+  p0: boolean
+): Promise<Page | null> {
   try {
     // Cache individual pages for 20 minutes
     const pages = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {
@@ -286,18 +289,26 @@ export async function fetchPage(slug: string): Promise<Page | null> {
 
 export async function fetchHomepageData(): Promise<Record<string, unknown>> {
   try {
-    const [response, categories] = await Promise.all([
-      fetch(`${API_URL}/startpage/v1/homepage-data`, {
+    const [response, categories, modulesResponse] = await Promise.all([
+      fetch(`${API_URL}/startpage/v2/homepage-data`, {
         next: { revalidate: 60 }, // Cache for 60 seconds
       }),
       fetchCategories(),
+      fetch(`${API_URL}/steget/v1/modules?category=homepage`, {
+        next: { revalidate: 60 }, // Cache for 60 seconds
+      }),
     ]);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch homepage data: ${response.status}`);
     }
 
+    if (!modulesResponse.ok) {
+      console.warn(`Failed to fetch modules: ${modulesResponse.status}`);
+    }
+
     const homepageData = await response.json();
+    const modulesData = await modulesResponse.json();
 
     // Fetch featured posts or fallback to the latest 3 posts
     const featuredPosts = homepageData.featured_post_ids?.length
@@ -308,6 +319,7 @@ export async function fetchHomepageData(): Promise<Record<string, unknown>> {
       ...homepageData,
       featured_posts: featuredPosts,
       categories,
+      modules: modulesData.modules || [], // Add modules to the returned data
     };
   } catch (error) {
     console.error("Error in fetchHomepageData:", error);

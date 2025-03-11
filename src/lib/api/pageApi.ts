@@ -1,6 +1,6 @@
 // src/lib/api/pageApi.ts
 import { fetchApi } from "./baseApi";
-import { Page, LocalPage } from "@/lib/types";
+import Page, { LocalPage } from "@/lib/types";
 import {
   adaptWordPressPage,
   adaptWordPressPageToLocalPage,
@@ -84,6 +84,7 @@ export async function fetchPages(
  * @param includeModules Whether to include modules in the response
  * @returns A LocalPage object or null if not found
  */
+// src/lib/api/pageApi.ts
 export async function fetchPage(
   slug: string,
   includeModules = true
@@ -99,21 +100,23 @@ export async function fetchPage(
     }
 
     const page = pages[0];
+    const adaptedPage = adaptWordPressPageToLocalPage(page);
 
-    // If modules are not needed, return a simple page
+    // If modules are not needed, return the page without modules
     if (!includeModules) {
-      return adaptWordPressPageToLocalPage(page);
+      return adaptedPage;
     }
 
-    // If modules are needed, fetch them
+    // Fetch modules for this page
     const modules = await fetchPageModules(page.id);
 
+    // Return page with modules explicitly attached
     return {
-      ...adaptWordPressPageToLocalPage(page),
-      modules,
+      ...adaptedPage,
+      modules: modules || [], // Make sure we always return an array, even if empty
     };
   } catch (error) {
-    console.error("Error fetching page:", error);
+    console.error(`Error fetching page with slug ${slug}:`, error);
     return null;
   }
 }

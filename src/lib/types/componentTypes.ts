@@ -110,17 +110,6 @@ export interface TestimonialsSectionProps {
 }
 
 /**
- * Props for the CTASection component
- */
-export interface CTASectionProps {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-  backgroundColor?: string;
-}
-
-/**
  * Props for the StatsSection component
  */
 export interface StatsSectionProps {

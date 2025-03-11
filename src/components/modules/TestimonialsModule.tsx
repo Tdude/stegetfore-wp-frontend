@@ -1,7 +1,7 @@
 // src/components/modules/TestimonialsModule.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TestimonialsModule as TestimonialsModuleType } from '@/lib/types';
 import {
   Card,
@@ -24,9 +24,39 @@ interface TestimonialsModuleProps {
 }
 
 export default function TestimonialsModule({ module, className }: TestimonialsModuleProps) {
-  // Don't render if there are no testimonials
-  if (!module.testimonials || module.testimonials.length === 0) {
+  const [mounted, setMounted] = useState(false);
+
+  // Client-side only rendering
+  useEffect(() => {
+    setMounted(true);
+    // For debugging - you can remove this later
+    console.log('TestimonialsModule mounted with data:', module);
+  }, [module]);
+
+  // Make sure we have valid testimonials to display
+  if (!module.testimonials || !Array.isArray(module.testimonials) || module.testimonials.length === 0) {
+    console.warn('TestimonialsModule: No testimonials to display');
     return null;
+  }
+
+  // Loading state (SSR or initial client render)
+  if (!mounted) {
+    return (
+      <section className={cn("py-16 bg-background", className)}>
+        <div className="container px-4 md:px-6 mx-auto">
+          {module.title && (
+            <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
+              {module.title}
+            </h2>
+          )}
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="bg-muted/30 rounded-lg h-64 animate-pulse flex items-center justify-center">
+              <p className="text-muted-foreground">Loading testimonials...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   // Grid or list display
