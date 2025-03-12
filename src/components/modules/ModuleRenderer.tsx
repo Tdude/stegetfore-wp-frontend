@@ -70,12 +70,13 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
-  console.log('🧩 Rendering module:', {
+  /* console.log('🧩 Rendering module:', {
     id: module.id,
     type: module.type,
     title: module.title,
     template: module.template
   });
+  */
 
   // Early return if no module provided
   if (!module) {
@@ -86,7 +87,7 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
   try {
     // Make sure module has a type - use template as fallback if type is missing
     if (!module.type && module.template) {
-      console.log(`Module ${module.id} missing type, using template "${module.template}" as type`);
+      //console.log(`Module ${module.id} missing type, using template "${module.template}" as type`);
       // @ts-ignore: Dynamic assignment to accommodate real-world data
       module.type = module.template;
     }
@@ -152,7 +153,7 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
                 // Fallback for unknown module types
                 return (
                   <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                    <h3 className="font-medium text-yellow-800">Unknown Module Type: {module.type}</h3>
+                    <h3 className="font-medium text-yellow-800">Unknown Module Type/Template: {module.type}</h3>
                     {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
                     {module.content && (
                       <div

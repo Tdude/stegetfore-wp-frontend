@@ -4,14 +4,8 @@
 import React from 'react';
 import { HomepageTemplateProps, HomepageData, Module } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
-import HeroSection from '@/components/homepage/HeroSection';
-import FeaturedPosts from '@/components/homepage/FeaturedPosts';
-//import CTASection from '@/components/homepage/CTASection';
-import SellingPoints from '@/components/homepage/SellingPoints';
-import GallerySection from '@/components/homepage/GallerySection';
-import StatsSection from '@/components/homepage/StatsSection';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
-import { isTestimonialsModule } from '@/lib/typeGuards';
+import { isHeroModule, isTestimonialsModule, isFeaturedPostsModule, isSellingPointsModule, isStatsModule, isGalleryModule, isCTAModule } from '@/lib/typeGuards';
 
 export default function HomepageTemplate({ page, homepage }: HomepageTemplateProps) {
   // Homepage data from custom endpoint or fallback
@@ -36,134 +30,250 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     console.log('🏠 HomepageTemplate mounted');
   }, [homepage]);
 
-
-  // Adds a separate effect to log the homepageData after it changes
   React.useEffect(() => {
     console.log('📄 Homepage data:', homepageData);
   }, [homepageData]);
 
-  // Get hero image
-  const getHeroImage = () => {
-    // First check the hero.image from homepage data
-    if (homepageData.hero?.image) {
-      if (typeof homepageData.hero.image === 'string') {
-        return homepageData.hero.image;
-      } else if (Array.isArray(homepageData.hero.image) && homepageData.hero.image.length > 0) {
-        return homepageData.hero.image[0];
+  // Based on the logs, we need to handle modules with missing 'type' property
+  // and set default types based on their content
+  const processModules = (modules: any[]): Module[] => {
+    if (!Array.isArray(modules)) return [];
+
+    return modules.map((module, index) => {
+      // If module has no type, try to infer it from its properties
+      if (!module.type) {
+        if (module.title && (module.intro || module.image)) {
+          return { ...module, id: module.id || index, type: 'hero' };
+        } else if (module.posts && Array.isArray(module.posts)) {
+          return { ...module, id: module.id || index, type: 'featured-posts' };
+        } else if (module.points && Array.isArray(module.points)) {
+          return { ...module, id: module.id || index, type: 'selling-points' };
+        } else if (module.stats && Array.isArray(module.stats)) {
+          return { ...module, id: module.id || index, type: 'stats' };
+        } else if (module.items && Array.isArray(module.items)) {
+          return { ...module, id: module.id || index, type: 'gallery' };
+        } else if (module.testimonials && Array.isArray(module.testimonials)) {
+          return { ...module, id: module.id || index, type: 'testimonials' };
+        } else if (module.buttons || module.buttonText) {
+          return { ...module, id: module.id || index, type: 'cta' };
+        } else if (module.template) {
+          return { ...module, id: module.id || index, type: module.template };
+        } else {
+          // If type can't be inferred, default to text module
+          return { ...module, id: module.id || index, type: 'text' };
+        }
       }
-    }
 
-    if (page?._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
-      return page._embedded['wp:featuredmedia'][0].source_url;
-    }
-
-    // Fallback
-    return "https://stegetfore.nu/wp-content/uploads/2024/09/framsida.png";
+      // Ensure module has an id
+      return { ...module, id: module.id || index };
+    });
   };
 
-  const heroImage = getHeroImage();
-
-  // Get testimonial modules from the page
-  const testimonialModules = React.useMemo(() => {
-    if (!Array.isArray(homepageData.modules)) return [];
-
-    // Filter for testimonials modules and ensure they have testimonials data
-    return homepageData.modules
-      .filter(module =>
-        module.type === 'testimonials' &&
-        Array.isArray(module.testimonials) &&
-        module.testimonials.length > 0
-      );
+  // Process homepage modules
+  const homepageModules = React.useMemo(() => {
+    return processModules(homepageData.modules || []);
   }, [homepageData.modules]);
 
-  // Extract CTA modules from all modules
-  const ctaModules = React.useMemo(() => {
-    if (!Array.isArray(homepageData.modules)) return [];
+  // Process page modules
+  const pageModules = React.useMemo(() => {
+    return processModules(page?.modules || []);
+  }, [page?.modules]);
 
-    // Map the modules to ensure each has a type property
-    const processedModules = homepageData.modules.map(module => {
-      if (!module.type && module.template) {
-        return { ...module, type: module.template };
+  // Create section modules from homepage data if they don't exist in modules
+  const createSectionModules = () => {
+    const modules: Module[] = [];
+
+    // Hero Module (from hero section)
+    if (homepageData.hero && !homepageModules.some(m => m.type === 'hero') && !pageModules.some(m => m.type === 'hero')) {
+      modules.push({
+        id: 'hero-1',
+        type: 'hero',
+        title: homepageData.hero.title || 'Welcome',
+        intro: homepageData.hero.intro || '',
+        image: typeof homepageData.hero.image === 'string'
+          ? homepageData.hero.image
+          : Array.isArray(homepageData.hero.image) && homepageData.hero.image.length > 0
+            ? homepageData.hero.image[0]
+            : page?._embedded?.['wp:featuredmedia']?.[0]?.source_url || '',
+        buttons: homepageData.hero.buttons || [],
+        overlay_opacity: 0.3,
+        alignment: 'center',
+        settings: {
+          section: 'header',
+          priority: 1,
+        }
+      });
+    }
+
+    // Featured Posts Module
+    if (homepageData.featured_posts?.length &&
+        !homepageModules.some(m => m.type === 'featured-posts') &&
+        !pageModules.some(m => m.type === 'featured-posts')) {
+      modules.push({
+        id: 'featured-posts-1',
+        type: 'featured-posts',
+        title: homepageData.featured_posts_title || 'Featured Posts',
+        posts: homepageData.featured_posts || [],
+        categories: homepageData.categories,
+        display_style: 'grid',
+        columns: 3,
+        show_excerpt: true,
+        show_categories: true,
+        show_read_more: true,
+        settings: {
+          section: 'main',
+          priority: 10,
+        }
+      });
+    }
+
+    // Selling Points Module
+    if (homepageData.selling_points?.length &&
+        !homepageModules.some(m => m.type === 'selling-points') &&
+        !pageModules.some(m => m.type === 'selling-points')) {
+      modules.push({
+        id: 'selling-points-1',
+        type: 'selling-points',
+        title: homepageData.selling_points_title || 'What We Offer',
+        points: homepageData.selling_points || [],
+        layout: 'grid',
+        columns: 3,
+        settings: {
+          section: 'main',
+          priority: 20,
+        }
+      });
+    }
+
+    // Stats Module
+    if (homepageData.stats?.length &&
+        !homepageModules.some(m => m.type === 'stats') &&
+        !pageModules.some(m => m.type === 'stats')) {
+      modules.push({
+        id: 'stats-1',
+        type: 'stats',
+        title: homepageData.stats_title || 'Our Work in Numbers',
+        subtitle: homepageData.stats_subtitle || '',
+        stats: homepageData.stats || [],
+        backgroundColor: homepageData.stats_background_color || 'bg-muted/30',
+        layout: 'grid',
+        columns: 4,
+        settings: {
+          section: 'main',
+          priority: 30,
+        }
+      });
+    }
+
+    // Gallery Module
+    if (homepageData.gallery?.length &&
+        !homepageModules.some(m => m.type === 'gallery') &&
+        !pageModules.some(m => m.type === 'gallery')) {
+      modules.push({
+        id: 'gallery-1',
+        type: 'gallery',
+        title: homepageData.gallery_title || 'Gallery',
+        items: homepageData.gallery || [],
+        layout: 'grid',
+        columns: 3,
+        enable_lightbox: true,
+        settings: {
+          section: 'main',
+          priority: 40,
+        }
+      });
+    }
+
+    return modules;
+  };
+
+  // Get all modules from all sources
+  const allModules = React.useMemo(() => {
+    // Priority order: page modules, homepage modules, generated section modules
+    const modules = [
+      ...pageModules,
+      ...homepageModules,
+      ...createSectionModules()
+    ];
+
+    console.log('All Modules:', modules.map(m => ({ id: m.id, type: m.type })));
+
+    return modules;
+  }, [pageModules, homepageModules]);
+
+  // Group modules by section
+  const groupModulesBySection = (modules: Module[]) => {
+    const sections: Record<string, Module[]> = {
+      header: [],
+      main: [],
+      footer: [],
+      other: []
+    };
+
+    // Use a Set to track module IDs we've already seen
+    const processedIds = new Set<string | number>();
+
+    modules.forEach(module => {
+      // Skip if we've already processed a module with this ID
+      if (processedIds.has(module.id)) return;
+
+      const section = module.settings?.section || 'main';
+      if (sections[section]) {
+        sections[section].push(module);
+      } else {
+        sections.other.push(module);
       }
-      return module;
+
+      // Mark this ID as processed
+      processedIds.add(module.id);
     });
 
-    // Then filter for CTA modules
-    return processedModules.filter(module =>
-      module.type === 'cta' || module.template === 'cta'
-    );
-  }, [homepageData.modules]);
+    // Sort each section by priority
+    Object.keys(sections).forEach(key => {
+      sections[key].sort((a, b) => {
+        const priorityA = a.settings?.priority || 0;
+        const priorityB = b.settings?.priority || 0;
+        return priorityA - priorityB;
+      });
+    });
 
+    return sections;
+  };
 
+  const modulesBySection = groupModulesBySection(allModules);
+
+  React.useEffect(() => {
+    console.log('Modules by section:', {
+      header: modulesBySection.header.length,
+      main: modulesBySection.main.length,
+      footer: modulesBySection.footer.length,
+      other: modulesBySection.other.length
+    });
+  }, [modulesBySection]);
 
   return (
     <TemplateTransitionWrapper>
       <div className="min-h-screen">
-        {/* Hero Section - Full width with centered content */}
-        <HeroSection
-          title={homepageData.hero?.title || "Välkommen till Steget Före"}
-          intro={homepageData.hero?.intro || "Sluta gå i sirap. #lärdig istället vad du ska göra åt det. Texten här är från React-mallen"}
-          ctaButtons={homepageData.hero?.buttons || []}
-          imageUrl={heroImage}
-        />
+        {/* Header section modules (typically hero) */}
+        {modulesBySection.header.map(module => (
+          <ModuleRenderer key={`header-${module.id}`} module={module} />
+        ))}
 
-        {/* Render modules if available */}
-        {page?.modules?.length > 0 && (
-          <>
-            {page.modules.map((module: Module) => (
-              <ModuleRenderer key={module.id} module={module} />
-            ))}
-          </>
-        )}
-
-        {/* The rest of our sections */}
+        {/* Main content section modules */}
         <div className="mx-auto">
-          {/* Featured Posts Section */}
-          <FeaturedPosts
-            posts={homepageData.featured_posts || []}
-            title={homepageData.featured_posts_title || "I fokus"}
-          />
+          {modulesBySection.main.map(module => (
+            <ModuleRenderer key={`main-${module.id}`} module={module} />
+          ))}
 
-          {/* Selling Points */}
-          {homepageData.selling_points && homepageData.selling_points.length > 0 && (
-            <SellingPoints
-              points={homepageData.selling_points}
-              title={homepageData.selling_points_title || "Vad du kan få"}
-            />
-          )}
+          {/* Any other modules that don't have a specific section */}
+          {modulesBySection.other.map(module => (
+            <ModuleRenderer key={`other-${module.id}`} module={module} />
+          ))}
 
-          {/* Stats Section */}
-          {homepageData.stats && homepageData.stats.length > 0 && (
-            <StatsSection
-              stats={homepageData.stats}
-              title={homepageData.stats_title || "Vårt arbete i siffror"}
-              subtitle={homepageData.stats_subtitle || "Att vi är stolta är bara förnamnet. Bakom varje siffra finns ett barn."}
-              backgroundColor={homepageData.stats_background_color || "bg-muted/30"}
-            />
-          )}
-
-          {/* Gallery Section */}
-          {homepageData.gallery && homepageData.gallery.length > 0 && (
-            <GallerySection
-              items={homepageData.gallery.map(item => ({ ...item, title: item.title || '' }))}
-              title={homepageData.gallery_title}
-            />
-          )}
-
-          {/* Testimonials Section - Using Modules */}
-          {testimonialModules.length > 0 ? (
-            testimonialModules.map(module => (
-              <ModuleRenderer key={module.id} module={module} />
-            ))
-          ) : null}
-
-          {/* CTA Section - Using Modules */}
-          {ctaModules.length > 0 ? (
-            ctaModules.map(module => (
-              <ModuleRenderer key={module.id} module={module} />
-            ))
-          ) : null}
-
+          {/* Footer section modules */}
+          {modulesBySection.footer.map(module => (
+            <ModuleRenderer key={`footer-${module.id}`} module={module} />
+          ))}
 
           {/* Additional Page Content (if any) */}
           {page?.content?.rendered && mounted && (

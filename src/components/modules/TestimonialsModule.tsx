@@ -29,7 +29,6 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
   // Client-side only rendering
   useEffect(() => {
     setMounted(true);
-    // For debugging - you can remove this later
     console.log('TestimonialsModule mounted with data:', module);
   }, [module]);
 

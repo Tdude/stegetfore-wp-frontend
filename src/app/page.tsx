@@ -5,7 +5,6 @@ import { fetchPosts, fetchCategories, fetchHomepageData, fetchPage } from '@/lib
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 
-
 export default async function HomePage() {
   try {
     // Fetch homepage data first as our primary content source
