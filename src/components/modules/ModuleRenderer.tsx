@@ -70,14 +70,6 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
-  /* console.log('🧩 Rendering module:', {
-    id: module.id,
-    type: module.type,
-    title: module.title,
-    template: module.template
-  });
-  */
-
   // Early return if no module provided
   if (!module) {
     return null;
@@ -95,6 +87,19 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
     // Still no type after fallback attempt
     if (!module.type) {
       throw new Error('Module is missing required "type" property');
+    }
+
+    // Normalize module type names to handle different naming conventions
+    // This helps recognize "tabbed-content" as "tabs" and "faq" as "accordion"
+    const normalizeModuleType = (type: string): string => {
+      if (type === 'tabbed-content') return 'tabs';
+      if (type === 'faq') return 'accordion';
+      return type;
+    };
+
+    // Apply normalization if needed
+    if (module.type === 'tabbed-content' || module.type === 'faq') {
+      console.log(`Normalized module type from "${module.type}" to "${normalizeModuleType(module.type)}"`);
     }
 
     // Output module type to data attribute for debugging
