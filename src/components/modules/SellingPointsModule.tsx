@@ -56,7 +56,7 @@ export default function SellingPointsModule({ module, className }: SellingPoints
           className={cn(
             layout === 'carousel'
               ? "flex overflow-x-auto gap-6 pb-4 snap-x"
-              : `grid gap-8 ${layoutClasses[layout]}`,
+              : `grid gap-8 grid-cols-2 md:grid-cols-4 ${layoutClasses[layout]}`,
             layout === 'list' ? 'max-w-2xl mx-auto' : ''
           )}
           style={{ gridAutoRows: "1fr" }}

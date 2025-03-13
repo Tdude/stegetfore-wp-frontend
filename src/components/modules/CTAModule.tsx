@@ -12,85 +12,112 @@ interface CTAModuleProps {
   className?: string;
 }
 
-function stripHtml(html: string): string {
-  if (!html) return '';
+// Helper function to clean WordPress HTML content
+function cleanWordPressContent(content: string): string {
+  if (!content) return '';
+
   // Remove WordPress comments
-  const withoutComments = html.replace(/<!--[\s\S]*?-->/g, '');
-  // Remove HTML tags
-  return withoutComments.replace(/<[^>]*>/g, '');
+  const withoutComments = content.replace(/<!--[\s\S]*?-->/g, '');
+
+  // Remove wp paragraph wrappers but keep the content
+  const cleanedContent = withoutComments
+    .replace(/<p>([\s\S]*?)<\/p>/g, '$1')
+    .trim();
+
+  return cleanedContent;
 }
 
 export default function CTAModule({ module, className }: CTAModuleProps) {
-  // Handle WordPress HTML content - extract plain text if needed
-  const description = module.description?.includes('<!-- wp:')
-    ? stripHtml(module.description)
-    : module.description;
+  const cleanDescription = module.description ? cleanWordPressContent(module.description) : '';
 
-  // Set alignment classes
   const alignmentClasses = {
     left: 'text-left items-start',
     center: 'text-center items-center',
     right: 'text-right items-end',
   };
 
-  const contentAlignment = alignmentClasses[module.alignment || 'center'];
-
-  // Determine if there's an image to adjust layout
-  const hasImage = !!module.image;
+  const contentAlignment = alignmentClasses[module.layout as 'left' | 'center' | 'right' || 'center'];
+  const hasImage = !!module.featured_image;
 
   return (
     <section
       className={cn(
-        "py-16",
-        module.backgroundColor || "bg-primary",
+        "relative py-16 overflow-hidden",
         className
       )}
+      style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
     >
-      <div className="container px-4 md:px-6 mx-auto">
+      {/* Background Image (if needed) */}
+      {module.backgroundImage && (
+        <div className="absolute inset-0 w-full h-full">
+          <OptimizedImage
+            src={module.backgroundImage}
+            alt="Background"
+            fill={true}
+            containerType="hero" // featured | hero
+            className="object-cover"
+            priority={true}
+          />
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: module.overlayOpacity || 0.3 }}
+          />
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="container px-4 md:px-6 mx-auto relative z-10">
         <div className={cn(
           "flex flex-col md:flex-row gap-8",
           hasImage ? "md:items-center" : "items-center"
         )}>
-          {/* Content Section */}
+          {/* Text Content */}
           <div className={cn(
             "flex flex-col space-y-6",
             hasImage ? "md:w-1/2" : "w-full max-w-2xl mx-auto",
             contentAlignment
           )}>
-            <h2 className={cn(
-              "text-3xl font-bold tracking-tighter sm:text-4xl",
-              module.textColor || "text-primary-foreground"
-            )}>
+            <h2
+              className={cn("text-3xl font-bold tracking-tighter sm:text-4xl")}
+              style={{ color: module.textColor || "inherit" }}
+            >
               {module.title}
             </h2>
 
-            {module.description && (
-              <p className={cn(
-                "md:text-xl",
-                module.textColor ? `text-[${module.textColor}]/90` : "text-primary-foreground/90"
-              )}>
-                {module.description}
-              </p>
+            {cleanDescription && (
+              <div
+                className={cn("md:text-xl prose prose-invert max-w-none")}
+                style={{ color: module.textColor ? `${module.textColor}/90` : "inherit" }}
+                dangerouslySetInnerHTML={{ __html: cleanDescription }}
+              />
             )}
 
-            {module.buttonText && module.buttonUrl && (
-              <Button
-                size="lg"
-                asChild
-                className={hasImage ? "" : "mt-4"}
-                variant={module.backgroundColor === "bg-primary" ? "secondary" : "primary"}
-              >
-                <a href={module.buttonUrl}>{module.buttonText}</a>
-              </Button>
+            {/* Buttons */}
+            {module.buttons && module.buttons.length > 0 && (
+              <div className="flex flex-wrap gap-4">
+                {module.buttons.map((button, index) => (
+                  <Button
+                    key={index}
+                    size="lg"
+                    variant={button.style === 'secondary' ? 'secondary' : 'primary'}
+                    asChild
+                  >
+                    <a href={button.url} target={button.new_tab ? "_blank" : "_self"} rel="noopener noreferrer">
+                      {button.text}
+                    </a>
+                  </Button>
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Optional Image */}
+          {/* Featured Image */}
           {hasImage && (
             <div className="md:w-1/2">
-              <div className="relative rounded-lg overflow-hidden aspect-video shadow-lg">
+              <div className="relative rounded-lg overflow-hidden aspect-video">
                 <OptimizedImage
-                  src={module.image}
+                  src={module.featured_image}
                   alt={module.title}
                   fill={true}
                   className="object-cover"

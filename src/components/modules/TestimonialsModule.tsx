@@ -29,14 +29,7 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
   // Client-side only rendering
   useEffect(() => {
     setMounted(true);
-    console.log('TestimonialsModule mounted with data:', module);
-  }, [module]);
-
-  // Make sure we have valid testimonials to display
-  if (!module.testimonials || !Array.isArray(module.testimonials) || module.testimonials.length === 0) {
-    console.warn('TestimonialsModule: No testimonials to display');
-    return null;
-  }
+  }, []);
 
   // Loading state (SSR or initial client render)
   if (!mounted) {
@@ -58,13 +51,8 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
     );
   }
 
-  // Grid or list display
-  if (module.display_style === 'grid' || module.display_style === 'list') {
-    // Get the appropriate grid classes
-    const gridClasses = module.display_style === 'grid'
-      ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
-      : 'grid gap-6 grid-cols-1 max-w-2xl mx-auto';
-
+  // If no testimonials to display
+  if (!Array.isArray(module.testimonials) || module.testimonials.length === 0) {
     return (
       <section className={cn("py-16 bg-background", className)}>
         <div className="container px-4 md:px-6 mx-auto">
@@ -73,38 +61,17 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
               {module.title}
             </h2>
           )}
-
-          <div className={gridClasses}>
-            {module.testimonials.map((testimonial) => (
-              <Card key={testimonial.id} className="border-0 shadow-none h-full">
-                <CardContent className="pt-6">
-                  <div
-                    className="text-lg text-muted-foreground mb-4"
-                    dangerouslySetInnerHTML={{ __html: testimonial.content }}
-                  />
-                </CardContent>
-                <CardFooter className="flex items-center gap-4 pt-0">
-                  <Avatar className="m-2 h-10 w-10">
-                    {testimonial.author_image ? (
-                      <AvatarImage src={testimonial.author_image} alt={testimonial.author_name} />
-                    ) : (
-                      <AvatarFallback>{testimonial.author_name.charAt(0)}</AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{testimonial.author_name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.author_position}</p>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
+          <div className="w-full max-w-4xl mx-auto">
+            <Card className="text-center p-6">
+              <p className="text-muted-foreground">No testimonials available</p>
+            </Card>
           </div>
         </div>
       </section>
     );
   }
 
-  // Default to carousel display
+  // Display as carousel (default)
   return (
     <section className={cn("py-16 bg-background", className)}>
       <div className="container px-4 md:px-6 mx-auto">
@@ -116,8 +83,8 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
 
         <Carousel className="w-full max-w-4xl mx-auto">
           <CarouselContent>
-            {module.testimonials.map((testimonial) => (
-              <CarouselItem key={testimonial.id}>
+            {module.testimonials.map((testimonial, index) => (
+              <CarouselItem key={testimonial.id || index}>
                 <Card className="border-0 shadow-none">
                   <CardContent className="pt-6">
                     <div
@@ -130,12 +97,12 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
                       {testimonial.author_image ? (
                         <AvatarImage src={testimonial.author_image} alt={testimonial.author_name} />
                       ) : (
-                        <AvatarFallback>{testimonial.author_name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{testimonial.author_name?.[0] || 'A'}</AvatarFallback>
                       )}
                     </Avatar>
                     <div>
-                      <p className="font-medium">{testimonial.author_name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.author_position}</p>
+                      <p className="font-medium">{testimonial.author_name || 'Anonymous'}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.author_position || ''}</p>
                     </div>
                   </CardFooter>
                 </Card>

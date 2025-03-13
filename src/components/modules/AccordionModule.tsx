@@ -1,8 +1,7 @@
 // src/components/modules/AccordionModule.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { AccordionModule as AccordionModuleType } from '@/lib/types';
+import React from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -11,8 +10,24 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from '@/lib/utils';
 
+// Extend interface to handle both accordion and faq module types
+interface AccordionFaqModule {
+  id: number;
+  type: string; // Can be "accordion" or "faq"
+  title?: string;
+  items: Array<{
+    id?: number; // Optional
+    question: string;
+    answer: string;
+  }>;
+  allow_multiple_open?: boolean;
+  default_open_index?: number;
+  order?: number;
+  settings?: Record<string, any>;
+}
+
 interface AccordionModuleProps {
-  module: AccordionModuleType;
+  module: AccordionFaqModule;
   className?: string;
 }
 
@@ -22,24 +37,20 @@ export default function AccordionModule({ module, className }: AccordionModulePr
     ? `item-${module.default_open_index}`
     : undefined;
 
-  // For multiple open items, we need to track state
-  const [openItems, setOpenItems] = useState<string[]>(
-    defaultValue ? [defaultValue] : []
-  );
-
-  // Handle item toggle for multiple open mode
-  const toggleItem = (value: string) => {
-    if (module.allow_multiple_open) {
-      setOpenItems(prevItems =>
-        prevItems.includes(value)
-          ? prevItems.filter(item => item !== value)
-          : [...prevItems, value]
-      );
-    }
+  // Clean WordPress content
+  const cleanContent = (content: string): string => {
+    if (!content) return '';
+    return content.replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<p>([\s\S]*?)<\/p>/g, '$1')
+      .trim();
   };
 
+  // Apply special styling for FAQ type if needed
+  const isFaq = module.type === 'faq';
+  const moduleClass = isFaq ? 'faq-module' : '';
+
   return (
-    <section className={cn("py-12", className)}>
+    <section className={cn("py-12", className, moduleClass)}>
       <div className="container px-4 md:px-6 mx-auto">
         <div className="max-w-3xl mx-auto">
           {module.title && (
@@ -49,15 +60,17 @@ export default function AccordionModule({ module, className }: AccordionModulePr
           {module.allow_multiple_open ? (
             <Accordion
               type="multiple"
-              value={openItems}
-              onValueChange={setOpenItems}
+              defaultValue={defaultValue ? [defaultValue] : []}
               className="w-full"
             >
-              {module.items.map((item, index) => (
-                <AccordionItem key={item.id || index} value={`item-${index}`}>
-                  <AccordionTrigger>{item.title}</AccordionTrigger>
+              {Array.isArray(module.items) && module.items.map((item, index) => (
+                <AccordionItem key={item?.id || index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">{item?.question || `Item ${index + 1}`}</AccordionTrigger>
                   <AccordionContent>
-                    <div dangerouslySetInnerHTML={{ __html: item.content }} />
+                    <div
+                      className="prose max-w-none"
+                      dangerouslySetInnerHTML={{ __html: cleanContent(item?.answer) }}
+                    />
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -69,11 +82,14 @@ export default function AccordionModule({ module, className }: AccordionModulePr
               defaultValue={defaultValue}
               className="w-full"
             >
-              {module.items.map((item, index) => (
-                <AccordionItem key={item.id || index} value={`item-${index}`}>
-                  <AccordionTrigger>{item.title}</AccordionTrigger>
+              {Array.isArray(module.items) && module.items.map((item, index) => (
+                <AccordionItem key={item?.id || index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">{item?.question || `Item ${index + 1}`}</AccordionTrigger>
                   <AccordionContent>
-                    <div dangerouslySetInnerHTML={{ __html: item.content }} />
+                    <div
+                      className="prose max-w-none"
+                      dangerouslySetInnerHTML={{ __html: cleanContent(item?.answer) }}
+                    />
                   </AccordionContent>
                 </AccordionItem>
               ))}
