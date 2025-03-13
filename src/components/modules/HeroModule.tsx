@@ -2,30 +2,27 @@
 'use client';
 
 import React from 'react';
-import { HeroModule as HeroModuleType } from '@/lib/types';
+import type { HeroModule } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import OptimizedImage from '@/components/OptimizedImage';
 import { cn } from '@/lib/utils';
 
 interface HeroModuleProps {
-  module: HeroModuleType;
+  module: HeroModule;
   className?: string;
 }
 
 export default function HeroModule({ module, className }: HeroModuleProps) {
-  // Handle different possible formats of image URL
   const finalImageUrl = React.useMemo(() => {
     if (typeof module.image === 'string') {
       return module.image;
     } else if (Array.isArray(module.image) && module.image.length > 0) {
       return module.image[0];
     } else {
-      // Fallback image
       return '/images/hero-fallback.jpg';
     }
   }, [module.image]);
 
-  // Set alignment classes
   const alignmentClasses = {
     left: 'items-start text-left',
     center: 'items-center text-center',
@@ -34,15 +31,19 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
 
   const contentAlignment = alignmentClasses[module.alignment || 'center'];
 
+  const heightClasses = {
+    small: 'h-[50vh] min-h-[300px]',
+    medium: 'h-[70vh] min-h-[400px]',
+    large: 'h-[80vh] min-h-[500px]',
+  };
+
+  const heightClass = heightClasses[module.height as 'small' | 'medium' | 'large' || 'large'];
+
   return (
     <section
-      className={cn(
-        "relative w-full overflow-hidden",
-        module.height || 'h-[80vh] min-h-[500px]',
-        className
-      )}
+      className={cn("relative w-full overflow-hidden", heightClass, className)}
+      style={{ backgroundColor: module.backgroundColor || "#a4e87a" }}
     >
-      {/* Background Image or Video */}
       <div className="absolute inset-0 w-full h-full">
         {module.video_url ? (
           <div className="relative w-full h-full">
@@ -67,32 +68,28 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
             />
           </div>
         )}
-        {/* Overlay to improve text visibility */}
         <div
           className="absolute inset-0 bg-black"
-          style={{ opacity: module.overlay_opacity || 0.3 }}
+          style={{ opacity: module.overlayOpacity || module.overlay_opacity || 0.1 }}
         ></div>
       </div>
 
-      {/* Centered Content */}
       <div className={cn(
         "relative z-10 container mx-auto h-full px-4 md:px-6 flex flex-col justify-center",
         contentAlignment
       )}>
         <div className="max-w-3xl">
           <h1
-            className={cn(
-              "text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 text-shadow-lg",
-              module.text_color ? `text-[${module.text_color}]` : "text-white"
-            )}
+            className={cn("text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 text-shadow-lg")}
+            style={{ color: module.textColor || module.text_color || "#1e73be" }}
           >
             {module.title}
           </h1>
           {module.intro && (
-            <p className={cn(
-              "text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-shadow-md",
-              module.text_color ? `text-[${module.text_color}]/90` : "text-white/90"
-            )}>
+            <p
+              className={cn("text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-shadow-md")}
+              style={{ color: module.textColor ? `${module.textColor}/90` : module.text_color ? `${module.text_color}/90` : "#1e73be/90" }}
+            >
               {module.intro}
             </p>
           )}
@@ -106,7 +103,9 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
                   className={button.style === 'outline' ? 'bg-transparent border-white text-white hover:bg-white/20' : ''}
                   asChild
                 >
-                  <a href={button.url}>{button.text}</a>
+                  <a href={button.url} target={button.new_tab ? "_blank" : "_self"} rel="noopener noreferrer">
+                    {button.text}
+                  </a>
                 </Button>
               ))}
             </div>
