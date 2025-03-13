@@ -45,11 +45,7 @@ export function isSellingPointsModule(
 export function isTestimonialsModule(
   module: Module
 ): module is TestimonialsModule {
-  return (
-    module.type === "testimonials" &&
-    Array.isArray((module as TestimonialsModule).testimonials) &&
-    (module as TestimonialsModule).testimonials.length > 0
-  );
+  return module.type === "testimonials";
 }
 
 /**
@@ -90,19 +86,18 @@ export function isFormModule(module: Module): module is FormModule {
 }
 
 /**
- * Type guard to check if a module is an AccordionModule
+ * Type guard to check if a module is a TabsModule or tabbed-content
  */
-export function isAccordionModule(module: Module): module is AccordionModule {
-  return module.type === "accordion";
+export function isTabsModule(module: Module): module is TabsModule {
+  return module.type === "tabs" || module.type === "tabbed-content";
 }
 
 /**
- * Type guard to check if a module is a TabsModule
+ * Type guard to check if a module is an AccordionModule or faq
  */
-export function isTabsModule(module: Module): module is TabsModule {
-  return module.type === "tabs";
+export function isAccordionModule(module: Module): module is AccordionModule {
+  return module.type === "accordion" || module.type === "faq";
 }
-
 /**
  * Type guard to check if a module is a VideoModule
  */
