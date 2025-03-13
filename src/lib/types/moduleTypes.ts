@@ -10,12 +10,23 @@ export interface BaseModule {
   type: string;
   title?: string;
   content?: string;
+  template?: string; // Keep for reference
+  featured_image?: string;
+  layout?: string;
+  fullWidth?: boolean;
+  backgroundColor?: string;
+  buttons?: Array<{
+    text: string;
+    url: string;
+    style?: string;
+    new_tab?: boolean;
+  }>;
   order?: number;
   status?: "publish" | "draft";
   settings?: Record<string, any>;
 }
 
-export interface ModuleWithCategories extends Module {
+export interface ModuleWithCategories extends BaseModule {
   categories?: string[];
 }
 
@@ -25,18 +36,23 @@ export interface ModuleWithCategories extends Module {
 export interface HeroModule extends BaseModule {
   type: "hero";
   title: string;
-  intro?: string;
+  description?: string;
+  intro?: string; // Added to match the API
   image: string | string[];
   video_url?: string;
   buttons?: Array<{
     text: string;
     url: string;
     style: "primary" | "secondary" | "outline";
+    new_tab?: boolean; // Added to match the API
   }>;
-  overlay_opacity?: number;
-  text_color?: string;
-  height?: string;
-  alignment?: "left" | "center" | "right";
+  overlay_opacity?: number; // Matches API
+  overlayOpacity?: number; // Optional alias for consistency
+  text_color?: string; // Matches API
+  textColor?: string; // Optional alias for consistency
+  backgroundColor?: string;
+  height?: "small" | "medium" | "large" | string; // Updated to match API
+  alignment?: "left" | "center" | "right"; // Matches API
 }
 
 /**
@@ -44,14 +60,17 @@ export interface HeroModule extends BaseModule {
  */
 export interface CTAModule extends BaseModule {
   type: "cta";
-  title: string;
+  title?: string;
   description?: string;
-  buttonText: string;
-  buttonUrl: string;
+  buttonText?: string;
+  buttonUrl?: string;
   backgroundColor?: string;
   textColor?: string;
   alignment?: "left" | "center" | "right";
   image?: string;
+  backgroundImage?: string;
+  overlayOpacity?: number;
+  containerType?: "featured" | "hero" | "background";
 }
 
 /**
@@ -181,7 +200,9 @@ export interface AccordionModule extends BaseModule {
 
 /**
  * Tabs module
+ *
  */
+
 export interface TabsModule extends BaseModule {
   type: "tabs";
   title?: string;
@@ -193,6 +214,9 @@ export interface TabsModule extends BaseModule {
   }>;
   orientation?: "horizontal" | "vertical";
   default_tab_index?: number;
+  order?: number;
+  typeOrder?: number;
+  index: number;
 }
 
 /**
