@@ -34,44 +34,19 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     console.log('📄 Homepage data:', homepageData);
   }, [homepageData]);
 
-  // Based on the logs, we need to handle modules with missing 'type' property
-  // and set default types based on their content
-  const processModules = (modules: any[]): Module[] => {
-    if (!Array.isArray(modules)) return [];
 
-    return modules.map((module, index) => {
-      // If module has no type, try to infer it from its properties
-      if (!module.type) {
-        if (module.title && (module.intro || module.image)) {
-          return { ...module, id: module.id || index, type: 'hero' };
-        } else if (module.posts && Array.isArray(module.posts)) {
-          return { ...module, id: module.id || index, type: 'featured-posts' };
-        } else if (module.points && Array.isArray(module.points)) {
-          return { ...module, id: module.id || index, type: 'selling-points' };
-        } else if (module.stats && Array.isArray(module.stats)) {
-          return { ...module, id: module.id || index, type: 'stats' };
-        } else if (module.items && Array.isArray(module.items)) {
-          return { ...module, id: module.id || index, type: 'gallery' };
-        } else if (module.testimonials && Array.isArray(module.testimonials)) {
-          return { ...module, id: module.id || index, type: 'testimonials' };
-        } else if (module.buttons || module.buttonText) {
-          return { ...module, id: module.id || index, type: 'cta' };
-        } else if (module.template) {
-          return { ...module, id: module.id || index, type: module.template };
-        } else {
-          // If type can't be inferred, default to text module
-          return { ...module, id: module.id || index, type: 'text' };
-        }
-      }
+const processModules = (modules: any[]): Module[] => {
+  if (!Array.isArray(modules)) return [];
 
-      // Ensure module has an id
-      return { ...module, id: module.id || index };
-    });
-  };
+  return modules.map((module, index) => {
+    // Ensure module has an id
+    return { ...module, id: module.id || index };
+  });
+};
 
   // Process homepage modules
   const homepageModules = React.useMemo(() => {
-    return processModules(homepageData.modules || []);
+    return processModules(Array.isArray(homepageData.modules) ? homepageData.modules : []);
   }, [homepageData.modules]);
 
   // Process page modules
@@ -83,27 +58,6 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
   const createSectionModules = () => {
     const modules: Module[] = [];
 
-    // Hero Module (from hero section)
-    if (homepageData.hero && !homepageModules.some(m => m.type === 'hero') && !pageModules.some(m => m.type === 'hero')) {
-      modules.push({
-        id: 'hero-1',
-        type: 'hero',
-        title: homepageData.hero.title || 'Welcome',
-        intro: homepageData.hero.intro || '',
-        image: typeof homepageData.hero.image === 'string'
-          ? homepageData.hero.image
-          : Array.isArray(homepageData.hero.image) && homepageData.hero.image.length > 0
-            ? homepageData.hero.image[0]
-            : page?._embedded?.['wp:featuredmedia']?.[0]?.source_url || '',
-        buttons: homepageData.hero.buttons || [],
-        overlay_opacity: 0.3,
-        alignment: 'center',
-        settings: {
-          section: 'header',
-          priority: 1,
-        }
-      });
-    }
 
     // Featured Posts Module
     if (homepageData.featured_posts?.length &&
@@ -122,64 +76,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
         show_read_more: true,
         settings: {
           section: 'main',
-          priority: 10,
-        }
-      });
-    }
-
-    // Selling Points Module
-    if (homepageData.selling_points?.length &&
-        !homepageModules.some(m => m.type === 'selling-points') &&
-        !pageModules.some(m => m.type === 'selling-points')) {
-      modules.push({
-        id: 'selling-points-1',
-        type: 'selling-points',
-        title: homepageData.selling_points_title || 'What We Offer',
-        points: homepageData.selling_points || [],
-        layout: 'grid',
-        columns: 3,
-        settings: {
-          section: 'main',
-          priority: 20,
-        }
-      });
-    }
-
-    // Stats Module
-    if (homepageData.stats?.length &&
-        !homepageModules.some(m => m.type === 'stats') &&
-        !pageModules.some(m => m.type === 'stats')) {
-      modules.push({
-        id: 'stats-1',
-        type: 'stats',
-        title: homepageData.stats_title || 'Our Work in Numbers',
-        subtitle: homepageData.stats_subtitle || '',
-        stats: homepageData.stats || [],
-        backgroundColor: homepageData.stats_background_color || 'bg-muted/30',
-        layout: 'grid',
-        columns: 4,
-        settings: {
-          section: 'main',
-          priority: 30,
-        }
-      });
-    }
-
-    // Gallery Module
-    if (homepageData.gallery?.length &&
-        !homepageModules.some(m => m.type === 'gallery') &&
-        !pageModules.some(m => m.type === 'gallery')) {
-      modules.push({
-        id: 'gallery-1',
-        type: 'gallery',
-        title: homepageData.gallery_title || 'Gallery',
-        items: homepageData.gallery || [],
-        layout: 'grid',
-        columns: 3,
-        enable_lightbox: true,
-        settings: {
-          section: 'main',
-          priority: 40,
+          priority: 5,
         }
       });
     }
@@ -187,21 +84,52 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     return modules;
   };
 
+
+
   // Get all modules from all sources
   const allModules = React.useMemo(() => {
     // Priority order: page modules, homepage modules, generated section modules
-    const modules = [
+    const combinedModules = [
       ...pageModules,
       ...homepageModules,
       ...createSectionModules()
     ];
 
-    console.log('All Modules:', modules.map(m => ({ id: m.id, type: m.type })));
+    // Use a Set to track module IDs we've already seen to avoid duplicates
+    const processedIds = new Set<string | number>();
+    const uniqueModules: Module[] = [];
 
-    return modules;
+    // Only add modules we haven't seen before
+    combinedModules.forEach(module => {
+      if (!processedIds.has(module.id)) {
+        uniqueModules.push(module);
+        processedIds.add(module.id);
+      }
+    });
+
+    //console.log('Before sorting:', uniqueModules.map(m => ({ id: m.id, type: m.type, order: m.order })));
+
+    // Sort modules by the order property if available
+    const sortedModules = uniqueModules.sort((a, b) => {
+      // In WordPress admin, typically higher numbers appear first (top)
+      // Default to 0 if order is not specified
+      const orderA = typeof a.order === 'number' ? a.order : 0;
+      const orderB = typeof b.order === 'number' ? b.order : 0;
+
+      // For debugging
+      if (orderA !== orderB) {
+        console.log(`Comparing: ${a.type}(${a.id}) order=${orderA} vs ${b.type}(${b.id}) order=${orderB} => result: ${orderB - orderA}`);
+      }
+
+      return orderB - orderA; // Higher values appear first
+    });
+
+    //console.log('After sorting:', sortedModules.map(m => ({ id: m.id, type: m.type, order: m.order })));
+
+    return sortedModules;
   }, [pageModules, homepageModules]);
 
-  // Group modules by section
+  // Update the groupModulesBySection function
   const groupModulesBySection = (modules: Module[]) => {
     const sections: Record<string, Module[]> = {
       header: [],
@@ -213,6 +141,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
     // Use a Set to track module IDs we've already seen
     const processedIds = new Set<string | number>();
 
+    // Process modules in their existing order (already sorted by order property)
     modules.forEach(module => {
       // Skip if we've already processed a module with this ID
       if (processedIds.has(module.id)) return;
@@ -228,13 +157,29 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
       processedIds.add(module.id);
     });
 
-    // Sort each section by priority
+    // For each section, sort by the priority setting if available
     Object.keys(sections).forEach(key => {
+      console.log(`Sorting section ${key} - before:`, sections[key].map(m => ({ id: m.id, priority: m.settings?.priority })));
+
       sections[key].sort((a, b) => {
-        const priorityA = a.settings?.priority || 0;
-        const priorityB = b.settings?.priority || 0;
-        return priorityA - priorityB;
+        // If both have priority settings, use them (higher priority first)
+        if (a.settings?.priority !== undefined && b.settings?.priority !== undefined) {
+          // For debugging
+          if (a.settings.priority !== b.settings.priority) {
+            console.log(`Comparing priorities: ${a.type}(${a.id}) priority=${a.settings.priority} vs ${b.type}(${b.id}) priority=${b.settings.priority} => result: ${b.settings.priority - a.settings.priority}`);
+          }
+          return b.settings.priority - a.settings.priority;
+        }
+
+        // If only one has priority, prioritize it
+        if (a.settings?.priority !== undefined) return -1;
+        if (b.settings?.priority !== undefined) return 1;
+
+        // Otherwise, maintain the original order (which was sorted by module.order)
+        return 0;
       });
+
+      console.log(`Sorting section ${key} - after:`, sections[key].map(m => ({ id: m.id, priority: m.settings?.priority })));
     });
 
     return sections;
@@ -242,14 +187,14 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
 
   const modulesBySection = groupModulesBySection(allModules);
 
-  React.useEffect(() => {
-    console.log('Modules by section:', {
-      header: modulesBySection.header.length,
-      main: modulesBySection.main.length,
-      footer: modulesBySection.footer.length,
-      other: modulesBySection.other.length
-    });
-  }, [modulesBySection]);
+  //React.useEffect(() => {
+  //  console.log('Modules by section:', {
+  //    header: modulesBySection.header.length,
+  //    main: modulesBySection.main.length,
+  //    footer: modulesBySection.footer.length,
+  //    other: modulesBySection.other.length
+  //  });
+  //}, [modulesBySection]);
 
   return (
     <TemplateTransitionWrapper>
