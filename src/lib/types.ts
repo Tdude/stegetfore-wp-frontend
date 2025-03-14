@@ -112,6 +112,9 @@ export interface Post extends BaseContent {
 }
 
 export interface Page extends BaseContent {
+  type: string | undefined;
+  evaluationId: string | undefined;
+  modules: never[];
   chartData?: {
     segments: number[];
   } | null;
@@ -207,7 +210,6 @@ export const initialFormState: LocalFormData = {
 };
 
 // Homepage related interfaces
-// In your types.ts file, update the HomepageData interface to use the GalleryItem type
 
 export interface HomepageData {
   featured_posts?: Post[];

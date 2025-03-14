@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 // Function to get page data by slug
 async function getPageData(slug: string): Promise<LocalPage | null> {
   try {
-    return await fetchPage(slug);
+    return await fetchPage(slug, true);
   } catch (error) {
     console.error(`Error fetching page with slug ${slug}:`, error);
     return null;
@@ -47,7 +47,7 @@ export default async function PageWrapper({ params }: any) {
   );
 }
 
-// Generate metadata for the page
+// Generate metadata for the page. DO NOT REMOVE!
 export async function generateMetadata(
   { params }: any,
   parent: ResolvingMetadata

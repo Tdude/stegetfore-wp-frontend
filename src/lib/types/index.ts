@@ -6,7 +6,7 @@ export * from "./contentTypes";
 export * from "./moduleTypes";
 export * from "./formTypes";
 export * from "./formTypesEvaluation";
-export * from "./componentTypes";
+//export * from "./componentTypes";
 
 // Define enum for page templates
 export enum PageTemplate {

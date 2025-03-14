@@ -1,13 +1,28 @@
 // src/components/templates/DefaultTemplate.tsx
 'use client';
 
-import React from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import OptimizedImage from '@/components/OptimizedImage';
-import { PageTemplateProps } from '@/lib/types';
+import { useModules } from '@/hooks/useModules';
 import { getFeaturedImageUrl } from '@/lib/imageUtils';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+import ModuleRenderer from '@/components/modules/ModuleRenderer';
+import type { Page } from '@/lib/types';
 
-export default function DefaultTemplate({ page }: PageTemplateProps) {
+// Handle modules directly in the component
+function DefaultTemplate({ page }: { page: Page }) {
+  const [mounted, setMounted] = useState(false);
+
+  // Use the modules hook directly
+  const { modulesBySection } = useModules({
+    pageModules: page?.modules || [],
+  });
+
+  // Set mounted after initial render
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Add null checks for all properties
   const featuredImageUrl = getFeaturedImageUrl(page);
 
@@ -18,6 +33,11 @@ export default function DefaultTemplate({ page }: PageTemplateProps) {
   return (
     <TemplateTransitionWrapper>
       <article className="max-w-2xl mx-auto px-4 py-8">
+        {/* Render header modules */}
+        {modulesBySection.header.map(module => (
+          <ModuleRenderer key={`header-${module.id}`} module={module} />
+        ))}
+
         {featuredImageUrl && (
           <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
             <OptimizedImage
@@ -38,12 +58,26 @@ export default function DefaultTemplate({ page }: PageTemplateProps) {
           />
         )}
 
+        {/* Render main modules */}
+        {modulesBySection.main.map(module => (
+          <ModuleRenderer key={`main-${module.id}`} module={module} />
+        ))}
+
         {pageContent && (
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: pageContent }}
           />
         )}
+
+        {/* Render other and footer modules */}
+        {modulesBySection.other.map(module => (
+          <ModuleRenderer key={`other-${module.id}`} module={module} />
+        ))}
+
+        {modulesBySection.footer.map(module => (
+          <ModuleRenderer key={`footer-${module.id}`} module={module} />
+        ))}
 
         {/* Show a message if no content is available */}
         {!pageTitle && !pageContent && (
@@ -56,3 +90,5 @@ export default function DefaultTemplate({ page }: PageTemplateProps) {
     </TemplateTransitionWrapper>
   );
 }
+
+export default memo(DefaultTemplate);

@@ -115,3 +115,79 @@ export interface MenuItem {
   xfn?: string;
   children?: MenuItem[];
 }
+
+/**
+ * Post interface matching the API response structure
+ * Imported explicitly to moduleTypes.ts for FeaturedPosts
+ */
+export interface LocalPost {
+  id: number;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  date?: string;
+  link?: string; // WP permalink
+  featured_image?: string;
+  featured_image_url?: string; // Because of sloppy coding
+  categories?: string[];
+  slug?: string;
+}
+
+/**
+ * Complete homepage data
+ */
+export interface HomepageData {
+  featured_posts?: LocalPost[];
+  categories?: Record<number, { id: number; name: string; slug: string }>;
+  hero?: {
+    title?: string;
+    intro?: string;
+    image?: string | string[];
+    buttons?: Array<{
+      text: string;
+      url: string;
+      style: "primary" | "secondary" | "outline";
+    }>;
+  };
+  featured_posts_title?: string;
+  selling_points?: Array<{
+    id: number;
+    title: string;
+    content: string;
+    description?: string;
+    icon?: string;
+  }>;
+  selling_points_title?: string;
+  stats?: Array<{
+    id: number;
+    value: string;
+    label: string;
+  }>;
+  stats_title?: string;
+  stats_subtitle?: string;
+  stats_background_color?: string;
+  gallery?: Array<{
+    id: number;
+    image: string;
+    title?: string;
+    description?: string;
+  }>;
+  gallery_title?: string;
+  testimonials?: Array<{
+    id: number;
+    content: string;
+    author_name: string;
+    author_position: string;
+    author_image?: string;
+  }>;
+  testimonials_title?: string;
+  cta?: {
+    title?: string;
+    description?: string;
+    button_text?: string;
+    button_url?: string;
+    background_color?: string;
+  };
+  modules?: Module[];
+  [key: string]: any;
+}
