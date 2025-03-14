@@ -293,7 +293,7 @@ export async function fetchPage(
 export async function fetchHomepageData(): Promise<Record<string, unknown>> {
   try {
     const [response, categories, modulesResponse] = await Promise.all([
-      fetch(`${API_URL}/startpage/v2/homepage-data`, {
+      fetch(`${API_URL}/steget/v1/modules?category=homepage`, {
         next: { revalidate: 60 }, // Cache for 60 seconds
       }),
       fetchCategories(),
