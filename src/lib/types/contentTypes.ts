@@ -45,6 +45,8 @@ export interface BaseContent {
  * Post content type
  */
 export interface Post extends BaseContent {
+  featured_image: string | null | undefined;
+  link: string;
   categories: number[];
   tags?: number[];
   author?: number;

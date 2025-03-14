@@ -1,5 +1,4 @@
 // src/lib/types/moduleTypes.ts
-import { Post } from "./contentTypes";
 
 /**
  * Base module interface
@@ -112,14 +111,33 @@ export interface TestimonialsModule extends BaseModule {
  */
 export interface FeaturedPostsModule extends BaseModule {
   type: "featured-posts";
-  title?: string;
-  posts: Post[];
+  title: string;
+  subtitle?: string;
+  posts: LocalPost[];
+  columns?: number;
   display_style?: "grid" | "list" | "carousel";
-  columns?: 1 | 2 | 3 | 4;
+  show_date?: boolean;
   show_excerpt?: boolean;
+  show_author?: boolean;
   show_categories?: boolean;
   show_read_more?: boolean;
-  categories?: Record<number, { id: number; name: string; slug: string }>;
+  backgroundColor?: string;
+}
+
+/**
+ * Post interface matching the API response structure
+ */
+export interface LocalPost {
+  id: number;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  date?: string;
+  link?: string; // WP permalink
+  featured_image?: string;
+  featured_image_url?: string; // Because of sloppy coding
+  categories?: string[];
+  slug?: string;
 }
 
 /**
@@ -186,23 +204,27 @@ export interface FormModule extends BaseModule {
 /**
  * Accordion module
  */
-export interface AccordionModule extends BaseModule {
-  type: "accordion";
-  title?: string;
-  items: Array<{
-    id: number;
-    title: string;
-    content: string;
-  }>;
+export interface AccordionFaqItem {
+  id?: number;
+  question: string;
+  answer: string;
+  icon?: string;
+}
+
+// Define the module interface
+export interface AccordionFaqModule extends BaseModule {
+  type: "accordion" | "faq";
+  items: AccordionFaqItem[];
   allow_multiple_open?: boolean;
   default_open_index?: number;
+  backgroundColor?: string;
+  icon_position?: "left" | "right";
 }
 
 /**
  * Tabs module
  *
  */
-
 export interface TabsModule extends BaseModule {
   type: "tabs";
   title?: string;
@@ -267,7 +289,7 @@ export type Module =
   | GalleryModule
   | TextModule
   | FormModule
-  | AccordionModule
+  | AccordionFaqModule
   | TabsModule
   | VideoModule
   | ChartModule
@@ -277,7 +299,7 @@ export type Module =
  * Complete homepage data
  */
 export interface HomepageData {
-  featured_posts?: Post[];
+  featured_posts?: LocalPost[];
   categories?: Record<number, { id: number; name: string; slug: string }>;
   hero?: {
     title?: string;

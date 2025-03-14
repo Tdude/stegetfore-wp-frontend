@@ -41,67 +41,66 @@ export default function SellingPointsModule({ module, className }: SellingPoints
   const layout = module.layout || 'grid';
 
   return (
-    <section className={cn("py-16 bg-background", className)}>
-      <div className="container px-4 md:px-6">
-        {module.title && (
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold tracking-tight mb-4">
-              {module.title}
-            </h2>
-            <div className="w-24 h-1 bg-primary mx-auto"></div>
-          </div>
-        )}
-
-        <div
-          className={cn(
-            layout === 'carousel'
-              ? "flex overflow-x-auto gap-6 pb-4 snap-x"
-              : `grid gap-8 grid-cols-2 md:grid-cols-4 ${layoutClasses[layout]}`,
-            layout === 'list' ? 'max-w-2xl mx-auto' : ''
-          )}
-          style={{ gridAutoRows: "1fr" }}
-        >
-          {module.points.map((point, index) => (
-            <Card
-              key={point.id || index}
-              className={cn(
-                "border border-muted/20 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col",
-                layout === 'carousel' ? 'min-w-[300px] snap-center' : ''
-              )}
-            >
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 text-primary mb-6">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    dangerouslySetInnerHTML={{ __html: point.icon || defaultIcons[index % defaultIcons.length] }}
-                  />
-                </div>
-                <CardTitle className="text-2xl font-bold">{point.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 flex-grow">
-                {/* Use content property for HTML content or description for plain text */}
-                {point.content ? (
-                  <div className="text-muted-foreground text-lg"
-                    dangerouslySetInnerHTML={{ __html: point.content }} />
-                ) : (
-                  <p className="text-muted-foreground text-lg">{point.description}</p>
-                )}
-              </CardContent>
-
-              {/* Golden ratio decorative element */}
-              <div className="absolute -bottom-1 -right-1 w-12 h-8 border-b-2 border-r-2 border-primary/20 rounded-br-md opacity-50"></div>
-            </Card>
-          ))}
-        </div>
+<section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || "#eeeeee" }}>
+  <div className="container px-4 md:px-6 mx-auto">
+    {module.title && (
+      <div className="text-center mb-12">
+        <h2 className="text-4xl font-bold tracking-tight mb-4">
+          {module.title}
+        </h2>
+        <div className="w-24 h-1 bg-primary mx-auto"></div>
       </div>
-    </section>
+    )}
+
+    <div
+      className={cn(
+        layout === 'carousel'
+          ? "flex overflow-x-auto gap-6 pb-4 snap-x"
+          : `grid gap-6 ${layoutClasses[layout as keyof typeof layoutClasses] || layoutClasses.grid}`
+      )}
+    >
+      {module.points.map((point, index) => (
+        <div
+          key={point.id || index}
+          className={cn(
+            "block h-full",
+            layout === 'carousel' ? 'min-w-[300px] sm:min-w-[350px] snap-center' : ''
+          )}
+        >
+          <Card className="h-full overflow-hidden">
+            <CardHeader className="pb-4 flex items-center">
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 text-primary mb-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  dangerouslySetInnerHTML={{ __html: point.icon || defaultIcons[index % defaultIcons.length] }}
+                />
+              </div>
+              <CardTitle className="text-2xl font-bold text-center">{point.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 flex-grow">
+              {point.content ? (
+                <div className="text-muted-foreground text-lg"
+                  dangerouslySetInnerHTML={{ __html: point.content }} />
+              ) : (
+                <p className="text-muted-foreground text-lg">{point.description}</p>
+              )}
+            </CardContent>
+
+            {/* Golden ratio decorative element */}
+            <div className="absolute -bottom-1 -right-1 w-12 h-8 border-b-2 border-r-2 border-primary/20 rounded-br-md opacity-50"></div>
+          </Card>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
   );
 }

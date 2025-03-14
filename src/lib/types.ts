@@ -105,6 +105,7 @@ export enum PageTemplate {
 
 // More specific content types extending base content for application use
 export interface Post extends BaseContent {
+  featured_image: any;
   id: number;
   slug: string;
   categories: number[];

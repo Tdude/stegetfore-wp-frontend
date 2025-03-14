@@ -41,10 +41,7 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
 
   return (
     <section
-      className={cn(
-        "relative py-16 overflow-hidden",
-        className
-      )}
+      className={cn("relative py-16 overflow-hidden",className )}
       style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
     >
       {/* Background Image (if needed) */}

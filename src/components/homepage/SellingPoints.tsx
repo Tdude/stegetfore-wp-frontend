@@ -17,7 +17,7 @@ export default function SellingPoints({ points, title }: SellingPointsProps) {
   ];
 
   return (
-    <section className="py-16 bg-background">
+    <section className="py-16 bg-background m-12">
       <div className="container px-4 md:px-6">
         {title && (
           <div className="text-center mb-16">

@@ -8,28 +8,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import type { AccordionFaqModule } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-// Extend interface to handle both accordion and faq module types
-interface AccordionFaqModule {
-  id: number;
-  type: string; // Can be "accordion" or "faq"
-  title?: string;
-  items: Array<{
-    id?: number; // Optional
-    question: string;
-    answer: string;
-  }>;
-  allow_multiple_open?: boolean;
-  default_open_index?: number;
-  order?: number;
-  settings?: Record<string, any>;
-}
 
 interface AccordionModuleProps {
   module: AccordionFaqModule;
   className?: string;
 }
+
 
 export default function AccordionModule({ module, className }: AccordionModuleProps) {
   // Determine which item should be open by default
@@ -50,9 +37,12 @@ export default function AccordionModule({ module, className }: AccordionModulePr
   const moduleClass = isFaq ? 'faq-module' : '';
 
   return (
-    <section className={cn("py-12", className, moduleClass)}>
+      <section
+        className={cn("py-16",className, moduleClass )}
+        style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
+      >
       <div className="container px-4 md:px-6 mx-auto">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto bg-muted p-4 m-2">
           {module.title && (
             <h2 className="text-3xl font-bold text-center mb-8">{module.title}</h2>
           )}

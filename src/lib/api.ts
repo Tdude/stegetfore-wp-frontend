@@ -78,6 +78,7 @@ export async function fetchPosts(): Promise<Post[]> {
           content: {
             rendered: post.content.rendered,
           },
+          featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
           featured_image_url:
             post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
           categories: post.categories || [],
@@ -103,6 +104,7 @@ export async function fetchPost(slug: string): Promise<Post | null> {
     const featuredMedia = post._embedded?.["wp:featuredmedia"]?.[0];
 
     return {
+      featured_image: featuredMedia || null,
       id: post.id,
       slug: post.slug,
       title: {
@@ -160,6 +162,7 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
     // Map the response to match our Post interface
     return Array.isArray(posts)
       ? posts.map((post: Post) => ({
+          featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
           id: post.id,
           slug: post.slug,
           title: {

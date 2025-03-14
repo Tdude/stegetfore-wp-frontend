@@ -54,7 +54,9 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
   // If no testimonials to display
   if (!Array.isArray(module.testimonials) || module.testimonials.length === 0) {
     return (
-      <section className={cn("py-16 bg-background", className)}>
+      <section className={cn("py-16 bg-background", className)}
+      style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
+      >
         <div className="container px-4 md:px-6 mx-auto">
           {module.title && (
             <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
@@ -73,7 +75,9 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
 
   // Display as carousel (default)
   return (
-    <section className={cn("py-16 bg-background", className)}>
+    <section className={cn("py-16 bg-background", className)}
+    style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
+    >
       <div className="container px-4 md:px-6 mx-auto">
         {module.title && (
           <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
