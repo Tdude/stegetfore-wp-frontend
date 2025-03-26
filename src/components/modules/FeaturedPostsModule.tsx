@@ -1,7 +1,7 @@
 // src/components/modules/FeaturedPostsModule.tsx - Updated version
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FeaturedPostsModule as FeaturedPostsModuleType, LocalPost, Post } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,13 @@ interface FeaturedPostsModuleProps {
 }
 
 export default function FeaturedPostsModule({ module, className }: FeaturedPostsModuleProps) {
+  // Add a useEffect to prevent hydration mismatches
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Default to 3 columns if not specified
   const columns = module.columns || 3;
   const columnClasses = {
@@ -34,7 +41,30 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
 
   // Background color from module if available
   const bgColor = module.backgroundColor ? { backgroundColor: module.backgroundColor } : {};
+  // Safely extract module properties
+  const isRenderedTitle = (title: any): title is { rendered: string } => {
+    return title && typeof title === 'object' && 'rendered' in title;
+  };
 
+  const title = typeof module.title === 'string' ? module.title :
+      (isRenderedTitle(module.title) ? (module.title as { rendered: string }).rendered : 'Featured Posts');
+
+  const posts = Array.isArray(module.posts) ? module.posts : [];
+    // Display a loading state until client-side hydration completes
+    if (!isClient) {
+      return (
+        <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || '' }}>
+          <div className="container px-4 md:px-6 mx-auto">
+            <h2 className="text-3xl font-bold tracking-tighter mb-8">{title}</h2>
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-gray-100 animate-pulse h-64 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
   // Handle case where posts haven't been loaded yet
   if (!module.posts || module.posts.length === 0) {
     return (
@@ -69,13 +99,21 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   return (
     <section className={cn("py-12", className)} style={bgColor}>
       <div className="container px-4 md:px-6 mx-auto">
-        {module.title && (
-          <h2 className="text-3xl font-bold tracking-tighter mb-4">{module.title}</h2>
-        )}
 
-        {module.subtitle && (
-          <p className="text-xl text-muted-foreground mb-8 max-w-[800px]">{module.subtitle}</p>
-        )}
+          <div className="text-center mb-12">
+          {module.title && (
+            <h2 className="text-4xl font-bold tracking-tight mb-4">
+              {module.title}
+            </h2>
+           )}
+            <div className="w-24 h-1 bg-primary mx-auto"></div>
+            {module.subtitle && (
+              <p className="text-xl text-muted-foreground my-4 text-center">{module.subtitle}</p>
+            )}
+          </div>
+
+
+
 
         <div
           className={cn(
@@ -88,6 +126,10 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
             const hasFeaturedImage = (post: Post | LocalPost): boolean => {
               return Boolean(post.featured_image);
             };
+
+            const postTitle = typeof post.title === 'string'
+            ? post.title
+            : isRenderedTitle(post.title) ? (post.title as { rendered: string }).rendered : '';
 
             return (
               <Link
@@ -122,7 +164,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                       </div>
                     )}
                     <CardTitle className="text-xl line-clamp-2">
-                      {post.title}
+                      {postTitle}
                     </CardTitle>
 
                     {/* Show date if enabled */}
@@ -137,12 +179,16 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     <CardContent>
                       {post.excerpt ? (
                         <div className="text-muted-foreground line-clamp-3">
-                          {post.excerpt}
+                          {typeof post.excerpt === 'string'
+                            ? post.excerpt
+                            : isRenderedTitle(post.excerpt) ? (post.excerpt as { rendered: string }).rendered : ''}
                         </div>
                       ) : (
                         <div className="text-muted-foreground line-clamp-3">
                           {post.content && typeof post.content === 'string'
                             ? post.content.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
+                            : post.content && typeof post.content === 'object' && 'rendered' in post.content
+                            ? (post.content as { rendered?: string }).rendered?.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
                             : ''}
                         </div>
                       )}

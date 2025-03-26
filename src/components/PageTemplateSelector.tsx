@@ -1,13 +1,13 @@
 // src/components/PageTemplateSelector.tsx
 'use client';
 
-import React from 'react';
+import React, { memo, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   PageTemplate,
   PageTemplateSelectorProps,
   Module,
-  LocalPage
+  Page
 } from '@/lib/types';
 import { FEATURES } from '@/lib/featureFlags';
 
@@ -20,7 +20,6 @@ import LandingTemplate from './templates/LandingTemplate';
 import EvaluationTemplate from './templates/EvaluationTemplate';
 import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
-
 
 // Type for template map
 type TemplateMap = {
@@ -44,7 +43,7 @@ const ModularTemplate = FEATURES.USE_MODULAR_TEMPLATES
   ? React.lazy(() => import('./templates/ModularTemplate'))
   : undefined;
 
-export default function PageTemplateSelector({
+function PageTemplateSelector({
   page,
   isHomePage = false,
   homepageData = {}
@@ -52,13 +51,27 @@ export default function PageTemplateSelector({
   const template = page?.template;
 
   // Debug logging hook
-  useDebugLogging({ page, template: template as PageTemplate | undefined, isHomePage });
+  useDebugLogging({ page: page as Page, template: template as PageTemplate | undefined, isHomePage });
 
   // Helper function to determine if page has modules
   const hasModules = React.useMemo(() => {
     const pageModules: Module[] = Array.isArray(page?.modules) ? page.modules : [];
     return pageModules.length > 0;
   }, [page?.modules]);
+
+  // Log homepage data for debugging
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('HomepageData in PageTemplateSelector:', {
+        isString: typeof homepageData === 'string',
+        hasData: homepageData && Object.keys(homepageData).length > 0,
+        featuredPosts: homepageData && typeof homepageData === 'object' ?
+          (homepageData.featured_posts?.length || 'none') : 'unknown',
+        modules: homepageData && typeof homepageData === 'object' ?
+          (Array.isArray(homepageData.modules) ? homepageData.modules.length : 'none') : 'unknown'
+      });
+    }
+  }, [homepageData]);
 
   // Render template based on conditions
   const renderTemplate = React.useCallback(() => {
@@ -70,7 +83,7 @@ export default function PageTemplateSelector({
     // Handle modular template
     if (FEATURES.USE_MODULAR_TEMPLATES && ModularTemplate && (hasModules || template === PageTemplate.MODULAR)) {
       return (
-        <React.Suspense fallback={<DefaultTemplate key="default" page={page} />}>
+        <React.Suspense fallback={<DefaultTemplate key="default" page={page as Page} />}>
           <ModularTemplate key="modular" page={page} />
         </React.Suspense>
       );
@@ -81,7 +94,13 @@ export default function PageTemplateSelector({
 
     // Ensure TemplateComponent is not undefined
     if (!TemplateComponent) {
-      return <DefaultTemplate key="default" page={page} />;
+      console.warn('No template component found, using DefaultTemplate');
+      return <DefaultTemplate key="default" page={page as Page} />;
+    }
+
+    // Pass homepage data to homepage template specifically
+    if (template === PageTemplate.HOMEPAGE) {
+      return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
     }
 
     // Render appropriate template with correct props
@@ -92,8 +111,7 @@ export default function PageTemplateSelector({
       ...(template === PageTemplate.CIRCLE_CHART && {
         chartData: page.chartData,
         title: page.title?.rendered
-      }),
-      ...(template === PageTemplate.HOMEPAGE && { homepage: homepageData })
+      })
     });
   }, [template, page, isHomePage, hasModules, homepageData]);
 
@@ -106,7 +124,7 @@ export default function PageTemplateSelector({
 
 // Debug logging hook
 function useDebugLogging({ page, template, isHomePage }: {
-  page: LocalPage;
+  page: Page;
   template: PageTemplate | undefined;
   isHomePage: boolean;
 }) {
@@ -129,3 +147,5 @@ function useDebugLogging({ page, template, isHomePage }: {
     }
   }, [page, template, isHomePage]);
 }
+
+export default memo(PageTemplateSelector);

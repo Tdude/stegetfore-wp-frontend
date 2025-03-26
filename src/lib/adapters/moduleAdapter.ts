@@ -115,13 +115,23 @@ function adaptSellingPointsModule(wpModule: any): SellingPointsModule {
     type: "selling-points",
     title: wpModule.title || "",
     points: Array.isArray(wpModule.points)
-      ? wpModule.points.map((point: any) => ({
-          id: point.id || 0,
-          title: point.title || "",
-          content: point.content || "",
-          description: point.description || "",
-          icon: point.icon || "",
-        }))
+      ? wpModule.points
+          .map((point: any) => ({
+            id: point.id || 0,
+            title: point.title || "",
+            content: point.content || "",
+            description: point.description || "",
+            icon: point.icon || "",
+          }))
+          .map((post: any) => ({
+            ...post,
+            content: post.content.rendered,
+            excerpt: post.excerpt?.rendered || "",
+          }))
+          .map((post: any) => ({
+            ...post,
+            featured_image_url: post.featured_image_url ?? undefined,
+          }))
       : [],
     layout: wpModule.layout,
     columns: wpModule.columns,
@@ -167,16 +177,23 @@ function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
     type: "featured-posts",
     title: wpModule.title || "",
     posts: Array.isArray(wpModule.posts)
-      ? adaptWordPressPosts(wpModule.posts).filter(
-          (post): post is Post => post !== null
-        )
+      ? adaptWordPressPosts(wpModule.posts)
+          .filter((post): post is Post => post !== null)
+          .map((post) => ({
+            ...post,
+            title: post.title.rendered,
+            excerpt: post.excerpt?.rendered || "",
+            content: post.content.rendered,
+            featured_image_url: post.featured_image_url ?? undefined,
+            categories: post.categories.map(String),
+          }))
       : [],
     display_style: wpModule.display_style || "grid",
     columns: wpModule.columns || 3,
     show_excerpt: wpModule.show_excerpt !== false,
     show_categories: wpModule.show_categories !== false,
     show_read_more: wpModule.show_read_more !== false,
-    categories: wpModule.categories || {},
+    categories: wpModule.categories?.map(String) || [],
     order: wpModule.order || 0,
     settings: wpModule.settings || {},
   };

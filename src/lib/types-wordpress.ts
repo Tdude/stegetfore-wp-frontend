@@ -1,4 +1,5 @@
 // src/lib/types.ts - WordPress API Types Section
+import { Module } from "./types/moduleTypes";
 // Base WordPress API response interface
 export interface WordPressBaseContent {
   id: number;
@@ -31,6 +32,7 @@ export interface WordPressPost extends WordPressBaseContent {
   featured_media?: number;
   author?: number;
   comment_status?: string;
+  modules: Module[];
 }
 
 // WordPress Page specific fields
@@ -41,6 +43,7 @@ export interface WordPressPage extends WordPressBaseContent {
   chartData?: {
     segments: number[];
   } | null;
+  modules: Module[];
 }
 
 // WordPress Category

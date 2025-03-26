@@ -42,7 +42,7 @@ export default function AccordionModule({ module, className }: AccordionModulePr
         style={{ backgroundColor: module.backgroundColor || "#f5f9de" }}
       >
       <div className="container px-4 md:px-6 mx-auto">
-        <div className="max-w-3xl mx-auto bg-muted p-4 m-2">
+        <div className="max-w-3xl mx-auto p-4 m-2">
           {module.title && (
             <h2 className="text-3xl font-bold text-center mb-8">{module.title}</h2>
           )}

@@ -47,13 +47,30 @@ export interface BaseContent {
 export interface Post extends BaseContent {
   featured_image: string | null | undefined;
   link: string;
-  categories: number[];
+  categories: number[] | string[];
   tags?: number[];
   author?: number;
   comment_status?: "open" | "closed";
   author_name?: string;
   author_avatar?: string;
   meta?: Record<string, unknown>;
+}
+
+/**
+ * Post interface matching the API response structure
+ * Imported explicitly to moduleTypes.ts for FeaturedPosts
+ */
+export interface LocalPost {
+  id: number;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  date?: string;
+  link?: string; // WP permalink
+  featured_image?: string;
+  featured_image_url?: string; // Because of sloppy coding
+  categories?: string[];
+  slug?: string;
 }
 
 /**
@@ -117,26 +134,9 @@ export interface MenuItem {
 }
 
 /**
- * Post interface matching the API response structure
- * Imported explicitly to moduleTypes.ts for FeaturedPosts
- */
-export interface LocalPost {
-  id: number;
-  title: string;
-  excerpt?: string;
-  content?: string;
-  date?: string;
-  link?: string; // WP permalink
-  featured_image?: string;
-  featured_image_url?: string; // Because of sloppy coding
-  categories?: string[];
-  slug?: string;
-}
-
-/**
  * Complete homepage data
  */
-export interface HomepageData {
+export interface HomepageData extends BaseContent {
   featured_posts?: LocalPost[];
   categories?: Record<number, { id: number; name: string; slug: string }>;
   hero?: {
@@ -146,7 +146,7 @@ export interface HomepageData {
     buttons?: Array<{
       text: string;
       url: string;
-      style: "primary" | "secondary" | "outline";
+      style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default";
     }>;
   };
   featured_posts_title?: string;

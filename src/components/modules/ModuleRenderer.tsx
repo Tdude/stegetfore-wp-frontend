@@ -24,6 +24,31 @@ import {
 import ModulePlaceholder from './ModulePlaceholder';
 import ModuleErrorBoundary from './ModuleErrorBoundary';
 
+// Simple error boundary component
+interface ErrorBoundaryProps {
+  fallback?: ReactNode;
+  children: ReactNode;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("Module render error:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <div>Something went wrong</div>;
+    }
+    return this.props.children;
+  }
+}
+
 // Create a safer dynamic import function
 const safeImport = (modulePath: string, fallbackComponent: ReactNode = null) => {
   return lazy(() =>
@@ -70,17 +95,30 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
-  // Early return if no module provided
+  // Early return with a placeholder if no module provided
   if (!module) {
-    return null;
+    return (
+      <div className="w-full p-4 bg-gray-100 text-gray-400 text-center">
+        Module data not available
+      </div>
+    );
   }
 
-  // Try/catch block for module type checking to provide helpful errors
+  const moduleType = module.type || 'unknown';
+  const moduleId = module.id || 'no-id';
+  const isFullWidth = module.fullWidth === true;
+
+  // Add fullWidth class if needed
+  const moduleClasses = cn(
+    'module',
+    `module-${module.type}`,
+    isFullWidth ? 'w-full' : '',
+    className
+  );
+
   try {
-    // Make sure module has a type - use template as fallback if type is missing
+    // Template as fallback if type is missing
     if (!module.type && module.template) {
-      //console.log(`Module ${module.id} missing type, using template "${module.template}" as type`);
-      // @ts-ignore: Dynamic assignment to accommodate real-world data
       module.type = module.template;
     }
 
@@ -121,6 +159,11 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
           </div>
         );
       }
+      // Avoid potential XSS in fallback
+      const sanitizeContent = (content: string | undefined): string => {
+        if (!content) return '';
+        return content;
+      };
 
       // Use Suspense to handle lazy-loaded components
       return (
@@ -154,41 +197,59 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
                 return <VideoModule module={module} />;
               } else if (isChartModule(module)) {
                 return <ChartModule module={module} />;
+
+              // fallback rendering
               } else {
-                // Fallback for unknown module types
-                return (
-                  <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                    <h3 className="font-medium text-yellow-800">Unknown Module Type/Template: {module.type}</h3>
-                    {module.title && <p className="mt-2 text-yellow-700">Title: {module.title}</p>}
-                    {module.content && (
-                      <div
-                        className="mt-2 prose-sm max-w-none text-yellow-700"
-                        dangerouslySetInnerHTML={{ __html: module.content }}
-                      />
-                    )}
-                  </div>
-                );
-              }
+                  const safeContent = sanitizeContent((module as Module).content);
+
+                  return (
+                    <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
+                      <h3 className="font-medium text-yellow-800">
+                        Unknown Module Type/Template: {(module as Module).type}
+                      </h3>
+                      {(module as Module).title && (
+                        <p className="mt-2 text-yellow-700">
+                          Title: {(module as Module).title}
+                        </p>
+                      )}
+                      {safeContent && (
+                        <div
+                          className="mt-2 prose-sm max-w-none text-yellow-700"
+                          dangerouslySetInnerHTML={{ __html: safeContent }}
+                        />
+                      )}
+                    </div>
+                  );
+                }
             })()}
           </ModuleErrorBoundary>
         </Suspense>
       );
     };
 
-    // Render module with wrapper div and appropriate classes
-    return (
+  // Add error boundary around each module component
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded m-2">
+          Error rendering module: {moduleType} (ID: {moduleId})
+        </div>
+      }
+    >
       <div
         className={cn(
           'module',
-          moduleTypeAttr,
+          `module-${moduleType}`,
+          isFullWidth ? 'w-full' : '',
           className
         )}
-        data-module-id={module.id}
-        data-module-type={module.type}
+        data-module-id={moduleId}
+        data-module-type={moduleType}
       >
         {renderModuleContent()}
-      </div>
-    );
+        </div>
+    </ErrorBoundary>
+  );
   } catch (error: unknown) {
     // Handle any runtime errors
     console.error('Error rendering module:', error);

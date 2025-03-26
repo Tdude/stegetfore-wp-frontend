@@ -20,6 +20,7 @@ export function isExternalImage(url: string): boolean {
     "stegetfore.nu",
     "www.stegetfore.nu",
     "secure.gravatar.com",
+    "stegetfore.netlify.app",
   ];
 
   try {

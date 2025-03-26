@@ -16,13 +16,15 @@ const buttonVariants = cva(
           "border border-slate-700 bg-slate-800 text-gray-100 hover:bg-slate-900 hover:border-slate-800 shadow-md hover:shadow-lg focus:ring-2 focus:ring-slate-500 focus:ring-offset-2",
         default:
           "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+        success:
+          "border border-green-500 bg-green-600 text-white hover:bg-green-700 hover:border-green-600 shadow-md hover:shadow-lg focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
         destructive:
           "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
         outline:
           "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 shadow-sm hover:shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
         ghost:
-          "bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
-        link: "text-blue-600 underline-offset-4 hover:underline focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+          "bg-transparent text-gray-700 hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+        link: "text-slate-600 underline-offset-4 hover:underline hover:text-slate-700 focus:ring-2 focus:ring-slate-600 focus:ring-offset-2",
       },
       size: {
         default: "h-9 px-4 py-2 text-sm",

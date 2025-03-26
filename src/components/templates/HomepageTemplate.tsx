@@ -1,23 +1,22 @@
 // src/components/templates/HomepageTemplate.tsx
 'use client';
 
-import React, { memo, useState, useEffect } from 'react';
-import { useModules } from '@/hooks/useModules';
+import React, { useState, useEffect } from 'react';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+import { HomepageTemplateProps } from '@/lib/types';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
-import type { Page, HomepageData } from "@/lib/types";
+import { useModules } from '@/hooks/useModules';
 
-// Remove the HOC and handle modules directly in the component
-function HomepageTemplate({ page, homepageData }: { page: Page, homepageData: HomepageData }) {
+export default function HomepageTemplate({ page, homepage }: HomepageTemplateProps) {
   const [mounted, setMounted] = useState(false);
 
-  // Use the modules hook directly
-  const { modulesBySection } = useModules({
+  // Use the custom hook to handle all module processing and organization
+  const { allModules, modulesBySection } = useModules({
     pageModules: page?.modules || [],
-    homepageData
+    homepageData: typeof homepage === 'object' ? homepage : undefined,
+    featuredPostsPosition: 2 // Position the featured posts at index 2
   });
 
-  // Set mounted after initial render
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -25,28 +24,23 @@ function HomepageTemplate({ page, homepageData }: { page: Page, homepageData: Ho
   return (
     <TemplateTransitionWrapper>
       <div className="min-h-screen">
-        {/* Header Modules */}
         {modulesBySection.header.map(module => (
           <ModuleRenderer key={`header-${module.id}`} module={module} />
         ))}
 
         <div className="mx-auto">
-          {/* Main Modules */}
           {modulesBySection.main.map(module => (
             <ModuleRenderer key={`main-${module.id}`} module={module} />
           ))}
 
-          {/* Other Modules */}
           {modulesBySection.other.map(module => (
             <ModuleRenderer key={`other-${module.id}`} module={module} />
           ))}
 
-          {/* Footer Modules */}
           {modulesBySection.footer.map(module => (
             <ModuleRenderer key={`footer-${module.id}`} module={module} />
           ))}
 
-          {/* Page Content */}
           {page?.content?.rendered && mounted && (
             <section className="max-w-7xl px-4 py-12 mx-auto">
               <div
@@ -56,7 +50,6 @@ function HomepageTemplate({ page, homepageData }: { page: Page, homepageData: Ho
             </section>
           )}
 
-          {/* Loading Placeholder */}
           {page?.content?.rendered && !mounted && (
             <section className="max-w-7xl px-4 py-12 mx-auto">
               <div className="prose max-w-none">
@@ -72,5 +65,3 @@ function HomepageTemplate({ page, homepageData }: { page: Page, homepageData: Ho
     </TemplateTransitionWrapper>
   );
 }
-
-export default memo(HomepageTemplate);

@@ -1,9 +1,9 @@
 // src/lib/types/moduleTypes.ts
 import { LocalPost } from "./contentTypes";
+
 /**
  * Base module interface
  */
-
 export interface BaseModule {
   id: number;
   type: string;
@@ -17,16 +17,21 @@ export interface BaseModule {
   buttons?: Array<{
     text: string;
     url: string;
-    style?: string;
-    new_tab?: boolean;
+    style:
+      | "primary"
+      | "secondary"
+      | "outline"
+      | "link"
+      | "ghost"
+      | "default"
+      | "destructive";
+    new_tab?: boolean; // Added to match the API
   }>;
   order?: number;
   status?: "publish" | "draft";
   settings?: Record<string, any>;
-}
-
-export interface ModuleWithCategories extends BaseModule {
-  categories?: string[];
+  categories?: string | string[];
+  placements?: string[] | string;
 }
 
 /**
@@ -39,12 +44,6 @@ export interface HeroModule extends BaseModule {
   intro?: string; // Added to match the API
   image: string | string[];
   video_url?: string;
-  buttons?: Array<{
-    text: string;
-    url: string;
-    style: "primary" | "secondary" | "outline";
-    new_tab?: boolean; // Added to match the API
-  }>;
   overlay_opacity?: number; // Matches API
   overlayOpacity?: number; // Optional alias for consistency
   text_color?: string; // Matches API

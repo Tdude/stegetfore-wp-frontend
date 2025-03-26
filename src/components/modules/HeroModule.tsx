@@ -2,10 +2,10 @@
 'use client';
 
 import React from 'react';
-import type { HeroModule } from '@/lib/types';
+import type { HeroModule } from '@/lib/types/index';
 import { Button } from '@/components/ui/button';
 import OptimizedImage from '@/components/OptimizedImage';
-import { cn } from '@/lib/utils';
+import { cn, cleanWordPressContent } from '@/lib/utils';
 
 interface HeroModuleProps {
   module: HeroModule;
@@ -13,15 +13,18 @@ interface HeroModuleProps {
 }
 
 export default function HeroModule({ module, className }: HeroModuleProps) {
+  const cleanContent = module.content ? cleanWordPressContent(module.content) : '';
+
   const finalImageUrl = React.useMemo(() => {
-    if (typeof module.image === 'string') {
-      return module.image;
-    } else if (Array.isArray(module.image) && module.image.length > 0) {
-      return module.image[0];
+    const featuredImage: string | string[] | null | undefined = module.featured_image;
+    if (typeof featuredImage === 'string') {
+      return featuredImage;
+    } else if (Array.isArray(featuredImage) && (featuredImage as string[]).length > 0) {
+      return featuredImage[0];
     } else {
       return '/images/hero-fallback.jpg';
     }
-  }, [module.image]);
+  }, [module.featured_image]);
 
   const alignmentClasses = {
     left: 'items-start text-left',
@@ -29,7 +32,7 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
     right: 'items-end text-right',
   };
 
-  const contentAlignment = alignmentClasses[module.alignment || 'center'];
+  const contentAlignment = alignmentClasses[module.layout as 'left' | 'center' | 'right' || 'center'];
 
   const heightClasses = {
     small: 'h-[50vh] min-h-[300px]',
@@ -70,7 +73,7 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
         )}
         <div
           className="absolute inset-0 bg-black"
-          style={{ opacity: module.overlayOpacity || module.overlay_opacity || 0.1 }}
+          style={{ opacity: module.overlayOpacity || 0.1 }}
         ></div>
       </div>
 
@@ -81,33 +84,58 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
         <div className="max-w-3xl">
           <h1
             className={cn("text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 text-shadow-lg")}
-            style={{ color: module.textColor || module.text_color || "#1e73be" }}
+            style={{ color: module.textColor || "#1e73be" }}
           >
             {module.title}
           </h1>
-          {module.intro && (
-            <p
+          {cleanContent && (
+            <div
               className={cn("text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-shadow-md")}
-              style={{ color: module.textColor ? `${module.textColor}/90` : module.text_color ? `${module.text_color}/90` : "#1e73be/90" }}
-            >
-              {module.intro}
-            </p>
+              style={{ color: module.textColor ? `${module.textColor}/90` : "#1e73be/90" }}
+              dangerouslySetInnerHTML={{ __html: cleanContent }}
+            />
           )}
           {module.buttons && module.buttons.length > 0 && (
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              {module.buttons.map((button, index) => (
-                <Button
-                  key={index}
-                  size="lg"
-                  variant={button.style === 'outline' ? 'outline' : button.style === 'secondary' ? 'secondary' : 'primary'}
-                  className={button.style === 'outline' ? 'bg-transparent border-white text-white hover:bg-white/20' : ''}
-                  asChild
-                >
-                  <a href={button.url} target={button.new_tab ? "_blank" : "_self"} rel="noopener noreferrer">
-                    {button.text}
-                  </a>
-                </Button>
-              ))}
+            <div className="flex flex-wrap gap-4 justify-center">
+              {module.buttons.map((button, index) => {
+                // Determine the button variant based on style
+                let variant: 'primary' | 'secondary' | 'outline' | 'link' | 'ghost' = 'primary';
+                let customClass = '';
+
+                switch (button.style) {
+                  case 'link':
+                    variant = 'link';
+                    break;
+                  case 'ghost':
+                  case 'outline':
+                    variant = 'outline';
+                    customClass = 'bg-transparent border-white text-white hover:bg-white/20';
+                    break;
+                  case 'secondary':
+                    variant = 'secondary';
+                    break;
+                  case 'primary':
+                    variant = 'primary';
+                    break;
+                  default:
+                    // 'default' style uses the 'default' variant
+                    break;
+                }
+
+                return (
+                  <Button
+                    key={index}
+                    size="lg"
+                    variant={variant}
+                    className={customClass}
+                    asChild
+                  >
+                    <a href={button.url} target={button.new_tab ? "_blank" : "_self"} rel="noopener noreferrer">
+                      {button.text}
+                    </a>
+                  </Button>
+                );
+              })}
             </div>
           )}
         </div>

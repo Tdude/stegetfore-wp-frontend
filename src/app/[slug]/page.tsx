@@ -39,7 +39,7 @@ export default async function PageWrapper({ params }: any) {
   const slug = resolvedParams.slug;
 
   return (
-    <main className="container mx-auto px-4 py-8 flex-grow">
+    <main className="mx-auto flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
         <PageContent slug={slug} />
       </Suspense>

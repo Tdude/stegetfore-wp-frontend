@@ -93,13 +93,74 @@ export async function fetchModulesByTemplate(
 
 /**
  * Fetch modules by category
- * @param category The category slug
+ * @param category The category slug or name
  * @returns An array of Module objects
  */
+// src/lib/api/moduleApi.ts - update fetchModulesByCategory function
+
+// src/lib/api/moduleApi.ts
 export async function fetchModulesByCategory(
   category: string
 ): Promise<Module[]> {
-  return fetchModules({ category });
+  try {
+    // Normalize the input category - convert to slug-like format
+    const normalizedCategory = category
+      .toLowerCase()
+      .replace(/å/g, "a")
+      .replace(/ä/g, "a")
+      .replace(/ö/g, "o")
+      .replace(/\s+/g, "-");
+
+    console.log(
+      `Looking for modules with normalized category: ${normalizedCategory}`
+    );
+
+    // Make the API request
+    const endpoint = `/steget/v1/modules?category=${encodeURIComponent(
+      normalizedCategory
+    )}`;
+    console.log(`Fetching from: ${endpoint}`);
+
+    const response = await fetchApi(endpoint, {
+      revalidate: 600,
+    });
+
+    // Check the structure of the response
+    console.log("API Response structure:", {
+      type: typeof response,
+      isArray: Array.isArray(response),
+      hasModulesProperty:
+        response && typeof response === "object" && "modules" in response,
+    });
+
+    // Handle different response formats
+    let modulesData;
+    if (Array.isArray(response)) {
+      modulesData = response;
+    } else if (
+      response &&
+      typeof response === "object" &&
+      "modules" in response
+    ) {
+      modulesData = response.modules;
+    } else {
+      console.warn("Unexpected API response format:", response);
+      modulesData = [];
+    }
+
+    // Ensure it's an array and adapt each module
+    if (!Array.isArray(modulesData)) {
+      console.warn("Modules data is not an array:", modulesData);
+      modulesData = [];
+    }
+
+    return modulesData
+      .map((module: any) => adaptWordPressModule(module))
+      .filter(Boolean) as Module[];
+  } catch (error) {
+    console.error(`Error fetching modules for category ${category}:`, error);
+    return [];
+  }
 }
 
 /**
