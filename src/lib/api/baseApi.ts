@@ -42,12 +42,24 @@ export async function fetchApi(
     });
 
     if (!response.ok) {
-      console.error("API Error:", {
+      const errorInfo = {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-      });
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      };
+      
+      console.error("API Error:", errorInfo);
+      
+      // Try to get more detailed error information from the response if possible
+      try {
+        const errorData = await response.json();
+        throw new Error(
+          `API error (${response.status}): ${errorData.message || response.statusText}`
+        );
+      } catch (jsonError) {
+        // If we can't parse the JSON, just throw with the status info
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
     }
 
     const data = await response.json();
