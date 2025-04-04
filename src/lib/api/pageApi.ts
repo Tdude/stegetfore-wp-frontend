@@ -1,6 +1,6 @@
 // src/lib/api/pageApi.ts
 import { fetchApi } from "./baseApi";
-import Page, { LocalPage } from "@/lib/types";
+import { Page, LocalPage } from "@/lib/types";
 import {
   adaptWordPressPage,
   adaptWordPressPageToLocalPage,
@@ -132,8 +132,8 @@ export async function fetchPageById(
   includeModules = true
 ): Promise<Page | null> {
   try {
-    // Cache individual pages for 20 minutes
-    const page = await fetchApi(`/wp/v2/pages/${id}?_embed`, {
+    // Cache individual pages for 20 minutes, but include modules field
+    const page = await fetchApi(`/wp/v2/pages/${id}?_embed&_fields=id,title,content,excerpt,template,featured_media,modules`, {
       revalidate: 1200,
     });
 
@@ -141,18 +141,16 @@ export async function fetchPageById(
       return null;
     }
 
-    // If modules are not needed, return a simple page
-    if (!includeModules) {
-      return adaptWordPressPage(page);
+    // The modules field is already included in the response thanks to our WordPress REST field registration
+    // and they are already properly ordered based on the page_modules meta field
+    const adaptedPage = adaptWordPressPage(page);
+
+    // Ensure modules array exists
+    if (!adaptedPage.modules) {
+      adaptedPage.modules = [];
     }
 
-    // If modules are needed, fetch them
-    const modules = await fetchPageModules(page.id);
-
-    return {
-      ...adaptWordPressPage(page),
-      modules,
-    };
+    return adaptedPage;
   } catch (error) {
     console.error(`Error fetching page with ID ${id}:`, error);
     return null;

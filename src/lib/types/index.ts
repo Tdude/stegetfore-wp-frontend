@@ -20,3 +20,24 @@ export enum PageTemplate {
   CONTACT = "templates/contact.php",
   MODULAR = "modular",
 }
+
+export interface BaseModule {
+  id: number;
+  title?: string;
+  content?: string;
+  layout?: string;
+  backgroundColor?: string;
+  type: string;
+}
+
+export interface SellingPointsModule extends BaseModule {
+  type: 'selling_points';
+  points: Array<{
+    id?: string | number;
+    title: string;
+    description: string;
+    content?: string;
+    icon?: string;
+  }>;
+  columns?: number;
+}

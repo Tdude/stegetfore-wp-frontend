@@ -9,13 +9,18 @@ import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 import {
   FormData,
+  FormSection,
+  Question,
+  Option,
   initialFormState,
   ProgressBarProps,
   QuestionsStructure,
   SubSectionProps,
   ProgressHeaderProps,
   StudentEvaluationFormProps,
-  StageClasses
+  StageClasses,
+  SectionData,
+  EvaluationResponse
 } from '@/lib/types/formTypesEvaluation';
 import { evaluationApi } from '@/lib/api/formTryggveApi';
 
@@ -28,7 +33,7 @@ const stageClasses: StageClasses = {
 
 // Progress Bar component
 const ProgressBar: React.FC<ProgressBarProps> = ({ value, type, stage }) => {
-  const baseClasses = "h2 rounded-full transition-all duration-300";
+  const baseClasses = "h-2 rounded-full transition-all duration-300";
   const typeClasses = type === 'section' ? 'h-1' : 'h-6';
 
   const getProgressColor = (value: number, stage?: 'ej' | 'trans' | 'full') => {
@@ -67,7 +72,7 @@ const SubSection: React.FC<SubSectionProps> = ({
     if (!acc[opt.stage]) acc[opt.stage] = [];
     acc[opt.stage].push(opt);
     return acc;
-  }, {} as Record<string, typeof options>);
+  }, {} as Record<string, Option[]>);
 
   return (
     <div className="mb-6">
@@ -124,9 +129,10 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({ stages }) => {
   );
 };
 
+// Student Evaluation Form component
 const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId, evaluationId }) => {
-  const [formData, setFormData] = useState<FormData>(initialFormState);
   const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure | null>(null);
+  const [formData, setFormData] = useState<FormData>(initialFormState);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -148,28 +154,21 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId
           toast.success('Utvärdering laddad');
         } else {
           // Initialize form data with empty values for all questions
-          const newFormData: FormData = { ...initialFormState };
-
-          if (questionsData) {
-            Object.keys(questionsData).forEach(sectionId => {
-              if (!newFormData[sectionId]) {
-                newFormData[sectionId] = { comments: {} as Record<string, string> } as FormData[keyof FormData];
-              }
-
-              const section = questionsData[sectionId];
-              if (section.questions) {
-                Object.keys(section.questions).forEach(questionId => {
-                  newFormData[sectionId][questionId] = '';
-                });
-              }
-            });
-          }
-
+          const newFormData: FormData = {
+            anknytning: {
+              questions: {},
+              comments: {}
+            },
+            ansvar: {
+              questions: {},
+              comments: {}
+            }
+          };
           setFormData(newFormData);
         }
       } catch (error) {
         console.error('Error:', error);
-        toast.error('Kunde inte hämta utvärderingen');
+        toast.error('Kunde inte ladda utvärderingen');
       } finally {
         setIsLoading(false);
       }
@@ -186,10 +185,24 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId
     const loadingToast = toast.loading('Sparar utvärdering...');
 
     try {
-      const data = await evaluationApi.saveEvaluation(studentId, {
+      // Transform form data to match backend structure
+      const transformedData = {
         ...(evaluationId ? { id: evaluationId } : {}),
-        ...formData
-      });
+        student_id: studentId,
+        title: `Utvärdering för ${studentId}`,  // Add a default title
+        formData: {
+          anknytning: {
+            questions: formData.anknytning.questions,
+            comments: formData.anknytning.comments
+          },
+          ansvar: {
+            questions: formData.ansvar.questions,
+            comments: formData.ansvar.comments
+          }
+        }
+      } as EvaluationResponse;
+
+      const data = await evaluationApi.saveEvaluation(studentId, transformedData);
 
       toast.dismiss(loadingToast);
       toast.success('Utvärderingen sparades!');
@@ -202,68 +215,61 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId
     } catch (error) {
       console.error('Error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Kunde inte spara utvärderingen', {
-        description: 'Försök igen eller kontakta support',
-      });
+      toast.error('Ett fel uppstod när utvärderingen skulle sparas.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Handle form value changes
-  const handleValueChange = (sectionId: string, questionId: string) => (value: string) => {
-    setFormData(prev => ({
+  // For handling question value changes
+  const handleQuestionChange = (sectionId: keyof FormData, questionId: string) => (value: string) => {
+    setFormData((prev) => ({
       ...prev,
       [sectionId]: {
         ...prev[sectionId],
-        [questionId]: value
+        questions: {
+          ...prev[sectionId].questions,
+          [questionId]: value
+        }
       }
     }));
   };
 
-  // Handle comment changes
-  const handleCommentChange = (sectionId: string, questionId: string) => (value: string) => {
-    setFormData(prev => {
-      return ({
-        ...prev,
-        [sectionId]: {
-          ...prev[sectionId],
-          comments: {
-            ...prev[sectionId]?.comments,
-            [questionId]: value
-          }
-        } as FormData[keyof FormData]
-      });
-    });
+  // For handling comment changes
+  const handleCommentChange = (sectionId: keyof FormData, questionId: string) => (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        comments: {
+          ...prev[sectionId].comments,
+          [questionId]: value
+        }
+      }
+    }));
   };
 
-  // Progress calculations
-  const calculateSectionProgress = useCallback((sectionId: string, questionId: string): number => {
-    if (!formData?.[sectionId]?.[questionId]) return 0;
-    const value = formData[sectionId][questionId];
-    return typeof value === 'string' && value ? (parseInt(value) / 5) * 100 : 0;
-  }, [formData]);
+  // Calculate progress for a specific question
+  const calculateProgress = (sectionId: keyof FormData, questionId: string): number => {
+    const value = formData[sectionId]?.questions?.[questionId];
+    if (!value) return 0;
 
-  const calculateTotalProgress = useCallback((sectionId: string): number => {
-    if (!formData?.[sectionId]) return 0;
+    const question = questionsStructure?.[sectionId]?.questions[questionId];
+    if (!question) return 0;
 
-    const sectionData = formData[sectionId];
-    const questionIds = Object.keys(sectionData).filter(key => key !== 'comments');
+    const option = question.options.find((opt) => opt.value === value);
+    if (!option) return 0;
 
-    const totalValue = questionIds.reduce((sum, questionId) => {
-      const value = sectionData[questionId];
-      return sum + (typeof value === 'string' && value ? parseInt(value) : 0);
-    }, 0);
-
-    const maxValue = questionIds.length * 5;
-    return maxValue > 0 ? (totalValue / maxValue) * 100 : 0;
-  }, [formData]);
-
-  // Stage helpers
-  const getTotalStage = (progress: number): 'ej' | 'trans' | 'full' => {
-    if (progress < 33) return 'ej';
-    if (progress < 66) return 'trans';
-    return 'full';
+    switch (option.stage) {
+      case 'full':
+        return 100;
+      case 'trans':
+        return 50;
+      case 'ej':
+        return 25;
+      default:
+        return 0;
+    }
   };
 
   if (isLoading) {
@@ -298,12 +304,12 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId
                         title={section.questions[questionId].text}
                         questionId={questionId}
                         options={section.questions[questionId].options}
-                        value={String(formData?.[sectionId]?.[questionId] || '')}
-                        onChange={handleValueChange(sectionId, questionId)}
-                        onCommentChange={handleCommentChange(sectionId, questionId)}
-                        comment={formData?.[sectionId]?.comments?.[questionId] ?? ''}
-                        sectionId={sectionId}
-                        calculateProgress={calculateSectionProgress}
+                        value={formData[sectionId as keyof FormData]?.questions?.[questionId] || ''}
+                        onChange={handleQuestionChange(sectionId as keyof FormData, questionId)}
+                        onCommentChange={handleCommentChange(sectionId as keyof FormData, questionId)}
+                        comment={formData[sectionId as keyof FormData]?.comments?.[questionId] || ''}
+                        sectionId={sectionId as keyof FormData}
+                        calculateProgress={calculateProgress}
                       />
                     ))}
                   </div>
@@ -330,9 +336,14 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ studentId
                 />
               )}
               <ProgressBar
-                value={calculateTotalProgress(sectionId)}
+                value={calculateProgress(sectionId as keyof FormData, Object.keys(section.questions)[0])}
                 type="total"
-                stage={getTotalStage(calculateTotalProgress(sectionId))}
+                stage={(() => {
+                  const value = calculateProgress(sectionId as keyof FormData, Object.keys(section.questions)[0]);
+                  if (value < 33) return 'ej';
+                  if (value < 66) return 'trans';
+                  return 'full';
+                })()}
               />
             </div>
           </CardContent>

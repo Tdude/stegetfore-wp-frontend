@@ -111,32 +111,9 @@ function adaptCTAModule(wpModule: any): CTAModule {
  */
 function adaptSellingPointsModule(wpModule: any): SellingPointsModule {
   return {
-    id: wpModule.id || 0,
+    ...wpModule,
     type: "selling-points",
-    title: wpModule.title || "",
-    points: Array.isArray(wpModule.points)
-      ? wpModule.points
-          .map((point: any) => ({
-            id: point.id || 0,
-            title: point.title || "",
-            content: point.content || "",
-            description: point.description || "",
-            icon: point.icon || "",
-          }))
-          .map((post: any) => ({
-            ...post,
-            content: post.content.rendered,
-            excerpt: post.excerpt?.rendered || "",
-          }))
-          .map((post: any) => ({
-            ...post,
-            featured_image_url: post.featured_image_url ?? undefined,
-          }))
-      : [],
-    layout: wpModule.layout,
-    columns: wpModule.columns,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    points: wpModule.points || []
   };
 }
 

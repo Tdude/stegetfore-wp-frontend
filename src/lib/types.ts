@@ -17,7 +17,8 @@ declare namespace NodeJS {
 }
 
 import * as React from "react";
-import // WordPressPost,
+import { Module } from './types/module';
+// WordPressPost,
 // WordPressPage,
 // WordPressCategory,
 // WordPressSellingPoint,
@@ -112,12 +113,30 @@ export interface Post extends BaseContent {
 }
 
 export interface Page extends BaseContent {
-  type: string | undefined;
-  evaluationId: string | undefined;
-  modules: never[];
-  chartData?: {
-    segments: number[];
-  } | null;
+  id: number;
+  slug: string;
+  title: {
+    rendered: string;
+  };
+  content: {
+    rendered: string;
+  };
+  excerpt?: {
+    rendered: string;
+  };
+  template?: string;
+  featured_media?: number;
+  featured_image_url?: string;
+  modules: Module[];  // Making modules required
+  hero?: {
+    title?: string;
+    content?: string;
+    image?: string;
+    cta?: {
+      text: string;
+      url: string;
+    };
+  };
 }
 
 export interface PageParams {
@@ -127,10 +146,9 @@ export interface PageParams {
 }
 
 // Enhanced local version with more strict typing
-export interface LocalPage extends BaseContent {
-  modules: any;
-  id: number;
-  slug: string;
+export interface LocalPage extends Page {
+  // LocalPage extends Page and inherits all its properties
+  // modules is already required from Page
   chartData?: {
     segments: number[];
   } | null;

@@ -132,12 +132,14 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
     const normalizeModuleType = (type: string): string => {
       if (type === 'tabbed-content') return 'tabs';
       if (type === 'faq') return 'accordion';
+      if (type === 'selling-points') return 'selling_points';
       return type;
     };
 
     // Apply normalization if needed
-    if (module.type === 'tabbed-content' || module.type === 'faq') {
+    if (module.type === 'tabbed-content' || module.type === 'faq' || module.type === 'selling-points') {
       console.log(`Normalized module type from "${module.type}" to "${normalizeModuleType(module.type)}"`);
+      module.type = normalizeModuleType(module.type);
     }
 
     // Output module type to data attribute for debugging

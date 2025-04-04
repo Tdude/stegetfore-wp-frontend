@@ -130,46 +130,35 @@ export const evaluationApi = {
   /**
    * Get evaluation questions structure
    * 
-   * This function uses the public endpoint (/public/v1/evaluation/questions) instead of
-   * the HAM-authenticated endpoint (/ham/v1/evaluation/questions) to avoid authentication
-   * errors when the user is not logged in.
-   * 
-   * The Headless Access Manager (HAM) plugin enforces JWT authentication on all endpoints
-   * in the 'ham/v1' namespace, regardless of the permission_callback setting in the
-   * WordPress REST API registration. By using the public endpoint, we ensure that the
-   * evaluation questions can be fetched without authentication.
+   * This function uses the public endpoint (/public/v1/evaluation/questions) to get the
+   * latest evaluation questions structure.
    * 
    * @returns {Promise<QuestionsStructure>} The evaluation questions structure
    */
   getQuestionsStructure: async () => {
     try {
-      // Using the public endpoint that doesn't require authentication
       const data = await fetchApi('/public/v1/evaluation/questions');
-      console.log('Evaluation questions data received:', data);
       
-      // Check if data has the expected structure
-      if (data) {
-        Object.entries(data).forEach(([sectionId, section]: [string, any]) => {
-          console.log(`Section ${sectionId}:`, section);
-          if (section.questions) {
-            Object.entries(section.questions).forEach(([questionId, question]: [string, any]) => {
-              console.log(`Question ${questionId}:`, question);
-              if (question.options) {
-                console.log(`Options for ${questionId}:`, question.options);
-              } else {
-                console.warn(`No options found for question ${questionId}`);
-              }
-            });
-          } else {
-            console.warn(`No questions found in section ${sectionId}`);
-          }
-        });
+      // If data is empty or doesn't have the expected structure, throw an error
+      if (!data || !data.anknytning || !data.ansvar) {
+        console.error('Invalid questions structure received:', data);
+        throw new Error('Invalid questions structure');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error fetching evaluation questions structure:', error);
-      throw error;
+      // Return a default structure if the API call fails
+      return {
+        anknytning: {
+          title: 'Anknytning',
+          questions: {}
+        },
+        ansvar: {
+          title: 'Ansvar',
+          questions: {}
+        }
+      };
     }
   }
 };

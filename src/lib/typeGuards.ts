@@ -36,7 +36,7 @@ export function isCTAModule(module: Module): module is CTAModule {
 export function isSellingPointsModule(
   module: Module
 ): module is SellingPointsModule {
-  return module.type === "selling-points";
+  return module.type === "selling_points";
 }
 
 /**

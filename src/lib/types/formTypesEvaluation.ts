@@ -1,32 +1,43 @@
 // /lib/types/formTypesEvaluation.ts
 
-// Form data for the evaluation tool
+// Base types for questions and options
+export interface Option {
+  value: string;
+  label: string;
+  stage: 'ej' | 'trans' | 'full';
+}
+
+export interface Question {
+  text: string;
+  options: Option[];
+}
+
+// Form data for student answers
+export interface FormSection {
+  questions: Record<string, string>;  // questionId -> selected option value
+  comments: Record<string, string>;   // questionId -> comment text
+}
+
 export interface FormData {
-  [sectionId: string]: {
-    [questionId: string]: string;
-  } & {
-    comments?: Record<string, string>;
-  };
+  anknytning: FormSection;
+  ansvar: FormSection;
 }
 
 // Initial form state with empty sections
 export const initialFormState: FormData = {
   anknytning: {
-    comments: {} as Record<string, string>,
-  } as { [questionId: string]: string } & { comments?: Record<string, string> },
+    questions: {},
+    comments: {}
+  },
   ansvar: {
-    comments: {} as Record<string, string>,
-  } as { [questionId: string]: string } & { comments?: Record<string, string> },
+    questions: {},
+    comments: {}
+  }
 };
 
-// Types for the API response structure
-export interface Question {
-  text: string;
-  options: Array<{
-    value: string;
-    label: string;
-    stage: 'ej' | 'trans' | 'full';
-  }>;
+// Types for the API response structure (from admin)
+export interface QuestionData extends Question {
+  id: string;  // Added to track the question ID
 }
 
 export interface SectionData {
@@ -38,6 +49,15 @@ export interface QuestionsStructure {
   [sectionId: string]: SectionData;
 }
 
+// Response type for student evaluation data
+export interface EvaluationResponse {
+  id?: number;
+  student_id: number;
+  formData: FormData;
+  title?: string;  // Added to store the evaluation title
+  created_at?: string;
+  updated_at?: string;
+}
 
 /**
  * Props for the progress bar component
@@ -54,17 +74,13 @@ export interface ProgressBarProps {
 export interface SubSectionProps {
   title: string;
   questionId: string;
-  options: Array<{
-    value: string;
-    label: string;
-    stage: "ej" | "trans" | "full";
-  }>;
+  options: Option[];
   value: string;
   onChange: (value: string) => void;
   onCommentChange: (value: string) => void;
   comment: string;
-  sectionId: string;
-  calculateProgress: (sectionId: string, questionId: string) => number;
+  sectionId: keyof FormData;
+  calculateProgress: (sectionId: keyof FormData, questionId: string) => number;
 }
 
 /**

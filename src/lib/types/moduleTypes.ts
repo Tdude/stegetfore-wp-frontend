@@ -86,6 +86,7 @@ export interface SellingPointsModule extends BaseModule {
   }>;
   layout?: "grid" | "list" | "carousel";
   columns?: 1 | 2 | 3 | 4;
+  backgroundColor?: string;
 }
 
 /**

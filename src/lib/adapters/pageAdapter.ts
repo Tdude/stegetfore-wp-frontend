@@ -1,5 +1,5 @@
 // src/lib/adapters/pageAdapter.ts
-import Page, { LocalPage } from "@/lib/types";
+import { Page, LocalPage } from "@/lib/types";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 
 /**
@@ -18,7 +18,7 @@ export function adaptWordPressPage(wpPage: any): Page {
       rendered: wpPage.content?.rendered || "",
     },
     template: wpPage.template || "default",
-    modules: wpPage.modules || [], // Add this line
+    modules: wpPage.modules || [],
     _embedded: wpPage._embedded,
   };
 }
@@ -29,7 +29,7 @@ export function adaptWordPressPage(wpPage: any): Page {
  * @param wpPage WordPress page data
  * @returns LocalPage object formatted for the application
  */
-export function adaptWordPressPageToLocalPage(wpPage: any): LocalPage {
+export function adaptWordPressPageToLocalPage(wpPage: any): LocalPage | null {
   if (!wpPage) return null;
 
   const featuredMedia = wpPage._embedded?.["wp:featuredmedia"]?.[0];
