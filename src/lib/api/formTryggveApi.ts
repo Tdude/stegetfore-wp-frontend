@@ -1,6 +1,6 @@
 // src/lib/api/formTryggveApi.ts - API route handlers for the Tryggve evaluation system
 
-import { QuestionsStructure } from '../types';
+import { QuestionsStructure } from '../types/formTypesEvaluation';
 import { API_URL, fetchApi } from './baseApi';
 
 // JWT token handling
@@ -86,10 +86,6 @@ export const evaluationApi = {
    */
   saveEvaluation: async (studentId: number, formData: any) => {
     try {
-      // Log the data we're sending for debugging
-      console.log('Saving evaluation for student:', studentId);
-      console.log('With form data:', formData);
-      
       // Use URLSearchParams to send data in the format WordPress REST API expects
       const params = new URLSearchParams();
       
@@ -152,9 +148,7 @@ export const evaluationApi = {
    */
   getQuestionsStructure: async () => {
     try {
-      console.log('Fetching questions structure from API');
       const data = await fetchApi('/public/v1/evaluation/questions');
-      console.log('Raw questions structure response:', data);
       
       // If data is completely empty, return default structure
       if (!data) {

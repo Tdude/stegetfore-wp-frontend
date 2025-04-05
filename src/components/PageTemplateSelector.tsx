@@ -1,7 +1,7 @@
 // src/components/PageTemplateSelector.tsx
 'use client';
 
-import React, { memo, useEffect, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   PageTemplate,
@@ -50,28 +50,11 @@ function PageTemplateSelector({
 }: PageTemplateSelectorProps) {
   const template = page?.template;
 
-  // Debug logging hook
-  useDebugLogging({ page: page as Page, template: template as PageTemplate | undefined, isHomePage });
-
   // Helper function to determine if page has modules
   const hasModules = useMemo(() => {
     const pageModules: Module[] = Array.isArray(page?.modules) ? page.modules : [];
     return pageModules.length > 0;
   }, [page?.modules]);
-
-  // Log homepage data for debugging
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('HomepageData in PageTemplateSelector:', {
-        isString: typeof homepageData === 'string',
-        hasData: homepageData && Object.keys(homepageData).length > 0,
-        featuredPosts: homepageData && typeof homepageData === 'object' ?
-          (homepageData.featured_posts?.length || 'none') : 'unknown',
-        modules: homepageData && typeof homepageData === 'object' ?
-          (Array.isArray(homepageData.modules) ? homepageData.modules.length : 'none') : 'unknown'
-      });
-    }
-  }, [homepageData]);
 
   // Render template based on conditions
   const renderTemplate = useCallback(() => {
@@ -113,16 +96,6 @@ function PageTemplateSelector({
       };
     };
 
-    // Debug logging for evaluation template
-    if (template === PageTemplate.EVALUATION && process.env.NODE_ENV === 'development') {
-      console.log('Evaluation Template Props:', {
-        evaluationId: typedPage.evaluationId,
-        studentId: typedPage.studentId,
-        metaStudentId: typedPage.meta?.student_id,
-        fullPage: typedPage
-      });
-    }
-
     // Render appropriate template with correct props
     return React.createElement(TemplateComponent, {
       key: template || 'default',
@@ -144,32 +117,6 @@ function PageTemplateSelector({
       {renderTemplate()}
     </AnimatePresence>
   );
-}
-
-// Debug logging hook
-function useDebugLogging({ page, template, isHomePage }: {
-  page: Page;
-  template: PageTemplate | undefined;
-  isHomePage: boolean;
-}) {
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 PageTemplateSelector mounted', {
-        page: page ? {
-          id: page.id,
-          slug: page.slug,
-          hasModules: !!page.modules,
-          moduleCount: page.modules?.length || 0,
-          moduleTypes: page.modules?.map((m: { type: any; }) => m.type)
-        } : 'No page',
-        template,
-        isHomePage,
-        modules: page?.modules?.length
-          ? `Found ${page.modules.length} modules: ${page.modules.map((m: { type: any; }) => m.type).join(', ')}`
-          : 'No modules found'
-      });
-    }
-  }, [page, template, isHomePage]);
 }
 
 export default memo(PageTemplateSelector);

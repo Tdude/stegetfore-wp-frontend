@@ -24,11 +24,6 @@ export async function fetchApi(
 ) {
   const url = `${API_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
-  // Log in development only
-  if (process.env.NODE_ENV === "development") {
-    console.log(`Fetching: ${url}`);
-  }
-
   try {
     // Determine if we should stringify the body based on content type
     const contentType = options.headers?.["Content-Type"] || "application/json";
@@ -44,12 +39,6 @@ export async function fetchApi(
       "Content-Type": contentType,
       ...(options.headers || {})
     };
-    
-    // Log request details in development
-    if (process.env.NODE_ENV === "development") {
-      console.log("Request headers:", headers);
-      console.log("Request body:", body);
-    }
 
     const response = await fetch(url, {
       method: options.method || "GET",

@@ -40,9 +40,15 @@ export interface QuestionData extends Question {
   id: string;  // Added to track the question ID
 }
 
+export interface SubsectionData {
+  title?: string;
+  questions: Record<string, Question>;
+}
+
 export interface SectionData {
   title: string;
   questions: Record<string, Question>;
+  subsections?: Record<string, SubsectionData>;
 }
 
 export interface QuestionsStructure {
