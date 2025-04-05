@@ -100,6 +100,19 @@
   .plugin-btn {
     @apply bg-blue-500 text-white font-bold py-2 px-4 rounded;
   }
+
+  /* Menu stuff */
+  .group-hover-visible {
+    z-index: 50;
+  }
+
+  .nav-item {
+    @apply relative;
+  }
+
+  .nav-dropdown:hover .nav-dropdown-list {
+    @apply lg:block;
+  }
 }
 
 @layer utilities {
@@ -121,21 +134,4 @@
   .text-shadow-white {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   }
-}
-
-/* Menu stuff */
-.group-hover:visible {
-  z-index: 50;
-}
-.navbar-nav {
-  @apply flex-col lg:flex-row;
-  @apply text-lg;
-}
-
-.nav-item {
-  @apply relative;
-}
-
-.nav-dropdown:hover .nav-dropdown-list {
-  @apply lg:block;
 }

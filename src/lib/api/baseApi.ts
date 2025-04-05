@@ -30,13 +30,31 @@ export async function fetchApi(
   }
 
   try {
+    // Determine if we should stringify the body based on content type
+    const contentType = options.headers?.["Content-Type"] || "application/json";
+    let body = options.body;
+    
+    // Only stringify JSON bodies, leave others as is
+    if (options.body && contentType === "application/json") {
+      body = JSON.stringify(options.body);
+    }
+    
+    // Set default Content-Type if not specified in headers
+    const headers = {
+      "Content-Type": contentType,
+      ...(options.headers || {})
+    };
+    
+    // Log request details in development
+    if (process.env.NODE_ENV === "development") {
+      console.log("Request headers:", headers);
+      console.log("Request body:", body);
+    }
+
     const response = await fetch(url, {
       method: options.method || "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      headers,
+      body: body,
       // Default to 60 seconds if not specified
       next: { revalidate: options.revalidate ?? 60 },
     });

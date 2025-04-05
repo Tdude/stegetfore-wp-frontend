@@ -83,6 +83,12 @@ export interface Page extends BaseContent {
   chartData?: {
     segments: number[];
   } | null;
+  evaluationId?: string;
+  studentId?: string | number;
+  meta?: {
+    student_id?: string | number;
+    [key: string]: any;
+  };
 }
 
 /**
@@ -96,6 +102,11 @@ export interface LocalPage extends BaseContent {
     segments: number[];
   } | null;
   evaluationId?: string;
+  studentId?: string | number;
+  meta?: {
+    student_id?: string | number;
+    [key: string]: any;
+  };
   type?: string;
 }
 

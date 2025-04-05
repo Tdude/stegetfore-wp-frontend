@@ -53,10 +53,17 @@ export interface QuestionsStructure {
 export interface EvaluationResponse {
   id?: number;
   student_id: number;
-  formData: FormData;
   title?: string;  // Added to store the evaluation title
   created_at?: string;
   updated_at?: string;
+  anknytning?: {
+    questions: Record<string, string>;
+    comments: Record<string, string>;
+  };
+  ansvar?: {
+    questions: Record<string, string>;
+    comments: Record<string, string>;
+  };
 }
 
 /**
@@ -97,7 +104,7 @@ export interface ProgressHeaderProps {
  * Props for the StudentEvaluationForm component
  */
 export interface StudentEvaluationFormProps {
-  studentId: number;
+  studentId?: number | string;
   evaluationId?: number;
 }
 

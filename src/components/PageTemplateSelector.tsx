@@ -1,7 +1,7 @@
 // src/components/PageTemplateSelector.tsx
 'use client';
 
-import React, { memo, useEffect } from 'react';
+import React, { memo, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   PageTemplate,
@@ -54,7 +54,7 @@ function PageTemplateSelector({
   useDebugLogging({ page: page as Page, template: template as PageTemplate | undefined, isHomePage });
 
   // Helper function to determine if page has modules
-  const hasModules = React.useMemo(() => {
+  const hasModules = useMemo(() => {
     const pageModules: Module[] = Array.isArray(page?.modules) ? page.modules : [];
     return pageModules.length > 0;
   }, [page?.modules]);
@@ -74,7 +74,7 @@ function PageTemplateSelector({
   }, [homepageData]);
 
   // Render template based on conditions
-  const renderTemplate = React.useCallback(() => {
+  const renderTemplate = useCallback(() => {
     // Force homepage template if isHomePage is true
     if (isHomePage) {
       return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
@@ -103,11 +103,35 @@ function PageTemplateSelector({
       return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
     }
 
+    // Type assertion for page to include potential evaluation properties
+    const typedPage = page as Page & {
+      evaluationId?: string | number;
+      studentId?: string | number;
+      meta?: {
+        student_id?: string | number;
+        [key: string]: any;
+      };
+    };
+
+    // Debug logging for evaluation template
+    if (template === PageTemplate.EVALUATION && process.env.NODE_ENV === 'development') {
+      console.log('Evaluation Template Props:', {
+        evaluationId: typedPage.evaluationId,
+        studentId: typedPage.studentId,
+        metaStudentId: typedPage.meta?.student_id,
+        fullPage: typedPage
+      });
+    }
+
     // Render appropriate template with correct props
     return React.createElement(TemplateComponent, {
       key: template || 'default',
       page,
-      ...(template === PageTemplate.EVALUATION && { evaluationId: Number(page.evaluationId) }),
+      ...(template === PageTemplate.EVALUATION && { 
+        evaluationId: typedPage.evaluationId ? Number(typedPage.evaluationId) : undefined,
+        studentId: typedPage.studentId ? Number(typedPage.studentId) : 
+                  (typedPage.meta && typedPage.meta.student_id) ? Number(typedPage.meta.student_id) : undefined
+      }),
       ...(template === PageTemplate.CIRCLE_CHART && {
         chartData: page.chartData,
         title: page.title?.rendered
