@@ -224,6 +224,30 @@ export const authApi = {
   },
 
   /**
+   * Get current user information including student ID if available
+   */
+  getCurrentUser: async () => {
+    try {
+      // Check if we have a valid token first
+      const isValid = await authApi.validateToken();
+      if (!isValid) {
+        console.warn('No valid token found when getting current user');
+        return null;
+      }
+      
+      // Get user info from the HAM plugin
+      const userInfo = await fetchApi('/ham/v1/user/current', {
+        headers: getHeaders()
+      });
+      
+      return userInfo;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  /**
    * Validate JWT token
    */
   validateToken: async () => {
