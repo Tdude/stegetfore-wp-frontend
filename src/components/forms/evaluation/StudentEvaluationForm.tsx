@@ -258,60 +258,37 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     setIsSaving(true);
     
     try {
+      // Include the evaluation ID if we're updating an existing evaluation
       const evaluationData = {
+        ...(evaluationId ? { id: evaluationId } : {}),
         anknytning: formData.anknytning,
         ansvar: formData.ansvar
       };
       
-      // Development mode: Check if we're in development and save locally
-      const isDevelopment = process.env.NODE_ENV === 'development';
+      // Log the data being sent to help with debugging
+      console.log('Sending evaluation data:', evaluationData);
+      console.log('Student ID:', studentId);
       
-      if (evaluationId) {
-        // Update existing evaluation
-        if (isDevelopment) {
-          // In development, mock the API call
-          console.log('DEV MODE: Would update evaluation with ID:', evaluationId);
-          console.log('DEV MODE: Student ID:', studentId);
-          console.log('DEV MODE: Form data:', evaluationData);
-          
-          // Save to localStorage for development persistence
-          localStorage.setItem(`evaluation_${evaluationId}`, JSON.stringify({
-            id: evaluationId,
-            studentId,
-            formData: evaluationData,
-            updatedAt: new Date().toISOString()
-          }));
-          
-          toast.success('Evaluation updated successfully (Development Mode)');
-        } else {
-          // Production mode - use the real API
-          await evaluationApi.saveEvaluation(studentId!, evaluationData);
-          toast.success('Evaluation updated successfully');
-        }
-      } else {
-        // Create new evaluation
-        if (isDevelopment) {
-          // In development, mock the API call
-          const mockId = Date.now(); // Use timestamp as mock ID
-          console.log('DEV MODE: Would create new evaluation with mock ID:', mockId);
-          console.log('DEV MODE: Student ID:', studentId);
-          console.log('DEV MODE: Form data:', evaluationData);
-          
-          // Save to localStorage for development persistence
-          localStorage.setItem(`evaluation_${mockId}`, JSON.stringify({
-            id: mockId,
-            studentId,
-            formData: evaluationData,
-            createdAt: new Date().toISOString()
-          }));
-          
-          toast.success('Evaluation saved successfully (Development Mode)');
-        } else {
-          // Production mode - use the real API
-          const newEvaluationId = await evaluationApi.saveEvaluation(studentId!, evaluationData);
-          toast.success('Evaluation saved successfully');
-        }
+      // ALWAYS send to backend in Docker environment, regardless of NODE_ENV
+      // This ensures data is properly saved to WordPress
+      const result = await evaluationApi.saveEvaluation(studentId!, evaluationData);
+      console.log('API response:', result);
+      
+      // Also save to localStorage for development persistence if in dev mode
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      if (isDevelopment) {
+        const mockId = evaluationId || Date.now();
+        console.log('DEV MODE: Also saving locally with ID:', mockId);
+        
+        localStorage.setItem(`evaluation_${mockId}`, JSON.stringify({
+          id: mockId,
+          studentId,
+          formData: evaluationData,
+          updatedAt: new Date().toISOString()
+        }));
       }
+      
+      toast.success('Evaluation saved successfully');
     } catch (error) {
       toast.error('Failed to save evaluation');
       console.error('Error saving evaluation:', error);

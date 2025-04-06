@@ -86,6 +86,10 @@ export const evaluationApi = {
    */
   saveEvaluation: async (studentId: number, formData: any) => {
     try {
+      // Log the data being sent for debugging
+      console.log('saveEvaluation called with studentId:', studentId);
+      console.log('saveEvaluation formData:', formData);
+      
       // Use URLSearchParams to send data in the format WordPress REST API expects
       const params = new URLSearchParams();
       
@@ -97,9 +101,14 @@ export const evaluationApi = {
         throw new Error('Student ID is required');
       }
       
-      params.append('formData', JSON.stringify(formData));
+      // Convert formData to a JSON string
+      const formDataString = JSON.stringify(formData);
+      console.log('formData as string:', formDataString);
+      params.append('formData', formDataString);
       
-      return await fetchApi('/ham/v1/evaluation/save', {
+      console.log('Request params:', params.toString());
+      
+      const response = await fetchApi('/ham/v1/evaluation/save', {
         method: 'POST',
         headers: {
           ...getHeaders(),
@@ -107,6 +116,9 @@ export const evaluationApi = {
         },
         body: params.toString()
       });
+      
+      console.log('API response:', response);
+      return response;
     } catch (error) {
       console.error('Error saving evaluation:', error);
       throw error;
