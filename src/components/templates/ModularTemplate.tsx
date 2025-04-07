@@ -7,6 +7,7 @@ import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { ModularTemplateProps } from '@/lib/types/componentTypes';
 
 
 export default function ModularTemplate({ page }: ModularTemplateProps) {

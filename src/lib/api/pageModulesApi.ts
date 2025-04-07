@@ -1,8 +1,14 @@
 // src/lib/api/pageModulesApi.ts - API route handlers for fetching page modules
 
 import { fetchApi } from './baseApi';
-import { Module } from '@/lib/types';
+import { Module } from '@/lib/types/moduleTypes';
 import { adaptWordPressModule } from '@/lib/adapters/moduleAdapter';
+
+// Define a type for the API response
+interface PageModulesResponse {
+  modules?: any[];
+  [key: string]: any;
+}
 
 /**
  * Fetch modules for a specific page by ID
@@ -11,22 +17,19 @@ import { adaptWordPressModule } from '@/lib/adapters/moduleAdapter';
  */
 export async function fetchPageModulesById(pageId: number): Promise<Module[]> {
   try {
-    // Use the WordPress REST API to fetch the page with its modules
-    const response = await fetchApi(`/wp/v2/pages/${pageId}`, {
+    const response = await fetchApi<PageModulesResponse>(`/wp/v2/pages/${pageId}`, {
       revalidate: 300 // Cache for 5 minutes
     });
 
-    // Check if the page has modules
     if (response && response.modules && Array.isArray(response.modules)) {
-      // Return the modules array
-      return response.modules.map((module: any) => adaptWordPressModule(module));
+      return response.modules
+        .map((module: any) => adaptWordPressModule(module))
+        .filter((module): module is Module => module !== null);
     }
 
-    // If no modules found, return empty array
     return [];
   } catch (error) {
     console.error(`Error fetching modules for page ${pageId}:`, error);
-    // Return empty array in case of error to prevent UI breakage
     return [];
   }
 }
@@ -51,7 +54,6 @@ export async function fetchModulesByCategory(category: string): Promise<Module[]
       revalidate: 300 // Cache for 5 minutes
     });
 
-    // Handle different response formats
     let modulesData;
     if (Array.isArray(response)) {
       modulesData = response;

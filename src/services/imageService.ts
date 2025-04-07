@@ -1,5 +1,5 @@
 // src/services/imageService.ts
-import { ImageContainer } from "@/lib/types";
+import { ImageContainer } from "@/lib/types/coreTypes";
 
 /**
  * Strips HTML content from a string

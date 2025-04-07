@@ -1,50 +1,64 @@
 // src/lib/api/homepageApi.ts
-import {
-  fetchApi,
-  fetchPostsByIds,
-  fetchFeaturedPosts,
-  fetchCategories,
-} from "../api";
+import { fetchApi } from "./baseApi";
+import { fetchPostsByIds, fetchFeaturedPosts } from "./postApi";
+import { fetchCategories } from "./siteApi";
+import { Post } from "@/lib/types/contentTypes";
 
-import {
+import type {
   CTAModule,
   HeroModule,
-  HomepageData,
   Module,
   SellingPointsModule,
-} from "@/lib/types";
+  TestimonialsModule,
+  VideoModule,
+  ModuleHomepageData,
+} from "@/lib/types/moduleTypes";
+
 import {
   adaptWordPressHomepageData,
   adaptWordPressModules,
-} from "@/lib/adapters";
+} from "@/lib/adapters/moduleAdapter";
+import { adaptWordPressPost } from "@/lib/adapters/postAdapter";
+
+interface WordPressHomepageResponse {
+  featured_posts?: any[];
+  [key: string]: any;
+}
 
 /**
  * Fetch complete homepage data including modules
  * @returns The complete homepage data
  */
-export async function fetchHomepageData(): Promise<HomepageData> {
+export async function fetchHomepageData(): Promise<ModuleHomepageData> {
   try {
-    console.log("Fetching homepage data");
-    const rawData = await fetchApi("/steget/v1/homepage", {
-      revalidate: 300, // Cache for 5 minutes
+    const rawData = await fetchApi<WordPressHomepageResponse>("/steget/v1/homepage", {
+      revalidate: 300,
     });
 
-    // Get categories for the posts if we have featured posts
     const categories = rawData.featured_posts?.length
       ? await fetchCategories()
       : {};
 
-    // Adapt the data to our application's format
     const homepageData = adaptWordPressHomepageData(rawData);
-
-    // Add categories to the homepage data
     homepageData.categories = categories;
 
-    return homepageData;
+    return {
+      ...homepageData,
+      title: typeof homepageData.title === "string" ? homepageData.title : "Default Title",
+      modules: Array.isArray(homepageData.modules) ? homepageData.modules : [],
+      featured_posts: rawData.featured_posts
+        ? rawData.featured_posts
+            .map((post: any) => adaptWordPressPost(post))
+            .filter((post): post is Post => post !== null) as any[]
+        : undefined,
+    };
   } catch (error) {
     console.error("Error fetching homepage data:", error);
-    // Return empty object in case of error
-    return {};
+    return {
+      title: "Homepage",
+      modules: [],
+      categories: {},
+    };
   }
 }
 
@@ -58,9 +72,20 @@ export async function fetchCTASection(id?: number): Promise<CTAModule | null> {
     const endpoint = id ? `/steget/v1/cta/${id}` : "/steget/v1/cta";
     console.log(`Fetching CTA section from ${endpoint}`);
 
-    const ctaData = await fetchApi(endpoint, {
+    const ctaData = (await fetchApi(endpoint, {
       revalidate: 300, // Cache for 5 minutes
-    });
+    })) as {
+      id?: number;
+      title?: string;
+      description?: string;
+      content?: string;
+      button_text?: string;
+      button_url?: string;
+      background_color?: string;
+      text_color?: string;
+      alignment?: string;
+      image?: string;
+    };
 
     return {
       type: "cta",
@@ -71,7 +96,9 @@ export async function fetchCTASection(id?: number): Promise<CTAModule | null> {
       buttonUrl: ctaData.button_url || "",
       backgroundColor: ctaData.background_color || "",
       textColor: ctaData.text_color || "",
-      alignment: ctaData.alignment || "center",
+      alignment: ["center", "left", "right"].includes(ctaData.alignment || "")
+        ? (ctaData.alignment as "center" | "left" | "right")
+        : "center",
       image: ctaData.image || "",
     };
   } catch (error) {
@@ -124,10 +151,10 @@ export async function fetchModules(
     });
 
     // Handle different response formats
-    const modules = result.modules || result;
+    const modules = (result as { modules?: any[] }).modules || result;
 
-    // If no modules found with the category filter, try fetching all and filtering client-side
-    if (!modules.length && category) {
+    // Ensure modules is an array before accessing its properties
+    if (Array.isArray(modules) && !modules.length && category) {
       console.log(
         "No modules found with category filter, trying client-side filtering"
       );
@@ -140,11 +167,11 @@ export async function fetchModules(
         }
       );
 
-      const allModules = allModulesResult.modules || allModulesResult;
+      const allModules = (allModulesResult as { modules?: any[] }).modules || allModulesResult;
 
       // Filter modules that include the category in their categories array
-      const filteredModules = allModules.filter(
-        (module: { categories: any[] }) =>
+      const filteredModules = (allModules as { categories: any[] }[]).filter(
+        (module) =>
           Array.isArray(module.categories) &&
           module.categories.some(
             (cat) =>
@@ -172,9 +199,15 @@ export async function fetchHeroSection(
   pageId: number
 ): Promise<HeroModule | null> {
   try {
-    const heroData = await fetchApi(`/steget/v1/hero/${pageId}`, {
+    const heroData = (await fetchApi(`/steget/v1/hero/${pageId}`, {
       revalidate: 300, // Cache for 5 minutes
-    });
+    })) as {
+      id?: number;
+      title?: string;
+      intro?: string;
+      image?: string;
+      buttons?: any[];
+    };
 
     return {
       type: "hero",
@@ -199,12 +232,16 @@ export async function fetchSellingPoints(
   pageId: number
 ): Promise<SellingPointsModule | null> {
   try {
-    const sellingPointsData = await fetchApi(
+    const sellingPointsData = (await fetchApi(
       `/steget/v1/selling-points/${pageId}`,
       {
-        revalidate: 300, // Cache for 5 minutes
+        revalidate: 300, // Cache seconds
       }
-    );
+    )) as {
+      id?: number;
+      title?: string;
+      points?: any[];
+    };
 
     return {
       type: "selling-points",
@@ -224,9 +261,9 @@ export async function fetchSellingPoints(
  */
 export async function fetchTestimonialsModule() {
   try {
-    const testimonials = await fetchApi("/steget/v1/testimonials", {
-      revalidate: 3600, // Cache for 1 hour
-    });
+    const testimonials = (await fetchApi("/steget/v1/testimonials", {
+      revalidate: 3600, // Cache 1 hour
+    })) as { title?: string; items?: any[] };
 
     return {
       type: "testimonials",
@@ -249,9 +286,14 @@ export async function fetchTestimonialsModule() {
  * Fetch featured posts module
  * @returns The featured posts module data
  */
+export interface FeaturedPostsResponse {
+  title?: string;
+  post_ids?: number[];
+  count?: number;
+}
 export async function fetchFeaturedPostsModule() {
   try {
-    const featuredPostsData = await fetchApi("/steget/v1/featured-posts", {
+    const featuredPostsData = await fetchApi<FeaturedPostsResponse>("/steget/v1/featured-posts", {
       revalidate: 3600, // Cache for 1 hour
     });
 
@@ -261,7 +303,7 @@ export async function fetchFeaturedPostsModule() {
       : await fetchFeaturedPosts(featuredPostsData.count || 3);
 
     return {
-      type: "featured-posts",
+      type: "featured-posts" as const,
       id: 0,
       title: featuredPostsData.title || "Featured Posts",
       posts,
@@ -269,7 +311,7 @@ export async function fetchFeaturedPostsModule() {
   } catch (error) {
     console.error("Error fetching featured posts module:", error);
     return {
-      type: "featured-posts",
+      type: "featured-posts" as const,
       id: 0,
       title: "Featured Posts",
       posts: [],

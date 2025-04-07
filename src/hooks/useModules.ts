@@ -24,9 +24,13 @@ export function useModules({
   directModules = [],
 }: UseModulesProps): UseModulesResult {
   const [parsedHomepageData, setParsedHomepageData] = useState<HomepageData>({
+    id: 0,
+    slug: '',
+    title: { rendered: '' },
+    content: { rendered: '' },
     modules: [],
     featured_posts: [],
-    categories: [],
+    categories: {},
   });
   const [categoryModules, setCategoryModules] = useState<Module[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,9 +46,13 @@ export function useModules({
       } catch (e) {
         console.error("Failed to parse homepage data:", e);
         setParsedHomepageData({
+          id: 0,
+          slug: '',
+          title: { rendered: '' },
+          content: { rendered: '' },
           modules: [],
           featured_posts: [],
-          categories: [],
+          categories: {},
         });
       }
     } else {
@@ -148,14 +156,34 @@ export function useModules({
         title:
           parsedHomepageData.featured_posts_title || "I fokus från bloggen",
         posts:
-          parsedHomepageData.featured_posts?.map((post) => ({
-            ...post,
-            title: post.title.rendered,
-            excerpt: post.excerpt?.rendered || "",
-            content: post.content.rendered,
-            featured_image_url: post.featured_image_url || undefined,
-            categories: post.categories.map(String),
-          })) || [],
+          parsedHomepageData.featured_posts?.map((post: any) => {
+            // Create a robust version of the post that handles all possible formats
+            const postTitle = typeof post.title === 'object' && post.title && 'rendered' in post.title 
+              ? post.title.rendered 
+              : (typeof post.title === 'string' ? post.title : '');
+              
+            const postExcerpt = typeof post.excerpt === 'object' && post.excerpt && 'rendered' in post.excerpt 
+              ? post.excerpt.rendered 
+              : (typeof post.excerpt === 'string' ? post.excerpt : '');
+              
+            const postContent = typeof post.content === 'object' && post.content && 'rendered' in post.content 
+              ? post.content.rendered 
+              : (typeof post.content === 'string' ? post.content : '');
+
+            // Safe array check for categories
+            const postCategories = Array.isArray(post.categories) 
+              ? post.categories.map(String) 
+              : [];
+              
+            return {
+              ...post,
+              title: postTitle,
+              excerpt: postExcerpt,
+              content: postContent,
+              featured_image_url: post.featured_image_url || undefined,
+              categories: postCategories,
+            };
+          }) || [],
         display_style: "grid",
         columns: 3,
         show_excerpt: true,

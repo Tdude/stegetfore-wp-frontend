@@ -3,17 +3,23 @@
 
 import React, { useState, useEffect } from 'react';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
-import { HomepageTemplateProps } from '@/lib/types';
+import { HomepageTemplateProps, LocalPage } from '@/lib/types';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { useModules } from '@/hooks/useModules';
+import { HomepageData } from '@/lib/types/contentTypes';
 
-export default function HomepageTemplate({ page, homepage }: HomepageTemplateProps) {
+export default function HomepageTemplate({ homepage }: HomepageTemplateProps) {
   const [mounted, setMounted] = useState(false);
+
+  // Convert homepage to the right type if it's a string or undefined
+  const homepageData: HomepageData | undefined = 
+    typeof homepage === 'string' ? JSON.parse(homepage) as HomepageData : 
+    (homepage as HomepageData);
 
   // Use the custom hook to handle all module processing and organization
   const { allModules, modulesBySection } = useModules({
-    pageModules: page?.modules || [],
-    homepageData: typeof homepage === 'object' ? homepage : undefined,
+    pageModules: homepageData?.modules || [],
+    homepageData: homepageData,
     featuredPostsPosition: 2 // Position the featured posts at index 2
   });
 
@@ -41,16 +47,16 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
             <ModuleRenderer key={`footer-${module.id}`} module={module} />
           ))}
 
-          {page?.content?.rendered && mounted && (
+          {homepageData?.content?.rendered && mounted && (
             <section className="max-w-7xl px-4 py-12 mx-auto">
               <div
                 className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: page.content.rendered }}
+                dangerouslySetInnerHTML={{ __html: homepageData.content.rendered }}
               />
             </section>
           )}
 
-          {page?.content?.rendered && !mounted && (
+          {homepageData?.content?.rendered && !mounted && (
             <section className="max-w-7xl px-4 py-12 mx-auto">
               <div className="prose max-w-none">
                 <div className="h-6 bg-muted/30 rounded w-3/4 mb-4 animate-pulse" />

@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { Page, Post, SiteInfo, MenuItem } from "./types";
+import { Page, Post, SiteInfo, MenuItem, LocalPage, HomepageData } from "./types";
 import { getOptimalImageSize } from "./imageUtils";
 
 export * from "./api/index";
@@ -66,23 +66,26 @@ export async function fetchPosts(): Promise<Post[]> {
 
     // Map the response to match our Post interface
     return Array.isArray(posts)
-      ? posts.map((post: Post) => ({
-          id: post.id,
-          slug: post.slug,
-          title: {
-            rendered: post.title.rendered,
-          },
-          excerpt: {
-            rendered: post.excerpt?.rendered ?? "",
-          },
-          content: {
-            rendered: post.content.rendered,
-          },
-          featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
-          featured_image_url:
-            post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
-          categories: post.categories || [],
-        }))
+      ? posts.map((post: Post) => {
+          const featuredMediaObj = post._embedded?.["wp:featuredmedia"]?.[0] || null;
+          return {
+            id: post.id,
+            slug: post.slug,
+            title: {
+              rendered: post.title.rendered,
+            },
+            excerpt: {
+              rendered: post.excerpt?.rendered ?? "",
+            },
+            content: {
+              rendered: post.content.rendered,
+            },
+            link: post.link || `/${post.slug}`,
+            featured_image: featuredMediaObj?.source_url || null,
+            featured_image_url: featuredMediaObj?.source_url || null,
+            categories: post.categories || [],
+          };
+        })
       : [];
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -120,6 +123,7 @@ export async function fetchPost(slug: string): Promise<Post | null> {
       featured_image_url: featuredMedia
         ? getOptimalImageSize(featuredMedia, "large")
         : null,
+      link: post.link || `/${post.slug}`,
       categories: post.categories || [],
     };
   } catch (error) {
@@ -161,23 +165,26 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
 
     // Map the response to match our Post interface
     return Array.isArray(posts)
-      ? posts.map((post: Post) => ({
-          featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
-          id: post.id,
-          slug: post.slug,
-          title: {
-            rendered: post.title.rendered,
-          },
-          excerpt: {
-            rendered: post.excerpt?.rendered ?? "",
-          },
-          content: {
-            rendered: post.content.rendered,
-          },
-          featured_image_url:
-            post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
-          categories: post.categories || [],
-        }))
+      ? posts.map((post: Post) => {
+          const featuredMediaObj = post._embedded?.["wp:featuredmedia"]?.[0] || null;
+          return {
+            id: post.id,
+            slug: post.slug,
+            title: {
+              rendered: post.title.rendered,
+            },
+            excerpt: {
+              rendered: post.excerpt?.rendered ?? "",
+            },
+            content: {
+              rendered: post.content.rendered,
+            },
+            link: post.link || `/${post.slug}`,
+            featured_image: featuredMediaObj?.source_url || null,
+            featured_image_url: featuredMediaObj?.source_url || null,
+            categories: post.categories || [],
+          };
+        })
       : [];
   } catch (error) {
     console.error("Error fetching featured posts:", error);
@@ -221,29 +228,35 @@ export async function fetchMainMenu(): Promise<MenuItem[]> {
   }
 }
 
-export async function fetchPages(): Promise<Page[]> {
+/**
+ * Fetch pages from WordPress
+ */
+export async function fetchPages(): Promise<LocalPage[]> {
   try {
-    // Cache pages list for 20 minutes
     const pages = await fetchAPI("/wp/v2/pages?_embed", { revalidate: 1200 });
 
     return Array.isArray(pages)
-      ? pages.map((page: Page) => ({
-          id: page.id,
-          slug: page.slug,
-          title: {
-            rendered: page.title.rendered,
-          },
-          excerpt: {
-            rendered: page.excerpt?.rendered ?? "",
-          },
-          content: {
-            rendered: page.content.rendered,
-          },
-          featured_image_url:
-            page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
-          template: page.template || "",
-          _embedded: page._embedded,
-        }))
+      ? pages.map((page: Page) => {
+          const pageAny = page as any;
+          return {
+            id: page.id,
+            slug: page.slug,
+            title: {
+              rendered: page.title.rendered,
+            },
+            excerpt: {
+              rendered: page.excerpt?.rendered ?? "",
+            },
+            content: {
+              rendered: page.content.rendered,
+            },
+            featured_image_url:
+              page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || undefined,
+            template: page.template || "",
+            _embedded: page._embedded,
+            modules: pageAny.modules || [], // Now this is safe
+          } as LocalPage;
+        })
       : [];
   } catch (error) {
     console.error("Error fetching pages:", error);
@@ -251,10 +264,13 @@ export async function fetchPages(): Promise<Page[]> {
   }
 }
 
+/**
+ * Fetch a single page by slug
+ */
 export async function fetchPage(
   slug: string,
-  p0: boolean
-): Promise<Page | null> {
+  childrenDepth?: number
+): Promise<LocalPage | null> {
   try {
     // Cache individual pages for 20 minutes
     const pages = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {
@@ -267,38 +283,28 @@ export async function fetchPage(
 
     const page = pages[0];
 
+    // Transform the data to match our Page interface
     return {
-      id: page.id,
-      slug: page.slug,
-      title: {
-        rendered: page.title.rendered,
-      },
-      excerpt: {
-        rendered: page.excerpt.rendered,
-      },
-      content: {
-        rendered: page.content.rendered,
-      },
+      ...page,
       featured_image_url:
         page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
-      template: page.template || "",
-      _embedded: page._embedded,
-    };
+      modules: page.modules || [], // Cast to any to handle modules property
+    } as LocalPage;
   } catch (error) {
     console.error("Error fetching page:", error);
     return null;
   }
 }
 
-export async function fetchHomepageData(): Promise<Record<string, unknown>> {
+export async function fetchHomepageData(): Promise<HomepageData> {
   try {
     const [response, categories, modulesResponse] = await Promise.all([
       fetch(`${API_URL}/steget/v1/modules?category=homepage`, {
-        next: { revalidate: 60 }, // Cache for 60 seconds
+        next: { revalidate: 60 },
       }),
       fetchCategories(),
       fetch(`${API_URL}/steget/v1/modules?category=homepage`, {
-        next: { revalidate: 60 }, // Cache for 60 seconds
+        next: { revalidate: 60 },
       }),
     ]);
 
@@ -318,15 +324,29 @@ export async function fetchHomepageData(): Promise<Record<string, unknown>> {
       ? await fetchPostsByIds(homepageData.featured_post_ids)
       : await fetchFeaturedPosts(3);
 
+    // Create a properly typed HomepageData object
     return {
+      id: homepageData.id || 0,
+      slug: homepageData.slug || '',
+      title: homepageData.title || { rendered: '' },
+      content: homepageData.content || { rendered: '' },
       ...homepageData,
       featured_posts: featuredPosts,
       categories,
-      modules: modulesData.modules || [], // Add modules to the returned data
+      modules: modulesData.modules || [],
     };
   } catch (error) {
     console.error("Error in fetchHomepageData:", error);
-    throw error;
+    // Return a default HomepageData object in case of error
+    return {
+      id: 0,
+      slug: '',
+      title: { rendered: '' },
+      content: { rendered: '' },
+      featured_posts: [],
+      categories: {},
+      modules: []
+    };
   }
 }
 
@@ -351,6 +371,7 @@ export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
       ...post,
       featured_image_url:
         post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
+      link: post.link || `/${post.slug}`,
     }));
   } catch (error) {
     console.error("Error in fetchPostsByIds:", error);

@@ -8,10 +8,10 @@ import {
   FeaturedPostsModule,
   StatsModule,
   GalleryModule,
-  HomepageData,
-  Post,
+  LocalPost
 } from "@/lib/types";
-import { adaptWordPressPosts } from "./postAdapter";
+
+import { HomepageData } from "@/lib/types/contentTypes";
 
 /**
  * Adapts a WordPress module to the application Module format
@@ -154,16 +154,18 @@ function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
     type: "featured-posts",
     title: wpModule.title || "",
     posts: Array.isArray(wpModule.posts)
-      ? adaptWordPressPosts(wpModule.posts)
-          .filter((post): post is Post => post !== null)
-          .map((post) => ({
-            ...post,
-            title: post.title.rendered,
-            excerpt: post.excerpt?.rendered || "",
-            content: post.content.rendered,
-            featured_image_url: post.featured_image_url ?? undefined,
-            categories: post.categories.map(String),
-          }))
+      ? wpModule.posts.map((post: any): LocalPost => ({
+          id: post.id,
+          title: post.title.rendered,
+          excerpt: post.excerpt?.rendered,
+          content: post.content.rendered,
+          featured_image: post.featured_image || undefined,
+          featured_image_url: post.featured_image_url || undefined,
+          categories: post.categories?.map(String),
+          link: post.link,
+          date: post.date,
+          slug: post.slug
+        }))
       : [],
     display_style: wpModule.display_style || "grid",
     columns: wpModule.columns || 3,
@@ -368,9 +370,21 @@ function adaptChartModule(wpModule: any): any {
  * @returns HomepageData object formatted for the application
  */
 export function adaptWordPressHomepageData(wpHomepageData: any): HomepageData {
-  if (!wpHomepageData) return {};
+  if (!wpHomepageData) return {
+    id: 0,
+    slug: '',
+    title: { rendered: '' },
+    content: { rendered: '' },
+    modules: [],
+    featured_posts: [],
+    categories: {}
+  };
 
   return {
+    id: wpHomepageData.id || 0,
+    slug: wpHomepageData.slug || '',
+    title: wpHomepageData.title || { rendered: '' },
+    content: wpHomepageData.content || { rendered: '' },
     hero: wpHomepageData.hero
       ? {
           title: wpHomepageData.hero.title || "",

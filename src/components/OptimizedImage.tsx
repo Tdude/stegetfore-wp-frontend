@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image, { ImageProps } from 'next/image';
-import { ImageContainer } from '@/lib/types';
+import { ImageContainer } from '@/lib/types/coreTypes';
 import { stripHtml, getImageSizes } from '@/lib/imageUtils';
 
 interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {

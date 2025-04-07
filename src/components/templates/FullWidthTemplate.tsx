@@ -3,7 +3,7 @@
 
 import React, { memo, useState, useEffect } from 'react';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
-import type { Page } from '@/lib/types';
+import type { Page, LocalPage } from '@/lib/types';
 import Image from 'next/image';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { useModules } from '@/hooks/useModules';
@@ -11,9 +11,12 @@ import { useModules } from '@/hooks/useModules';
 function FullWidthTemplate({ page }: { page: Page }) {
   const [mounted, setMounted] = useState(false);
 
+  // Cast page to LocalPage to access modules property
+  const localPage = page as LocalPage;
+
   // Use the custom hook to handle all module processing and organization
   const { allModules, modulesBySection } = useModules({
-    pageModules: page?.modules || [],
+    pageModules: localPage?.modules || [],
     moduleCategory: "modul-oversikt"
   });
 

@@ -69,11 +69,11 @@ export async function fetchModules(
  */
 export async function fetchModule(id: number): Promise<Module | null> {
   try {
-    const module = await fetchApi(`/steget/v1/modules/${id}`, {
+    const moduleData = await fetchApi(`/steget/v1/modules/${id}`, {
       revalidate: 600, // Cache for 10 minutes
     });
 
-    return module ? adaptWordPressModule(module) : null;
+    return moduleData ? adaptWordPressModule(moduleData) : null;
   } catch (error) {
     console.error(`Error fetching module with ID ${id}:`, error);
     return null;

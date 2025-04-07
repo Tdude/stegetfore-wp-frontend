@@ -1,5 +1,5 @@
 // src/lib/imageUtils.ts
-import { ImageContainer } from "./types";
+import { ImageContainer } from "./types/coreTypes";
 
 /**
  * Cleans HTML content from a string
@@ -46,11 +46,14 @@ export function getImageSizes(containerType: ImageContainer): string {
     case "featured":
       return "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
 
-    case "card":
+    case "thumbnail":
       return "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
 
     case "gallery":
       return "(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw";
+      
+    case "full-width":
+      return "100vw";
 
     default:
       return "(max-width: 768px) 100vw, (max-width: 1280px) 800px, 800px";

@@ -1,10 +1,11 @@
 // src/lib/types.ts - Application Types Section
+/* eslint-disable @typescript-eslint/no-namespace */
 
-// Re-export all types from the new location
+// Re-export all types from the specialized files
 // This maintains backward compatibility with existing code
 export * from "./types/index";
 
-// And all the old stuff:
+// Environment variables type declaration
 declare namespace NodeJS {
   export interface ProcessEnv {
     NEXT_PUBLIC_API_URL: string;
@@ -17,60 +18,12 @@ declare namespace NodeJS {
 }
 
 import * as React from "react";
-import { Module } from './types/module';
-// WordPressPost,
-// WordPressPage,
-// WordPressCategory,
-// WordPressSellingPoint,
-// WordPressStat,
-// WordPressGalleryItem,
-// WordPressTestimonial,
-// WordPressCTA,
-// WordPressHomepageData,
-"./types-wordpress";
+import { Module } from './types/index';
+import { BaseContent } from './types/coreTypes';
+import { PageTemplate } from './types/index';
 
-// Base types with common fields for application use
-interface BaseContent {
-  id: number;
-  slug: string;
-  title: {
-    rendered: string;
-  };
-  content: {
-    rendered: string;
-  };
-  excerpt?: {
-    rendered: string;
-  };
-  template?: string;
-  _embedded?: {
-    "wp:featuredmedia"?: Array<{
-      source_url: string;
-      alt_text?: string;
-      media_details?: {
-        width: number;
-        height: number;
-        sizes?: Record<
-          string,
-          {
-            source_url: string;
-            width: number;
-            height: number;
-          }
-        >;
-      };
-    }>;
-  };
-  featured_image_url?: string | null;
-}
-
-// Image container types for the OptimizedImage component
-export type ImageContainer =
-  | "hero"
-  | "featured"
-  | "card"
-  | "gallery"
-  | "default";
+// The following types are kept for backward compatibility
+// They are re-exported from the specialized type files
 
 // Image-related helper functions
 export interface ImageHelper {
@@ -87,76 +40,11 @@ export interface WithFeaturedImageProps {
 
 // Generic props type for all page templates
 export interface PageTemplateProps<T = Record<string, unknown>> {
-  page: LocalPage;
+  page: import('./types/contentTypes').LocalPage;
   additionalData?: T;
 }
 
-// Pages can have different templates
-export enum PageTemplate {
-  DEFAULT = "default",
-  HOMEPAGE = "templates/homepage.php",
-  FULL_WIDTH = "templates/full-width.php",
-  SIDEBAR = "templates/sidebar.php",
-  LANDING = "templates/landing.php",
-  EVALUATION = "templates/evaluation.php",
-  CIRCLE_CHART = "templates/circle-chart.php",
-  CONTACT = "templates/contact.php",
-  MODULAR = "MODULAR",
-}
-
-// More specific content types extending base content for application use
-export interface Post extends BaseContent {
-  featured_image: any;
-  id: number;
-  slug: string;
-  categories: number[];
-}
-
-export interface Page extends BaseContent {
-  id: number;
-  slug: string;
-  title: {
-    rendered: string;
-  };
-  content: {
-    rendered: string;
-  };
-  excerpt?: {
-    rendered: string;
-  };
-  template?: string;
-  featured_media?: number;
-  featured_image_url?: string;
-  modules: Module[];  // Making modules required
-  hero?: {
-    title?: string;
-    content?: string;
-    image?: string;
-    cta?: {
-      text: string;
-      url: string;
-    };
-  };
-}
-
-export interface PageParams {
-  params: {
-    slug: string;
-  };
-}
-
-// Enhanced local version with more strict typing
-export interface LocalPage extends Page {
-  // LocalPage extends Page and inherits all its properties
-  // modules is already required from Page
-  chartData?: {
-    segments: number[];
-  } | null;
-  evaluationId?: string;
-  type?: string;
-}
-
-// Form data interfaces
+// Form data interfaces - maintaining exact structure for backward compatibility
 export interface FormData {
   anknytning: {
     narvaro: string;
@@ -227,67 +115,15 @@ export const initialFormState: LocalFormData = {
   },
 };
 
-// Homepage related interfaces
-
-export interface HomepageData {
-  featured_posts?: Post[];
-  categories?: Record<number, { id: number; name: string; slug: string }>;
-  hero?: {
-    title?: string;
-    intro?: string;
-    image?: string | string[];
-    buttons?: Array<{
-      text: string;
-      url: string;
-      style: "primary" | "secondary" | "outline";
-    }>;
-  };
-  featured_posts_title?: string;
-  selling_points?: Array<{
-    id: number;
-    title: string;
-    content: string;
-    description?: string;
-    icon?: string;
-  }>;
-  selling_points_title?: string;
-  stats?: Array<{
-    id: number;
-    value: string;
-    label: string;
-  }>;
-  stats_title?: string;
-  stats_subtitle?: string;
-  stats_background_color?: string;
-  gallery?: GalleryItem[];
-  gallery_title?: string;
-  testimonials?: Array<{
-    id: number;
-    content: string;
-    author_name: string;
-    author_position: string;
-    author_image?: string;
-  }>;
-  testimonials_title?: string;
-  cta?: {
-    title?: string;
-    description?: string;
-    button_text?: string;
-    button_url?: string;
-    background_color?: string;
-  };
-  [key: string]: unknown;
-}
-
-// Component Props
+// Component Props - maintaining exact structure for backward compatibility
 export interface PageTemplateSelectorProps {
-  page: LocalPage;
+  page: import('./types/contentTypes').LocalPage;
   isHomePage?: boolean;
-  homepageData?: HomepageData;
+  homepageData?: import('./types/contentTypes').HomepageData;
 }
 
-export interface HomepageTemplateProps extends PageTemplateProps {
-  homepage?: HomepageData | string; // Could be either a string (from API) or parsed object
+export interface HomepageTemplateProps {
+  homepage?: import('./types/contentTypes').HomepageData | string;
 }
 
 export interface CircleChartTemplateProps {
@@ -303,26 +139,8 @@ export interface EvaluationTemplateProps {
 
 // UI Component props
 export interface MenuItemProps {
-  item: MenuItem;
+  item: import('./types/contentTypes').MenuItem;
   className?: string;
-}
-
-export interface MenuItem {
-  ID: number;
-  id?: number; // Added for compatibility
-  title: string;
-  url: string;
-  slug: string;
-  target: string;
-  children?: MenuItem[];
-}
-
-export interface SiteInfo {
-  name: string;
-  description: string;
-  url?: string;
-  admin_email?: string;
-  language?: string;
 }
 
 export interface TestimonialsSectionProps {
@@ -363,7 +181,7 @@ export interface SellingPointsProps {
     description?: string;
     icon?: string;
   }>;
-  title?: string; // Optional section title
+  title?: string;
 }
 
 export interface StatsSectionProps {
@@ -390,7 +208,7 @@ export interface GallerySectionProps {
 }
 
 export interface FeaturedPostsProps {
-  posts: Post[];
+  posts: import('./types/contentTypes').Post[];
   title?: string;
 }
 

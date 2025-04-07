@@ -3,9 +3,22 @@
 
 import React from 'react';
 import StudentEvaluationForm from '@/components/forms/evaluation/StudentEvaluationForm';
+import { LocalPage } from '@/lib/types';
+
+interface EvaluationPageType extends Omit<LocalPage, 'evaluationId'> {
+  meta?: {
+    student_id?: number | string;
+  };
+  studentId?: number | string;
+  evaluationId?: number | string;
+}
 
 // Main EvaluationTemplate component
-const EvaluationTemplate: React.FC<{ page: any, evaluationId?: number, studentId?: number | string }> = ({ 
+const EvaluationTemplate: React.FC<{ 
+  page: EvaluationPageType, 
+  evaluationId?: number, 
+  studentId?: number | string 
+}> = ({ 
   page, 
   evaluationId,
   studentId: propsStudentId
@@ -13,6 +26,9 @@ const EvaluationTemplate: React.FC<{ page: any, evaluationId?: number, studentId
   // Extract student ID from page if available
   const pageStudentId = page?.meta?.student_id || page?.studentId;
   const studentId = propsStudentId || pageStudentId;
+  
+  // Convert evaluationId to number if it exists
+  const evalId = evaluationId || (page?.evaluationId ? Number(page.evaluationId) : undefined);
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,7 +38,7 @@ const EvaluationTemplate: React.FC<{ page: any, evaluationId?: number, studentId
       
       <StudentEvaluationForm 
         studentId={studentId} 
-        evaluationId={evaluationId || Number(page?.evaluationId)} 
+        evaluationId={evalId} 
       />
     </div>
   );

@@ -1,5 +1,6 @@
 // src/lib/typeGuards.ts
 import {
+  LocalPost,
   Module,
   HeroModule,
   CTAModule,
@@ -10,11 +11,22 @@ import {
   GalleryModule,
   TextModule,
   FormModule,
-  AccordionModule,
+  AccordionFaqModule,
   TabsModule,
   VideoModule,
   ChartModule,
 } from "@/lib/types";
+
+export function isLocalPost(post: any): post is LocalPost {
+  return (
+    post !== null &&
+    typeof post === 'object' &&
+    typeof post.id === 'number' &&
+    typeof post.slug === 'string' &&
+    typeof post.title === 'object' &&
+    typeof post.title.rendered === 'string'
+  );
+}
 
 /**
  * Type guard to check if a module is a HeroModule
@@ -93,11 +105,12 @@ export function isTabsModule(module: Module): module is TabsModule {
 }
 
 /**
- * Type guard to check if a module is an AccordionModule or faq
+ * Type guard to check if a module is an AccordionFaqModule or faq
  */
-export function isAccordionModule(module: Module): module is AccordionModule {
+export function isAccordionModule(module: Module): module is AccordionFaqModule {
   return module.type === "accordion" || module.type === "faq";
 }
+
 /**
  * Type guard to check if a module is a VideoModule
  */

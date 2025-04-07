@@ -1,5 +1,5 @@
 // src/services/dataService.ts
-import Page, { HomepageData, Module, Post } from "@/lib/types";
+import { Page, HomepageData, Module, Post, LocalPost } from "@/lib/types";
 import {
   fetchHomepageData,
   fetchFeaturedPosts,
@@ -34,14 +34,43 @@ export async function getEnhancedHomepageData(): Promise<HomepageData> {
     // Combine data
     return {
       ...homepageData,
-      featured_posts: featuredPosts,
+      featured_posts: Array.isArray(featuredPosts) 
+        ? featuredPosts.map(post => {
+            // Convert Post to LocalPost with explicit type handling
+            const localPost: LocalPost = {
+              id: post.id,
+              title: typeof post.title === 'object' && post.title?.rendered 
+                ? post.title.rendered 
+                : String(post.title || ''),
+              excerpt: typeof post.excerpt === 'object' && post.excerpt?.rendered 
+                ? post.excerpt.rendered 
+                : (post.excerpt as string || ''),
+              content: typeof post.content === 'object' && post.content?.rendered 
+                ? post.content.rendered 
+                : (post.content as string || ''),
+              date: post.date,
+              link: post.link,
+              featured_image: post.featured_image || '',
+              featured_image_url: post.featured_image || '',
+              categories: Array.isArray(post.categories) 
+                ? post.categories.map(cat => String(cat)) 
+                : [],
+              slug: post.slug || '',
+            };
+            return localPost;
+          }) 
+        : [],
       categories,
     };
   } catch (error) {
     console.error("Error getting enhanced homepage data:", error);
 
-    // Return a minimal fallback
+    // Return a minimal fallback with all required properties
     return {
+      id: 0,
+      slug: 'homepage',
+      title: { rendered: 'Welcome to Our Site' },
+      content: { rendered: '' },
       hero: {
         title: "Welcome to Our Site",
         intro: "Explore our content below",
@@ -67,7 +96,13 @@ export function processHomepageData(rawData: any): HomepageData {
         return adaptWordPressHomepageData(parsed);
       } catch (e) {
         console.error("Failed to parse homepage data:", e);
-        return {};
+        return {
+          id: 0,
+          slug: 'homepage',
+          title: { rendered: '' },
+          content: { rendered: '' },
+          featured_posts: [],
+        };
       }
     }
 
@@ -75,7 +110,13 @@ export function processHomepageData(rawData: any): HomepageData {
     return adaptWordPressHomepageData(rawData);
   } catch (error) {
     console.error("Error processing homepage data:", error);
-    return {};
+    return {
+      id: 0,
+      slug: 'homepage',
+      title: { rendered: '' },
+      content: { rendered: '' },
+      featured_posts: [],
+    };
   }
 }
 

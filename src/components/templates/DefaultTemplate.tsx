@@ -7,15 +7,18 @@ import { useModules } from '@/hooks/useModules';
 import { getFeaturedImageUrl } from '@/lib/imageUtils';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
-import type { Page } from '@/lib/types';
+import type { Page, LocalPage } from '@/lib/types';
 
 // Handle modules directly in the component
 function DefaultTemplate({ page }: { page: Page }) {
   const [mounted, setMounted] = useState(false);
 
+  // Cast page to LocalPage to access modules property
+  const localPage = page as LocalPage;
+
   // Use the modules hook directly
   const { modulesBySection } = useModules({
-    pageModules: page?.modules || [],
+    pageModules: localPage?.modules || [],
   });
 
   // Set mounted after initial render

@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { FormData, FormSection, QuestionsStructure, StudentEvaluationFormProps, initialFormState, EvaluationResponse } from '@/lib/types/formTypesEvaluation';
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
+import { FormSection, FormData, QuestionsStructure, EvaluationResponse, EvaluationData, StudentEvaluationFormProps, initialFormState } from '@/lib/types/formTypesEvaluation';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 
@@ -18,7 +18,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
 }) => {
   // State for form data and UI
   const [formData, setFormData] = useState<FormData>(initialFormState);
-  const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({});
+  const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({} as QuestionsStructure);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showFullForm, setShowFullForm] = useState(false);
@@ -89,17 +89,32 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     const fetchEvaluationData = async () => {
       if (evaluationId) {
         try {
-          setIsLoading(true);
-          const evaluationData = await evaluationApi.getEvaluation(evaluationId);
+          console.log(`Loading evaluation ${evaluationId}...`);
           
-          if (evaluationData) {
+          const evalId = typeof evaluationId === 'string' ? parseInt(evaluationId) : evaluationId;
+          const evaluationData = await evaluationApi.getEvaluation(evalId) as EvaluationData;
+          
+          if (evaluationData && evaluationData.formData) {
             setFormData(evaluationData.formData);
             setStudentId(evaluationData.studentId);
           }
         } catch (error) {
-          toast.error('Failed to load evaluation data');
-        } finally {
-          setIsLoading(false);
+          console.error('Error loading evaluation:', error);
+          toast.error('Det gick inte att ladda utvärderingen. Kontakta admin om problemet kvarstår.');
+        }
+      } else {
+        // Try to load previous evaluation from local storage if no ID is provided
+        const storedEvaluationId = localStorage.getItem('evaluationId');
+        if (storedEvaluationId) {
+          try {
+            const storedEvaluationData = JSON.parse(localStorage.getItem(`evaluation_${storedEvaluationId}`) || '{}');
+            if (storedEvaluationData.formData) {
+              setFormData(storedEvaluationData.formData);
+              setStudentId(storedEvaluationData.studentId);
+            }
+          } catch (error) {
+            console.error('Error loading stored evaluation:', error);
+          }
         }
       }
     };

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FeaturedPostsModule as FeaturedPostsModuleType, LocalPost, Post } from '@/lib/types';
+import { FeaturedPostsModule as FeaturedPostsModuleType, LocalPost } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
@@ -47,24 +47,24 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   };
 
   const title = typeof module.title === 'string' ? module.title :
-      (isRenderedTitle(module.title) ? (module.title as { rendered: string }).rendered : 'Featured Posts');
+    (isRenderedTitle(module.title) ? (module.title as { rendered: string }).rendered : 'Featured Posts');
 
   const posts = Array.isArray(module.posts) ? module.posts : [];
-    // Display a loading state until client-side hydration completes
-    if (!isClient) {
-      return (
-        <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || '' }}>
-          <div className="container px-4 md:px-6 mx-auto">
-            <h2 className="text-3xl font-bold tracking-tighter mb-8">{title}</h2>
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 animate-pulse h-64 rounded-lg"></div>
-              ))}
-            </div>
+  // Display a loading state until client-side hydration completes
+  if (!isClient) {
+    return (
+      <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || '' }}>
+        <div className="container px-4 md:px-6 mx-auto">
+          <h2 className="text-3xl font-bold tracking-tighter mb-8">{title}</h2>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-gray-100 animate-pulse h-64 rounded-lg"></div>
+            ))}
           </div>
-        </section>
-      );
-    }
+        </div>
+      </section>
+    );
+  }
   // Handle case where posts haven't been loaded yet
   if (!module.posts || module.posts.length === 0) {
     return (
@@ -100,17 +100,17 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
     <section className={cn("py-12", className)} style={bgColor}>
       <div className="container px-4 md:px-6 mx-auto">
 
-          <div className="text-center mb-12">
+        <div className="text-center mb-12">
           {module.title && (
             <h2 className="text-4xl font-bold tracking-tight mb-4">
               {module.title}
             </h2>
-           )}
-            <div className="w-24 h-1 bg-primary mx-auto"></div>
-            {module.subtitle && (
-              <p className="text-xl text-muted-foreground my-4 text-center">{module.subtitle}</p>
-            )}
-          </div>
+          )}
+          <div className="w-24 h-1 bg-primary mx-auto"></div>
+          {module.subtitle && (
+            <p className="text-xl text-muted-foreground my-4 text-center">{module.subtitle}</p>
+          )}
+        </div>
 
 
 
@@ -122,24 +122,24 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
               : `grid gap-6 ${layoutClasses[layout as keyof typeof layoutClasses] || layoutClasses.grid}`
           )}
         >
-          {module.posts.map((post) => {
-            const hasFeaturedImage = (post: Post | LocalPost): boolean => {
+          {module.posts.map((post: LocalPost) => {
+            const hasFeaturedImage = (post: LocalPost): boolean => {
               return Boolean(post.featured_image);
             };
 
             const postTitle = typeof post.title === 'string'
-            ? post.title
-            : isRenderedTitle(post.title) ? (post.title as { rendered: string }).rendered : '';
+              ? post.title
+              : isRenderedTitle(post.title) ? (post.title as { rendered: string }).rendered : '';
 
             return (
               <Link
-              key={post.id}
-              href={`/posts/${post.slug || post.id}`} // Use slug instead of link
-              className={cn(
-                "block h-full",
-                layout === 'carousel' ? 'min-w-[300px] sm:min-w-[350px] snap-center' : ''
-              )}
-            >
+                key={post.id}
+                href={`/posts/${post.slug || post.id}`} // Use slug instead of link
+                className={cn(
+                  "block h-full",
+                  layout === 'carousel' ? 'min-w-[300px] sm:min-w-[350px] snap-center' : ''
+                )}
+              >
                 <Card className="h-full overflow-hidden">
                   {hasFeaturedImage(post) && (
                     <div className="aspect-video relative overflow-hidden">
@@ -147,7 +147,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                         src={post.featured_image}
                         alt={post.title || 'Featured post'}
                         fill={true}
-                        containerType="card"
+                        containerType="thumbnail"
                         className="object-cover transition-transform hover:scale-105"
                       />
                     </div>
@@ -188,8 +188,8 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                           {post.content && typeof post.content === 'string'
                             ? post.content.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
                             : post.content && typeof post.content === 'object' && 'rendered' in post.content
-                            ? (post.content as { rendered?: string }).rendered?.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
-                            : ''}
+                              ? (post.content as { rendered?: string }).rendered?.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
+                              : ''}
                         </div>
                       )}
                     </CardContent>

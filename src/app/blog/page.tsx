@@ -39,7 +39,7 @@ async function BlogContent() {
                   src={post.featured_image_url}
                   htmlTitle={post.title.rendered}
                   fill={true}
-                  containerType="card"
+                  containerType="thumbnail"
                   className="object-cover transition-transform hover:scale-105"
                 />
               </div>
@@ -47,13 +47,15 @@ async function BlogContent() {
             <CardHeader className="pb-2">
               {post.categories && categories && (
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {post.categories.slice(0, 2).map((categoryId) => (
-                    categories[categoryId] && (
-                      <Badge key={categoryId} variant="secondary">
-                        {categories[categoryId].name}
+                  {post.categories.slice(0, 2).map((categoryId) => {
+                    // Convert categoryId to number to ensure type safety
+                    const catId = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
+                    return categories[catId] && (
+                      <Badge key={catId} variant="secondary">
+                        {categories[catId].name}
                       </Badge>
-                    )
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               <CardTitle className="text-xl line-clamp-2">

@@ -7,11 +7,43 @@ import {
 } from "@/lib/adapters/pageAdapter";
 import { fetchPageModules } from "./moduleApi";
 
-/**
- * Fetch pages with optional pagination and filtering
- * @param params Optional parameters for filtering and pagination
- * @returns An array of Page objects
- */
+// Shared constants
+const PAGE_CACHE_TIME = 1200; // 20 minutes in seconds
+const DEFAULT_FIELDS = 'id,title,content,excerpt,template,featured_media,modules';
+
+// Shared utilities
+const createQueryParams = (params: Record<string, any>) => {
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      queryParams.append(key, value.toString());
+    }
+  });
+
+  return queryParams;
+};
+
+const handlePageWithModules = async (page: any, includeModules: boolean): Promise<LocalPage> => {
+  const adaptedPage = adaptWordPressPage(page);
+
+  if (!includeModules) {
+    return adaptedPage as LocalPage;
+  }
+
+  const modules = await fetchPageModules(page.id);
+  if (!adaptedPage.id) {
+    throw new Error("Page ID is missing");
+  }
+
+  return {
+    ...adaptedPage,
+    id: adaptedPage.id, // Ensure id is defined
+    modules: modules || [],
+  } as LocalPage;
+};
+
+// Main API functions
 export async function fetchPages(
   params: {
     page?: number;
@@ -34,123 +66,99 @@ export async function fetchPages(
       includeModules = false,
     } = params;
 
-    // Build query string from parameters
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      per_page: perPage.toString(),
+    const queryParams = createQueryParams({
+      page,
+      per_page: perPage,
       orderby: orderBy,
-      order: order,
+      order,
       _embed: "true",
+      search,
+      parent,
     });
 
-    if (search) queryParams.append("search", search);
-    if (parent !== undefined) queryParams.append("parent", parent.toString());
-
-    // Cache pages list for 20 minutes
     const pages = await fetchApi(`/wp/v2/pages?${queryParams.toString()}`, {
-      revalidate: 1200,
+      revalidate: PAGE_CACHE_TIME,
     });
 
     if (!Array.isArray(pages)) {
       return [];
     }
 
-    // If modules are not needed, return simple pages
-    if (!includeModules) {
-      return pages.map((page: any) => adaptWordPressPage(page));
-    }
-
-    // If modules are needed, fetch them for each page (in parallel)
-    const pagesWithModules = await Promise.all(
-      pages.map(async (page: any) => {
-        const modules = await fetchPageModules(page.id);
-        return {
-          ...adaptWordPressPage(page),
-          modules,
-        };
-      })
+    return Promise.all(
+      pages.map(page => handlePageWithModules(page, includeModules))
     );
 
-    return pagesWithModules;
   } catch (error) {
     console.error("Error fetching pages:", error);
     return [];
   }
 }
 
-/**
- * Fetch a single page by slug
- * @param slug The page slug
- * @param includeModules Whether to include modules in the response
- * @returns A LocalPage object or null if not found
- */
-// src/lib/api/pageApi.ts
 export async function fetchPage(
   slug: string,
   includeModules = true
 ): Promise<LocalPage | null> {
   try {
-    // Cache individual pages for 20 minutes
-    const pages = await fetchApi(`/wp/v2/pages?slug=${slug}&_embed`, {
-      revalidate: 1200,
+    const queryParams = createQueryParams({
+      slug,
+      _embed: "true",
+      _fields: DEFAULT_FIELDS,
+    });
+
+    const pages = await fetchApi(`/wp/v2/pages?${queryParams.toString()}`, {
+      revalidate: PAGE_CACHE_TIME,
     });
 
     if (!Array.isArray(pages) || pages.length === 0) {
       return null;
     }
 
-    const page = pages[0];
-    const adaptedPage = adaptWordPressPageToLocalPage(page);
+    const adaptedPage = adaptWordPressPageToLocalPage(pages[0]);
+    if (!adaptedPage) {
+      throw new Error("Failed to adapt WordPress page to local page");
+    }
 
-    // If modules are not needed, return the page without modules
     if (!includeModules) {
       return adaptedPage;
     }
 
-    // Fetch modules for this page
-    const modules = await fetchPageModules(page.id);
+    const modules = await fetchPageModules(pages[0].id);
+    if (!adaptedPage.id) {
+      throw new Error("Page ID is missing");
+    }
 
-    // Return page with modules explicitly attached
     return {
       ...adaptedPage,
-      modules: modules || [], // Make sure we always return an array, even if empty
+      id: adaptedPage.id, // Ensure id is defined
+      modules: modules || [],
     };
+
   } catch (error) {
     console.error(`Error fetching page with slug ${slug}:`, error);
     return null;
   }
 }
 
-/**
- * Fetch a page by ID
- * @param id The page ID
- * @param includeModules Whether to include modules in the response
- * @returns A Page object or null if not found
- */
 export async function fetchPageById(
   id: number,
   includeModules = true
 ): Promise<Page | null> {
   try {
-    // Cache individual pages for 20 minutes, but include modules field
-    const page = await fetchApi(`/wp/v2/pages/${id}?_embed&_fields=id,title,content,excerpt,template,featured_media,modules`, {
-      revalidate: 1200,
+    const queryParams = createQueryParams({
+      _embed: "true",
+      _fields: DEFAULT_FIELDS,
+    });
+
+    const page = await fetchApi(`/wp/v2/pages/${id}?${queryParams.toString()}`, {
+      revalidate: PAGE_CACHE_TIME,
     });
 
     if (!page) {
       return null;
     }
 
-    // The modules field is already included in the response thanks to our WordPress REST field registration
-    // and they are already properly ordered based on the page_modules meta field
-    const adaptedPage = adaptWordPressPage(page);
+    return handlePageWithModules(page, includeModules);
 
-    // Ensure modules array exists
-    if (!adaptedPage.modules) {
-      adaptedPage.modules = [];
-    }
-
-    return adaptedPage;
   } catch (error) {
     console.error(`Error fetching page with ID ${id}:`, error);
     return null;

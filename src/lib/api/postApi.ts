@@ -1,28 +1,23 @@
-// src/lib/api/postApi.ts
 import { fetchApi } from "./baseApi";
 import { Post } from "@/lib/types/contentTypes";
+import { WordPressPost } from "@/lib/types/wordpressTypes";
 import {
   adaptWordPressPost,
   adaptWordPressPosts,
 } from "@/lib/adapters/postAdapter";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 
-/**
- * Fetch posts with optional pagination and filtering
- * @param params Optional parameters for filtering and pagination
- * @returns An array of Post objects
- */
-export async function fetchPosts(
-  params: {
-    page?: number;
-    perPage?: number;
-    search?: string;
-    categories?: number[];
-    tags?: number[];
-    orderBy?: string;
-    order?: "asc" | "desc";
-  } = {}
-): Promise<Post[]> {
+interface FetchPostsParams {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  categories?: number[];
+  tags?: number[];
+  orderBy?: string;
+  order?: "asc" | "desc";
+}
+
+export async function fetchPosts(params: FetchPostsParams = {}): Promise<Post[]> {
   try {
     const {
       page = 1,
@@ -34,42 +29,34 @@ export async function fetchPosts(
       order = "desc",
     } = params;
 
-    // Build query string from parameters
     const queryParams = new URLSearchParams({
       page: page.toString(),
       per_page: perPage.toString(),
       orderby: orderBy,
-      order: order,
+      order,
       _embed: "true",
     });
 
     if (search) queryParams.append("search", search);
-    if (categories?.length)
-      queryParams.append("categories", categories.join(","));
+    if (categories?.length) queryParams.append("categories", categories.join(","));
     if (tags?.length) queryParams.append("tags", tags.join(","));
 
-    // Cache posts list for 1 hour
-    const posts = await fetchApi(`/wp/v2/posts?${queryParams.toString()}`, {
+    const posts = await fetchApi<WordPressPost[]>(`/wp/v2/posts?${queryParams.toString()}`, {
       revalidate: 3600,
     });
 
-    // Map the response to match our Post interface
-    return adaptWordPressPosts(posts);
+    const adaptedPosts = adaptWordPressPosts(posts);
+    return adaptedPosts;
   } catch (error) {
     console.error("Error fetching posts:", error);
     return [];
   }
 }
 
-/**
- * Fetch a single post by slug
- * @param slug The post slug
- * @returns A Post object or null if not found
- */
 export async function fetchPost(slug: string): Promise<Post | null> {
   try {
-    const posts = await fetchApi(`/wp/v2/posts?slug=${slug}&_embed`, {
-      revalidate: 1200, // Cache for 20 minutes
+    const posts = await fetchApi<WordPressPost[]>(`/wp/v2/posts?slug=${slug}&_embed`, {
+      revalidate: 1200,
     });
 
     if (!Array.isArray(posts) || posts.length === 0) {
@@ -77,14 +64,17 @@ export async function fetchPost(slug: string): Promise<Post | null> {
     }
 
     const post = posts[0];
+    const adaptedPost = adaptWordPressPost(post);
+    if (!adaptedPost) return null;
+
     const featuredMedia = post._embedded?.["wp:featuredmedia"]?.[0];
 
     return {
-      ...adaptWordPressPost(post),
-      // Add optimal featured image URL if available
-      featured_image_url: featuredMedia
-        ? getOptimalImageSize(featuredMedia, "large")
-        : null,
+      ...adaptedPost,
+      link: adaptedPost.link ?? "",
+      featured_image_url: featuredMedia ? getOptimalImageSize(featuredMedia, "large") : null,
+      featured_image: adaptedPost.featured_image ?? null,
+      categories: adaptedPost.categories ?? [],
     };
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -92,45 +82,33 @@ export async function fetchPost(slug: string): Promise<Post | null> {
   }
 }
 
-/**
- * Fetch posts by an array of IDs
- * @param ids Array of post IDs
- * @returns Array of Post objects
- */
 export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
   try {
     if (!ids.length) return [];
 
-    const posts = await fetchApi(
+    const posts = await fetchApi<WordPressPost[]>(
       `/wp/v2/posts?include=${ids.join(",")}&_embed`,
-      {
-        revalidate: 60, // Cache for 1 minute
-      }
+      { revalidate: 60 }
     );
 
-    return adaptWordPressPosts(posts);
+    const adaptedPosts = adaptWordPressPosts(posts);
+    return adaptedPosts;
   } catch (error) {
     console.error("Error in fetchPostsByIds:", error);
     return [];
   }
 }
 
-/**
- * Fetch featured posts
- * @param count Number of featured posts to fetch
- * @returns Array of Post objects
- */
-export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
+export async function fetchFeaturedPosts(count = 3): Promise<Post[]> {
   try {
-    const featuredTagId = 17; // Actual "fokus" tag ID (17)
-    const posts = await fetchApi(
+    const featuredTagId = 17;
+    const posts = await fetchApi<WordPressPost[]>(
       `/wp/v2/posts?_embed&per_page=${count}&categories=${featuredTagId}`,
-      {
-        revalidate: 3600, // Cache for 1 hour
-      }
+      { revalidate: 3600 }
     );
 
-    return adaptWordPressPosts(posts);
+    const adaptedPosts = adaptWordPressPosts(posts);
+    return adaptedPosts;
   } catch (error) {
     console.error("Error fetching featured posts:", error);
     return [];

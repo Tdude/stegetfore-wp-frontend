@@ -2,11 +2,14 @@
 'use client';
 
 import React from 'react';
-import Page from '@/lib/types';
+import { Page, LocalPage } from '@/lib/types';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import Image from 'next/image';
 
 export default function LandingTemplate({ page }: { page: Page }) {
+  // If we need to access modules in the future, cast page to LocalPage
+  // const localPage = page as LocalPage;
+  
   const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
   return (
     <TemplateTransitionWrapper>

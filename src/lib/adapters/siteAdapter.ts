@@ -7,17 +7,22 @@ import { SiteInfo, MenuItem } from "@/lib/types";
  * @returns SiteInfo object formatted for the application
  */
 export function adaptWordPressSiteInfo(wpSiteInfo: any): SiteInfo {
-  if (!wpSiteInfo) return { name: "", description: "" };
+  if (!wpSiteInfo) {
+    return {
+      name: "",
+      description: ""
+    };
+  }
 
   return {
     name: wpSiteInfo.name || "",
     description: wpSiteInfo.description || "",
-    url: wpSiteInfo.url || "",
-    admin_email: wpSiteInfo.admin_email || "",
-    language: wpSiteInfo.language || "",
-    logo_url: wpSiteInfo.logo_url || "",
-    favicon_url: wpSiteInfo.favicon_url || "",
-    social_links: wpSiteInfo.social_links || {},
+    ...(wpSiteInfo.url && { url: wpSiteInfo.url }),
+    ...(wpSiteInfo.admin_email && { admin_email: wpSiteInfo.admin_email }),
+    ...(wpSiteInfo.language && { language: wpSiteInfo.language }),
+    ...(wpSiteInfo.logo_url !== undefined && { logo_url: wpSiteInfo.logo_url || null }),
+    ...(wpSiteInfo.favicon_url !== undefined && { favicon_url: wpSiteInfo.favicon_url || null }),
+    ...(wpSiteInfo.social_links && { social_links: wpSiteInfo.social_links })
   };
 }
 
@@ -31,18 +36,18 @@ export function adaptWordPressMenuItems(wpMenuItems: any[]): MenuItem[] {
 
   const processMenuItem = (item: any): MenuItem => ({
     ID: item.ID || 0,
-    id: item.id || item.ID || 0, // For compatibility
     title: item.title || "",
     url: item.url || "",
     slug: item.slug || "",
     target: item.target || "",
-    classes: item.classes || [],
-    description: item.description || "",
-    attr_title: item.attr_title || "",
-    xfn: item.xfn || "",
-    children: Array.isArray(item.children)
-      ? item.children.map(processMenuItem)
-      : [],
+    ...(item.id && { id: item.id }),
+    ...(item.classes && { classes: item.classes }),
+    ...(item.description && { description: item.description }),
+    ...(item.attr_title && { attr_title: item.attr_title }),
+    ...(item.xfn && { xfn: item.xfn }),
+    ...(Array.isArray(item.children) && {
+      children: item.children.map(processMenuItem)
+    })
   });
 
   return wpMenuItems.map(processMenuItem);

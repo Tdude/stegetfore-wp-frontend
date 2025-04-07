@@ -1,7 +1,8 @@
 // src/lib/api/formTryggveApi.ts - API route handlers for the Tryggve evaluation system
 
-import { QuestionsStructure } from '../types/formTypesEvaluation';
+import { QuestionsStructure, FormData, EvaluationData, Question } from '../types/formTypesEvaluation';
 import { API_URL, fetchApi } from './baseApi';
+import { UserInfo, AuthResponse } from '../types/authTypes';
 
 // JWT token handling
 let token: string | null = null;
@@ -84,7 +85,7 @@ export const evaluationApi = {
   /**
    * Save an evaluation
    */
-  saveEvaluation: async (studentId: number, formData: any) => {
+  saveEvaluation: async (studentId: number, formData: FormData) => {
     try {
       // Log the data being sent for debugging
       console.log('saveEvaluation called with studentId:', studentId);
@@ -128,14 +129,18 @@ export const evaluationApi = {
   /**
    * Get an evaluation by ID
    */
-  getEvaluation: async (id: number) => {
+  getEvaluation: async (evaluationId: number): Promise<EvaluationData> => {
     try {
-      return await fetchApi(`/ham/v1/evaluation/get/${id}`, {
+      // Get the evaluation data
+      const evaluationData = await fetchApi<EvaluationData>(`/ham/v1/evaluations/${evaluationId}`, {
         headers: getHeaders()
       });
+      
+      return evaluationData;
     } catch (error) {
-      console.error(`Error fetching evaluation ${id}:`, error);
-      throw error;
+      console.error('Error getting evaluation:', error);
+      // Return a default structure if there was an error
+      throw new Error(`Failed to get evaluation: ${error}`);
     }
   },
 
@@ -158,51 +163,61 @@ export const evaluationApi = {
    * 
    * @returns {Promise<QuestionsStructure>} The evaluation questions structure
    */
-  getQuestionsStructure: async () => {
+  getQuestionsStructure: async (): Promise<QuestionsStructure> => {
     try {
-      const data = await fetchApi('/public/v1/evaluation/questions');
+      const structureData = await fetchApi<QuestionsStructure>('/ham/v1/evaluation/structure', {
+        revalidate: 3600, // Cache seconds
+      });
       
-      // If data is completely empty, return default structure
-      if (!data) {
-        console.warn('Empty questions structure received, using default');
-        return {
-          anknytning: {
-            title: 'Anknytningstecken',
-            questions: {}
-          },
-          ansvar: {
-            title: 'Ansvarstecken',
-            questions: {}
-          }
-        };
+      // Return the structure data if it's valid
+      if (structureData && typeof structureData === 'object') {
+        return structureData;
       }
-
-      // Ensure we have a proper structure, even if parts are missing
-      const structure: QuestionsStructure = {
-        anknytning: {
-          title: data.anknytning?.title || 'Anknytningstecken',
-          questions: data.anknytning?.questions || {}
-        },
-        ansvar: {
-          title: data.ansvar?.title || 'Ansvarstecken',
-          questions: data.ansvar?.questions || {}
-        }
-      };
-
-      return structure;
+      
+      throw new Error('Invalid questions structure format');
     } catch (error) {
       console.error('Error fetching questions structure:', error);
-      // Return a default structure in case of error
-      return {
+      
+      // Return a default structure as a fallback
+      const defaultOptions = [
+        { value: 'ej', label: 'Ej', stage: 'ej' as const },
+        { value: 'trans', label: 'Trans', stage: 'trans' as const },
+        { value: 'full', label: 'Full', stage: 'full' as const }
+      ];
+      
+      const defaultQuestion: Question = {
+        text: '',
+        options: defaultOptions
+      };
+      
+      const defaultStructure: QuestionsStructure = {
         anknytning: {
-          title: 'Anknytningstecken',
-          questions: {}
+          title: 'Anknytningsbeteende',
+          questions: {
+            narvaro: { ...defaultQuestion, text: 'Närvaro' },
+            dialog1: { ...defaultQuestion, text: 'Dialog (att tala till)' },
+            dialog2: { ...defaultQuestion, text: 'Dialog (att lyssna på)' },
+            blick: { ...defaultQuestion, text: 'Blickkontakt' },
+            beroring: { ...defaultQuestion, text: 'Beröring' },
+            konflikt: { ...defaultQuestion, text: 'Konflikt' },
+            fortroende: { ...defaultQuestion, text: 'Förtroende' }
+          }
         },
         ansvar: {
           title: 'Ansvarstecken',
-          questions: {}
+          questions: {
+            impulskontroll: { ...defaultQuestion, text: 'Impulskontroll' },
+            forberedd: { ...defaultQuestion, text: 'Förberedd och i tid' },
+            fokus: { ...defaultQuestion, text: 'Fokus' },
+            turtagning: { ...defaultQuestion, text: 'Turtagning' },
+            instruktion: { ...defaultQuestion, text: 'Instruktion' },
+            arbeta_sjalv: { ...defaultQuestion, text: 'Arbeta självständigt' },
+            tid: { ...defaultQuestion, text: 'Tid' }
+          }
         }
       };
+      
+      return defaultStructure;
     }
   }
 };
@@ -214,9 +229,9 @@ export const authApi = {
   /**
    * Login to get JWT token
    */
-  login: async (username: string, password: string) => {
+  login: async (username: string, password: string): Promise<AuthResponse> => {
     try {
-      const response = await fetchApi('/ham/v1/auth/token', {
+      const response = await fetchApi<AuthResponse>('/ham/v1/auth/token', {
         method: 'POST',
         body: {
           username,
@@ -238,7 +253,7 @@ export const authApi = {
   /**
    * Get current user information including student ID if available
    */
-  getCurrentUser: async () => {
+  getCurrentUser: async (): Promise<UserInfo | null> => {
     try {
       // Check if we have a valid token first
       const isValid = await authApi.validateToken();
@@ -248,7 +263,7 @@ export const authApi = {
       }
       
       // Get user info from the HAM plugin
-      const userInfo = await fetchApi('/ham/v1/user/current', {
+      const userInfo = await fetchApi<UserInfo>('/ham/v1/user/current', {
         headers: getHeaders()
       });
       
@@ -262,11 +277,11 @@ export const authApi = {
   /**
    * Validate JWT token
    */
-  validateToken: async () => {
+  validateToken: async (): Promise<boolean> => {
     if (!token) return false;
 
     try {
-      const response = await fetchApi('/ham/v1/auth/validate', {
+      const response = await fetchApi<{ valid: boolean }>('/ham/v1/auth/validate', {
         headers: getHeaders()
       });
       return response.valid;

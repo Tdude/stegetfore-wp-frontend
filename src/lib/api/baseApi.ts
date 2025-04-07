@@ -11,9 +11,9 @@ if (!API_URL) {
  * Core function for making API requests to WordPress
  * @param endpoint The API endpoint path (without the base URL)
  * @param options Additional fetch options including revalidation time
- * @returns The JSON response from the API
+ * @returns The JSON response of type T
  */
-export async function fetchApi(
+export async function fetchApi<T>(
   endpoint: string,
   options: {
     revalidate?: number;
@@ -21,19 +21,19 @@ export async function fetchApi(
     body?: any;
     headers?: Record<string, string>;
   } = {}
-) {
+): Promise<T> {
   const url = `${API_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
   try {
     // Determine if we should stringify the body based on content type
     const contentType = options.headers?.["Content-Type"] || "application/json";
     let body = options.body;
-    
+
     // Only stringify JSON bodies, leave others as is
     if (options.body && contentType === "application/json") {
       body = JSON.stringify(options.body);
     }
-    
+
     // Set default Content-Type if not specified in headers
     const headers = {
       "Content-Type": contentType,
@@ -54,9 +54,9 @@ export async function fetchApi(
         statusText: response.statusText,
         url: response.url,
       };
-      
+
       console.error("API Error:", errorInfo);
-      
+
       // Try to get more detailed error information from the response if possible
       try {
         const errorData = await response.json();

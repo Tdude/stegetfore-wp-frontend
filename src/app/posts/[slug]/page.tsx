@@ -7,12 +7,6 @@ import Image from 'next/image';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 
-
-async function getSlugFromParams(params: { slug: string }) {
-  const result = await Promise.resolve(params);
-  return result.slug;
-}
-
 async function Post({ slug }: { slug: string }) {
   const post = await fetchPost(slug);
 
@@ -56,12 +50,11 @@ async function Post({ slug }: { slug: string }) {
   );
 }
 
-export default async function PostPage({
-  params
-}: {
-  params: { slug: string }
-}) {
-  const slug = await getSlugFromParams(params);
+export default async function PostPage(props: any) {
+  // Extract slug from params
+  const slug = typeof props.params === 'object' && props.params 
+    ? (props.params.slug || '') 
+    : '';
 
   return (
     <main className="container mx-auto px-4 py-8 flex-grow">
