@@ -1,45 +1,6 @@
 // src/lib/types/contentTypes.ts
 import { Module } from "./moduleTypes";
-
-/**
- * Base interface for content items (posts, pages, etc.)
- */
-export interface BaseContent {
-  id: number;
-  slug: string;
-  title: {
-    rendered: string;
-  };
-  content: {
-    rendered: string;
-  };
-  excerpt?: {
-    rendered: string;
-  };
-  template?: string;
-  modules?: Module[];
-  _embedded?: {
-    "wp:featuredmedia"?: Array<{
-      source_url: string;
-      alt_text?: string;
-      media_details?: {
-        width: number;
-        height: number;
-        sizes?: Record<
-          string,
-          {
-            source_url: string;
-            width: number;
-            height: number;
-          }
-        >;
-      };
-    }>;
-  };
-  featured_image_url?: string | null;
-  date?: string;
-  modified?: string;
-}
+import type { BaseContent, AuthorData, PageParams } from './coreTypes';
 
 /**
  * Post content type
@@ -58,7 +19,7 @@ export interface Post extends BaseContent {
 
 /**
  * Post interface matching the API response structure
- * Imported explicitly to moduleTypes.ts for FeaturedPosts
+ * Used for modules that display posts
  */
 export interface LocalPost {
   id: number;
@@ -68,7 +29,7 @@ export interface LocalPost {
   date?: string;
   link?: string; // WP permalink
   featured_image?: string;
-  featured_image_url?: string; // Because of sloppy coding
+  featured_image_url?: string;
   categories?: string[];
   slug?: string;
 }
@@ -96,8 +57,6 @@ export interface Page extends BaseContent {
  * Includes modules array for modular pages
  */
 export interface LocalPage extends BaseContent {
-  id: number;
-  slug: string;
   chartData?: {
     segments: number[];
   } | null;
@@ -108,14 +67,17 @@ export interface LocalPage extends BaseContent {
     [key: string]: any;
   };
   type?: string;
-}
-
-/**
- * Parameters for page URLs
- */
-export interface PageParams {
-  params: {
-    slug: string | Promise<string>;
+  modules?: Module[];
+  // Hero data for homepage and other pages that use hero sections
+  hero?: {
+    title?: string;
+    intro?: string;
+    image?: string | string[];
+    buttons?: Array<{
+      text: string;
+      url: string;
+      style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default";
+    }>;
   };
 }
 
@@ -125,8 +87,8 @@ export interface SiteInfo {
   url?: string;
   admin_email?: string;
   language?: string;
-  logo_url?: string;
-  favicon_url?: string;
+  logo_url?: string | null;
+  favicon_url?: string | null;
   social_links?: Record<string, string>;
 }
 
@@ -199,6 +161,19 @@ export interface HomepageData extends BaseContent {
     button_url?: string;
     background_color?: string;
   };
+  // Add modules array for modular content
   modules?: Module[];
-  [key: string]: any;
+}
+
+/**
+ * Application Post type that extends BaseContent
+ * More streamlined than the WordPress response format
+ */
+export interface AppPost extends BaseContent {
+  featured_image_url?: string;
+  categories: string[];
+  tags: string[];
+  author_data?: AuthorData;
+  link?: string;
+  meta?: Record<string, unknown>;
 }

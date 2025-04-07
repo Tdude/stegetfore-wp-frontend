@@ -122,3 +122,16 @@ export interface StageClasses {
   trans: string;
   full: string;
 }
+
+/**
+ * Evaluation data response from the API
+ */
+export interface EvaluationData {
+  id?: number;
+  studentId: number;
+  formData: FormData;
+  date?: string;
+  status?: 'draft' | 'complete' | 'in_progress';
+  created?: string;
+  modified?: string;
+}

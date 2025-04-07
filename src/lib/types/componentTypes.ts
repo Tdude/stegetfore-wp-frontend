@@ -1,6 +1,7 @@
 // src/lib/types/componentTypes.ts
 import { LocalPage, Post } from "./contentTypes";
-import { HomepageData, Module } from "./moduleTypes";
+import { Module } from "./moduleTypes";
+import { HomepageData } from "../types";
 
 /**
  * Props for page templates

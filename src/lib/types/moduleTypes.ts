@@ -261,6 +261,19 @@ export interface ChartModule extends BaseModule {
 }
 
 /**
+ * Homepage data interface specifically for modules structure
+ */
+export interface ModuleHomepageData {
+  title: string;
+  description?: string;
+  featured_image?: string;
+  modules: Module[];
+  featured_posts?: LocalPost[];
+  categories?: Record<string, any>;
+  settings?: Record<string, any>;
+}
+
+/**
  * Union type of all module types
  */
 export type Module =
