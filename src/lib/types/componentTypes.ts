@@ -1,6 +1,18 @@
 // src/lib/types/componentTypes.ts
-import { LocalPage, Post } from "./contentTypes";
-import { HomepageData, Module } from "./moduleTypes";
+import { LocalPage } from "./contentTypes";
+// For breaking circular dependencies, we'll define interfaces that are minimal
+// and don't require specific module types
+
+// Define minimal types for posts and homepage data to avoid circular imports
+export interface MinimalPost {
+  id: number;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  featured_image_url?: string;
+  categories?: number[];
+  slug?: string;
+}
 
 /**
  * Props for page templates
@@ -16,14 +28,14 @@ export interface PageTemplateProps<T = Record<string, unknown>> {
 export interface PageTemplateSelectorProps {
   page: LocalPage;
   isHomePage?: boolean;
-  homepageData?: HomepageData;
+  homepageData?: any; // Changed from HomepageData to any to avoid circular dependency
 }
 
 /**
  * Props for the HomepageTemplate component
  */
 export interface HomepageTemplateProps extends PageTemplateProps {
-  homepage?: HomepageData | string; // Could be either a string (from API) or parsed object
+  homepage?: any; // Changed from HomepageData | string to any to avoid circular dependency
 }
 
 /**
@@ -54,7 +66,7 @@ export interface ModularTemplateProps {
  * Props for the ModuleRenderer component
  */
 export interface ModuleRendererProps {
-  module: Module;
+  module: any; // Changed from Module to any to avoid circular dependency
   className?: string;
 }
 
@@ -90,7 +102,7 @@ export interface SellingPointsProps {
  * Props for the FeaturedPosts component
  */
 export interface FeaturedPostsProps {
-  posts: Post[];
+  posts: MinimalPost[];
   title?: string;
   categories?: Record<number, { id: number; name: string; slug: string }>;
 }
@@ -140,7 +152,7 @@ export interface GallerySectionProps {
  * Props for the ModularPage component
  */
 export interface ModularPageProps {
-  modules: Module[];
+  modules: any[]; // Changed from Module[] to any[] to avoid circular dependency
   className?: string;
   sectionLayouts?: Record<string, string>;
   headerClassName?: string;

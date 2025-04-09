@@ -108,6 +108,7 @@ export interface LocalPage extends BaseContent {
     [key: string]: any;
   };
   type?: string;
+  modules: Module[]; // Use Module from moduleTypes.ts
 }
 
 /**
@@ -199,6 +200,6 @@ export interface HomepageData extends BaseContent {
     button_url?: string;
     background_color?: string;
   };
-  modules?: Module[];
+  modules?: Module[]; // Use Module from moduleTypes.ts
   [key: string]: any;
 }

@@ -5,7 +5,6 @@ import {
   adaptWordPressPage,
   adaptWordPressPageToLocalPage,
 } from "@/lib/adapters/pageAdapter";
-import { fetchPageModules } from "./moduleApi";
 
 /**
  * Fetch pages with optional pagination and filtering
@@ -34,44 +33,29 @@ export async function fetchPages(
       includeModules = false,
     } = params;
 
-    // Build query string from parameters
+    // Build query string
     const queryParams = new URLSearchParams({
       page: page.toString(),
       per_page: perPage.toString(),
       orderby: orderBy,
       order: order,
-      _embed: "true",
+      _embed: "true", // Always include embed data for featured images
     });
 
     if (search) queryParams.append("search", search);
-    if (parent !== undefined) queryParams.append("parent", parent.toString());
+    if (parent) queryParams.append("parent", parent.toString());
 
-    // Cache pages list for 20 minutes
+    // Cache pages for 10 minutes
     const pages = await fetchApi(`/wp/v2/pages?${queryParams.toString()}`, {
-      revalidate: 1200,
+      revalidate: 600,
     });
 
     if (!Array.isArray(pages)) {
+      console.warn(`fetchPages: expected array but got ${typeof pages}`);
       return [];
     }
 
-    // If modules are not needed, return simple pages
-    if (!includeModules) {
-      return pages.map((page: any) => adaptWordPressPage(page));
-    }
-
-    // If modules are needed, fetch them for each page (in parallel)
-    const pagesWithModules = await Promise.all(
-      pages.map(async (page: any) => {
-        const modules = await fetchPageModules(page.id);
-        return {
-          ...adaptWordPressPage(page),
-          modules,
-        };
-      })
-    );
-
-    return pagesWithModules;
+    return pages.map((page) => adaptWordPressPage(page));
   } catch (error) {
     console.error("Error fetching pages:", error);
     return [];
@@ -84,7 +68,6 @@ export async function fetchPages(
  * @param includeModules Whether to include modules in the response
  * @returns A LocalPage object or null if not found
  */
-// src/lib/api/pageApi.ts
 export async function fetchPage(
   slug: string,
   includeModules = true
@@ -100,21 +83,10 @@ export async function fetchPage(
     }
 
     const page = pages[0];
-    const adaptedPage = adaptWordPressPageToLocalPage(page);
-
-    // If modules are not needed, return the page without modules
-    if (!includeModules) {
-      return adaptedPage;
-    }
-
-    // Fetch modules for this page
-    const modules = await fetchPageModules(page.id);
-
-    // Return page with modules explicitly attached
-    return {
-      ...adaptedPage,
-      modules: modules || [], // Make sure we always return an array, even if empty
-    };
+    
+    // The adaptWordPressPageToLocalPage function now handles modules directly
+    // from the WordPress REST API response, so no separate call is needed
+    return adaptWordPressPageToLocalPage(page);
   } catch (error) {
     console.error(`Error fetching page with slug ${slug}:`, error);
     return null;
@@ -132,25 +104,17 @@ export async function fetchPageById(
   includeModules = true
 ): Promise<Page | null> {
   try {
-    // Cache individual pages for 20 minutes, but include modules field
-    const page = await fetchApi(`/wp/v2/pages/${id}?_embed&_fields=id,title,content,excerpt,template,featured_media,modules`, {
+    // Cache individual pages for 20 minutes
+    const page = await fetchApi(`/wp/v2/pages/${id}?_embed`, {
       revalidate: 1200,
     });
 
-    if (!page) {
+    if (!page || !page.id) {
       return null;
     }
 
-    // The modules field is already included in the response thanks to our WordPress REST field registration
-    // and they are already properly ordered based on the page_modules meta field
-    const adaptedPage = adaptWordPressPage(page);
-
-    // Ensure modules array exists
-    if (!adaptedPage.modules) {
-      adaptedPage.modules = [];
-    }
-
-    return adaptedPage;
+    // Return the adapted page with modules
+    return adaptWordPressPage(page);
   } catch (error) {
     console.error(`Error fetching page with ID ${id}:`, error);
     return null;

@@ -1,5 +1,4 @@
 // src/lib/types/moduleTypes.ts
-import { LocalPost } from "./contentTypes";
 
 /**
  * Base module interface
@@ -113,7 +112,7 @@ export interface FeaturedPostsModule extends BaseModule {
   type: "featured-posts";
   title: string;
   subtitle?: string;
-  posts: LocalPost[];
+  posts: any[];
   columns?: number;
   display_style?: "grid" | "list" | "carousel";
   show_date?: boolean;

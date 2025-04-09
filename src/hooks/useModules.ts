@@ -171,49 +171,6 @@ export function useModules({
     return modules;
   }, [parsedHomepageData, homepageModules, processedPageModules]);
 
-  // Development fallback modules for testing
-  const devFallbackModules = useMemo(() => {
-    // Only provide fallback modules in development mode and when we have no modules
-    if (process.env.NODE_ENV !== "development") return [];
-    if (
-      processedPageModules.length > 0 ||
-      homepageModules.length > 0 ||
-      categoryModules.length > 0
-    )
-      return [];
-
-    console.log("Using development fallback modules");
-
-    // Provide some test modules
-    return [
-      {
-        id: 1,
-        type: "text",
-        title: "Development Fallback Module",
-        content:
-          "This is a fallback module for development. It appears when no other modules are available.",
-        settings: {
-          section: "main",
-          priority: 10,
-        },
-      },
-      {
-        id: 2,
-        type: "text",
-        title: "Another Test Module",
-        content:
-          "This is another test module to demonstrate multiple modules rendering.",
-        settings: {
-          section: "main",
-          priority: 5,
-        },
-      },
-    ];
-  }, [
-    processedPageModules.length,
-    homepageModules.length,
-    categoryModules.length,
-  ]);
 
   // Process directly provided modules
   const processedDirectModules = useMemo(() => {
@@ -227,8 +184,7 @@ export function useModules({
       ...homepageModules,
       ...categoryModules,
       ...featuredPostsModules,
-      ...processedDirectModules, // Add directly provided modules
-      ...devFallbackModules, // Add development fallback modules
+      ...processedDirectModules,
     ];
 
     const processedIds = new Set<string | number>();

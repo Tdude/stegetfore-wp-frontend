@@ -1,4 +1,18 @@
 // src/lib/types.ts - Application Types Section
+/**
+ * @deprecated This file is being maintained for backward compatibility.
+ * All types have been moved to the /types directory structure to reduce complexity
+ * and avoid circular dependencies.
+ * 
+ * Please import types directly from '@/lib/types' instead of from this file.
+ * The new structure organizes types into specialized files:
+ * - baseTypes.ts: Common interfaces and helpers
+ * - contentTypes.ts: Content-related types (Post, Page, etc.)
+ * - moduleTypes.ts: Module-related types
+ * - componentTypes.ts: React component props
+ * - wpTypes.ts: WordPress API response types
+ * - formTypes.ts: Form-related types
+ */
 
 // Re-export all types from the new location
 // This maintains backward compatibility with existing code
