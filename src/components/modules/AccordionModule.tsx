@@ -8,7 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { AccordionFaqModule } from '@/lib/types';
+import type { AccordionFaqModule } from '@/lib/types/moduleTypes';
 import { cn } from '@/lib/utils';
 
 

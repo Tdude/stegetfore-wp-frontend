@@ -64,12 +64,12 @@ export function validateFormData(
       if (isNaN(num)) {
         errors[field.name] = "Please enter a valid number";
       } else {
-        if (field.min !== undefined && num < field.min) {
+        if (field.min !== undefined && num < Number(field.min)) {
           errors[
             field.name
           ] = `Please enter a number greater than or equal to ${field.min}`;
         }
-        if (field.max !== undefined && num > field.max) {
+        if (field.max !== undefined && num > Number(field.max)) {
           errors[
             field.name
           ] = `Please enter a number less than or equal to ${field.max}`;
@@ -79,10 +79,10 @@ export function validateFormData(
 
     // Text length validation
     if ((field.type === "text" || field.type === "textarea") && value) {
-      if (field.min !== undefined && value.length < field.min) {
+      if (field.min !== undefined && value.length < Number(field.min)) {
         errors[field.name] = `Please enter at least ${field.min} characters`;
       }
-      if (field.max !== undefined && value.length > field.max) {
+      if (field.max !== undefined && value.length > Number(field.max)) {
         errors[
           field.name
         ] = `Please enter no more than ${field.max} characters`;
@@ -94,7 +94,7 @@ export function validateFormData(
       const fileExtension = value.name.split(".").pop()?.toLowerCase();
 
       // Check file size
-      if (field.max && value.size > field.max * 1024 * 1024) {
+      if (field.max && value.size > Number(field.max) * 1024 * 1024) {
         // Convert MB to bytes
         errors[field.name] = `File size should not exceed ${field.max}MB`;
       }

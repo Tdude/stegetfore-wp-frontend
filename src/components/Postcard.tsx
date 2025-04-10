@@ -1,7 +1,7 @@
 // src/components/Postcard.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import { Post } from '@/lib/types';
+import { Post } from '@/lib/types/contentTypes';
 
 export default function Postcard({ post }: { post: Post }) {
   return (

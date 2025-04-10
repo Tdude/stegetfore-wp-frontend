@@ -1,5 +1,5 @@
 // src/services/moduleService.ts
-import { Module } from "@/lib/types";
+import { Module } from "@/lib/types/moduleTypes";
 import {
   fetchModule,
   fetchModules,

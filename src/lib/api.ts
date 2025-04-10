@@ -256,9 +256,9 @@ export async function fetchPage(
   p0: boolean
 ): Promise<Page | null> {
   try {
-    // Cache individual pages for 20 minutes
+    // Reduce cache time during testing to see changes immediately
     const pages = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {
-      revalidate: 1200,
+      revalidate: 10, // Reduce from 1200 to 10 seconds during testing
     });
 
     if (!Array.isArray(pages) || pages.length === 0) {
@@ -266,6 +266,14 @@ export async function fetchPage(
     }
 
     const page = pages[0];
+
+    // Log full page data to see what's coming from the API
+    console.log(`Page data for slug "${slug}":`, {
+      content: page.content?.rendered?.substring(0, 100),
+      meta: page.meta,
+      modules: page.modules?.length,
+      content_display_settings: page.content_display_settings
+    });
 
     return {
       id: page.id,
@@ -283,6 +291,10 @@ export async function fetchPage(
         page._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
       template: page.template || "",
       _embedded: page._embedded,
+      meta: page.meta,
+      modules: page.modules,
+      content_display_settings: page.content_display_settings,
+      show_content_with_modules: page.show_content_with_modules, // For backwards compatibility
     };
   } catch (error) {
     console.error("Error fetching page:", error);

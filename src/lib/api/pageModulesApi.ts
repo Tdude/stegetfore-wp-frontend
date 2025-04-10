@@ -1,7 +1,7 @@
 // src/lib/api/pageModulesApi.ts - API route handlers for fetching page modules
 
 import { fetchApi } from './baseApi';
-import { Module } from '@/lib/types';
+import { Module } from '@/lib/types/moduleTypes';
 import { adaptWordPressModule } from '@/lib/adapters/moduleAdapter';
 
 /**

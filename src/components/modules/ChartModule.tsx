@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ChartModule as ChartModuleType } from '@/lib/types';
+import { ChartModule as ChartModuleType } from '@/lib/types/moduleTypes';
 import { Card } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
 import {

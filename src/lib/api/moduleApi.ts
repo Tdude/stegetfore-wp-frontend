@@ -13,12 +13,11 @@ export async function fetchModules(
     page?: number;
     pageId?: number;
     template?: string;
-    category?: string;
     perPage?: number;
   } = {}
 ): Promise<Module[]> {
   try {
-    const { pageId, template, category, page = 1, perPage = 20 } = params;
+    const { pageId, template, page = 1, perPage = 20 } = params;
 
     // Build query string
     const queryParams = new URLSearchParams({
@@ -27,14 +26,6 @@ export async function fetchModules(
     });
 
     if (template) queryParams.append("template", template);
-    // Try both taxonomy fields for category
-    if (category) {
-      // Try the standard "category" parameter
-      queryParams.append("category", category);
-
-      // If your endpoint supports it, also add a module_category parameter
-      queryParams.append("module_category", category);
-    }
 
     // Determine the endpoint based on whether we're fetching for a specific page
     const endpoint = pageId
@@ -52,7 +43,6 @@ export async function fetchModules(
       return [];
     }
 
-    // Make sure to return a properly typed array
     return modules
       .map((module: any) => adaptWordPressModule(module))
       .filter(Boolean) as Module[];
@@ -95,13 +85,18 @@ export async function fetchModulesByTemplate(
  * Fetch modules by category
  * @param category The category slug or name
  * @returns An array of Module objects
+ * @deprecated Use page-based module associations instead of categories.
+ * Modules should now be associated with pages directly through the WordPress admin UI.
  */
-// src/lib/api/moduleApi.ts - update fetchModulesByCategory function
-
-// src/lib/api/moduleApi.ts
 export async function fetchModulesByCategory(
   category: string
 ): Promise<Module[]> {
+  // Log deprecation warning
+  console.warn(
+    `DEPRECATED: fetchModulesByCategory(${category}) is deprecated. ` +
+    `Modules should now be associated with pages directly through the WordPress admin UI.`
+  );
+  
   try {
     // Normalize the input category - convert to slug-like format
     const normalizedCategory = category

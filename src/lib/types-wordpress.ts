@@ -1,4 +1,6 @@
 // src/lib/types.ts - WordPress API Types Section
+// DEPRECATED: These types have been moved to @/lib/types/wpTypes.ts
+// This file is maintained temporarily for backward compatibility
 import { Module } from "./types/moduleTypes";
 // Base WordPress API response interface
 export interface WordPressBaseContent {

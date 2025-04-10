@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { validateFormData, createInitialFormValues, getFieldErrorMessage } from '@/services';
 import { formatFormDataForSubmission } from '@/lib/adapters';
 import { submitForm } from '@/lib/api';
-import { WPCF7Field, WPCF7Form } from '@/lib/types';
+import { WPCF7Field, WPCF7Form } from '@/lib/types/wpTypes';
 
 // UI Components
 import { Button } from '@/components/ui/button';

@@ -3,10 +3,10 @@
 
 import React from 'react';
 
-import Page from '@/lib/types';
+import { LocalPage } from '@/lib/types/contentTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
-export default function SidebarTemplate({ page }: { page: Page }) {
+export default function SidebarTemplate({ page }: { page: LocalPage }) {
   return (
     <TemplateTransitionWrapper>
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">

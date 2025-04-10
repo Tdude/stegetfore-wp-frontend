@@ -1,11 +1,12 @@
 // src/hooks/useModules.ts
 import { useState, useEffect, useMemo } from "react";
-import { Module, HomepageData } from "@/lib/types";
+import { Module } from "@/lib/types/moduleTypes";
+import { HomepageData } from "@/lib/types/contentTypes";
+import { groupModulesBySection } from "@/services/moduleService";
 
 interface UseModulesProps {
-  pageModules?: any[];
+  pageModules?: Module[];
   homepageData?: HomepageData;
-  moduleCategory?: string;
   featuredPostsPosition?: number;
   directModules?: Module[]; // Allow direct injection of modules for testing
 }
@@ -19,18 +20,20 @@ interface UseModulesResult {
 export function useModules({
   pageModules = [],
   homepageData,
-  moduleCategory,
   featuredPostsPosition = 2,
   directModules = [],
 }: UseModulesProps): UseModulesResult {
-  const [parsedHomepageData, setParsedHomepageData] = useState<HomepageData>({
-    modules: [],
-    featured_posts: [],
-    categories: [],
-  });
-  const [categoryModules, setCategoryModules] = useState<Module[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
+  // Create a default HomepageData that satisfies the interface
+  const defaultHomepageData: HomepageData = {
+    id: 0,
+    slug: '',
+    title: { rendered: '' },
+    content: { rendered: '' },
+    modules: []
+  };
+  
+  const [parsedHomepageData, setParsedHomepageData] = useState<HomepageData>(defaultHomepageData);
+  
   // Parse homepage data if it's a string
   useEffect(() => {
     if (!homepageData) return;
@@ -38,229 +41,48 @@ export function useModules({
     if (typeof homepageData === "string") {
       try {
         const parsed = JSON.parse(homepageData);
-        setParsedHomepageData(parsed || {});
+        setParsedHomepageData(parsed || defaultHomepageData);
       } catch (e) {
         console.error("Failed to parse homepage data:", e);
-        setParsedHomepageData({
-          modules: [],
-          featured_posts: [],
-          categories: [],
-        });
+        setParsedHomepageData(defaultHomepageData);
       }
     } else {
       setParsedHomepageData(homepageData);
     }
   }, [homepageData]);
 
-  // Fetch modules by category if needed
-  useEffect(() => {
-    if (!moduleCategory) return;
-
-    const fetchModulesByCategory = async () => {
-      setIsLoading(true);
-      try {
-        // Log the request for debugging
-        console.log(
-          `Fetching modules from: /api/steget/v1/modules?category=${moduleCategory}`
-        );
-
-        const response = await fetch(
-          `/api/steget/v1/modules?category=${moduleCategory}`
-        );
-
-        // Log the response status
-        console.log(`API response status: ${response.status}`);
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch modules: ${response.status} ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-
-        // Log what was received
-        console.log("API returned data:", data);
-
-        // Handle different data formats - could be an array or an object with items property
-        if (Array.isArray(data)) {
-          console.log(`Setting ${data.length} modules from array response`);
-          setCategoryModules(data);
-        } else if (data && typeof data === "object") {
-          // Try to find modules in common response formats
-          const possibleModules = data.items || data.modules || data.data || [];
-          console.log(
-            `Setting ${possibleModules.length} modules from object response`
-          );
-          setCategoryModules(
-            Array.isArray(possibleModules) ? possibleModules : []
-          );
-        } else {
-          console.error("Unexpected API response format:", data);
-          setCategoryModules([]);
-        }
-      } catch (error) {
-        console.error("Error fetching modules by category:", error);
-        setCategoryModules([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchModulesByCategory();
-  }, [moduleCategory]);
-
-  // Process modules to ensure they have ids
-  const processModules = (modules: any[]): Module[] => {
-    if (!modules || !Array.isArray(modules)) return [];
-    return modules.map((module, index) => ({
-      ...module,
-      id: module.id || `module-${index}`,
-    }));
-  };
-
-  // Process homepage modules
-  const homepageModules = useMemo(() => {
-    return processModules(
-      Array.isArray(parsedHomepageData?.modules)
-        ? parsedHomepageData.modules
-        : []
-    );
-  }, [parsedHomepageData?.modules]);
-
-  // Process page modules
-  const processedPageModules = useMemo(() => {
-    return processModules(pageModules || []);
-  }, [pageModules]);
-
-  // Create modules for featured posts if needed
-  const featuredPostsModules = useMemo(() => {
-    const modules: Module[] = [];
-
-    if (
-      parsedHomepageData?.featured_posts?.length &&
-      !homepageModules.some((m) => m.type === "featured-posts") &&
-      !processedPageModules.some((m) => m.type === "featured-posts")
-    ) {
-      modules.push({
-        id: Date.now(),
-        type: "featured-posts",
-        title:
-          parsedHomepageData.featured_posts_title || "I fokus från bloggen",
-        posts:
-          parsedHomepageData.featured_posts?.map((post) => ({
-            ...post,
-            title: post.title.rendered,
-            excerpt: post.excerpt?.rendered || "",
-            content: post.content.rendered,
-            featured_image_url: post.featured_image_url || undefined,
-            categories: post.categories.map(String),
-          })) || [],
-        display_style: "grid",
-        columns: 3,
-        show_excerpt: true,
-        show_categories: true,
-        show_read_more: true,
-        settings: {
-          section: "main",
-          priority: 5,
-        },
-      });
+  // Combine modules from all sources with explicit typing
+  const allModules: Module[] = useMemo(() => {
+    // Direct modules take priority
+    if (directModules && directModules.length > 0) {
+      return directModules;
     }
 
-    return modules;
-  }, [parsedHomepageData, homepageModules, processedPageModules]);
-
-
-  // Process directly provided modules
-  const processedDirectModules = useMemo(() => {
-    return processModules(directModules || []);
-  }, [directModules]);
-
-  // Combine and sort all modules
-  const allModules = useMemo(() => {
-    const combinedModules = [
-      ...processedPageModules,
-      ...homepageModules,
-      ...categoryModules,
-      ...featuredPostsModules,
-      ...processedDirectModules,
-    ];
-
-    const processedIds = new Set<string | number>();
-    const uniqueModules: Module[] = [];
-
-    combinedModules.forEach((module) => {
-      if (!processedIds.has(module.id)) {
-        uniqueModules.push(module);
-        processedIds.add(module.id);
-      }
-    });
-
-    const sortedModules = uniqueModules.sort((a, b) => {
-      const orderA = typeof a.order === "number" ? a.order : 0;
-      const orderB = typeof b.order === "number" ? b.order : 0;
-      return orderA - orderB; // Changed to ascending order
-    });
-
-    // Find the featured-posts module and move it to the specified position
-    const featuredPostsIndex = sortedModules.findIndex(
-      (m) => m.type === "featured-posts"
-    );
-    if (featuredPostsIndex !== -1 && featuredPostsPosition >= 0) {
-      const featuredPostsModule = sortedModules.splice(
-        featuredPostsIndex,
-        1
-      )[0];
-      const insertPosition = Math.min(
-        featuredPostsPosition,
-        sortedModules.length
-      );
-      sortedModules.splice(insertPosition, 0, featuredPostsModule);
+    // Page modules are our primary source
+    if (pageModules && pageModules.length > 0) {
+      console.log(`Using ${pageModules.length} modules from page`);
+      return pageModules;
     }
 
-    return sortedModules;
-  }, [
-    processedPageModules,
-    homepageModules,
-    categoryModules,
-    featuredPostsModules,
-    featuredPostsPosition,
-  ]);
+    // Homepage modules as fallback
+    const homepageModules = parsedHomepageData?.modules;
+    if (Array.isArray(homepageModules) && homepageModules.length > 0) {
+      console.log(`Using ${homepageModules.length} modules from homepage data`);
+      return homepageModules;
+    }
 
-  // Group modules by section
+    return [] as Module[];
+  }, [directModules, pageModules, parsedHomepageData]);
+
+  // Use the moduleService's groupModulesBySection function instead of implementing our own
   const modulesBySection = useMemo(() => {
-    const sections: Record<string, Module[]> = {
-      header: [],
-      main: [],
-      footer: [],
-      other: [],
-    };
-
-    allModules.forEach((module) => {
-      const section = module.settings?.section || "main";
-      if (sections[section]) {
-        sections[section].push(module);
-      } else {
-        sections.other.push(module);
-      }
-    });
-
-    // Sort modules within each section by priority if present
-    Object.keys(sections).forEach((sectionKey) => {
-      sections[sectionKey].sort((a, b) => {
-        const priorityA = a.settings?.priority ?? 0;
-        const priorityB = b.settings?.priority ?? 0;
-        return priorityA - priorityB; // Changed to ascending order
-      });
-    });
-
-    return sections;
+    return groupModulesBySection(allModules);
   }, [allModules]);
 
+  // Return the combined result
   return {
     allModules,
     modulesBySection,
-    homepageData: parsedHomepageData,
+    homepageData: parsedHomepageData
   };
 }

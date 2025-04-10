@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FeaturedPostsModule as FeaturedPostsModuleType, LocalPost, Post } from '@/lib/types';
+import { FeaturedPostsModule as FeaturedPostsModuleType } from '@/lib/types/moduleTypes';
+import { LocalPost, Post } from '@/lib/types/contentTypes';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
@@ -156,7 +157,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     {/* Handle categories as they appear in the API response */}
                     {module.show_categories !== false && post.categories && (
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {post.categories.slice(0, 2).map((category, index) => (
+                        {post.categories?.map((category: string, index: number) => (
                           <Badge key={index} variant="secondary">
                             {category}
                           </Badge>

@@ -2,15 +2,32 @@
 // blog list page
 import { Suspense } from 'react';
 import { fetchPosts, fetchCategories } from '@/lib/api';
-import { Post } from '@/lib/types';
+import { Post } from '@/lib/types/contentTypes';
 import { PostSkeleton } from '@/components/PostSkeleton';
 import OptimizedImage from '@/components/OptimizedImage';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import DebugPanel from '@/components/debug/DebugPanel'; // Import DebugPanel from correct path
+
+// Define interfaces for blog page types
+interface CategoryDisplay {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface CategoriesMap {
+  [key: number]: CategoryDisplay;
+}
+
+interface BlogPostsData {
+  posts: Post[];
+  categories: CategoriesMap;
+}
 
 // Fetch posts with categories
-async function fetchPostsWithCategories() {
+async function fetchPostsWithCategories(): Promise<BlogPostsData> {
   const [posts, categoriesData] = await Promise.all([
     fetchPosts(),
     fetchCategories()
@@ -31,7 +48,7 @@ async function BlogContent() {
       <h1 className="text-3xl font-bold mb-8">I fokus</h1>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post: Post) => (
+        {posts.map((post) => (
           <Card key={post.id} className="h-full overflow-hidden">
             {post.featured_image_url && (
               <div className="aspect-video relative overflow-hidden">
@@ -48,9 +65,9 @@ async function BlogContent() {
               {post.categories && categories && (
                 <div className="flex flex-wrap gap-2 mb-2">
                   {post.categories.slice(0, 2).map((categoryId) => (
-                    categories[categoryId] && (
+                    categories[categoryId as number] && (
                       <Badge key={categoryId} variant="secondary">
-                        {categories[categoryId].name}
+                        {categories[categoryId as number].name}
                       </Badge>
                     )
                   ))}
@@ -78,6 +95,18 @@ async function BlogContent() {
             </CardFooter>
           </Card>
         ))}
+      </div>
+
+      {/* Debug panel at the bottom */}
+      <div className="mt-12">
+        <DebugPanel 
+          title="Page Debug" 
+          additionalData={{
+            "Posts Count": posts?.length || 0,
+            "Categories": categories ? Object.keys(categories).length : 0,
+            "Page Type": "Blog Index"
+          }}
+        />
       </div>
     </div>
   );

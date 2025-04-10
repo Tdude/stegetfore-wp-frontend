@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { WPCF7Form, FormModule as FormModuleType } from '@/lib/types';
+import { FormModule as FormModuleType } from '@/lib/types/moduleTypes';
+import { WPCF7Form } from '@/lib/types/wpTypes';
 import { fetchFormStructure, submitForm } from '@/lib/api';
 import DynamicForm from '@/components/forms/DynamicForm';
 import { cn } from '@/lib/utils';

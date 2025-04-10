@@ -2,7 +2,7 @@
 'use client';
 
 import React, { Suspense, lazy, ReactNode } from 'react';
-import { Module } from '@/lib/types';
+import { Module } from '@/lib/types/moduleTypes';
 import { cn } from '@/lib/utils';
 import {
   isHeroModule,
@@ -95,8 +95,17 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
+  // Debug logging to trace what modules are being received
+  console.log('ModuleRenderer received:', { 
+    moduleExists: !!module,
+    moduleType: module?.type,
+    moduleId: module?.id,
+    moduleKeys: module ? Object.keys(module) : []
+  });
+  
   // Early return with a placeholder if no module provided
   if (!module) {
+    console.warn('ModuleRenderer called with no module');
     return (
       <div className="w-full p-4 bg-gray-100 text-gray-400 text-center">
         Module data not available
@@ -108,10 +117,13 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
   const moduleId = module.id || 'no-id';
   const isFullWidth = module.fullWidth === true;
 
+  // Log module details
+  console.log(`ModuleRenderer for ${moduleType} (ID: ${moduleId})`, module);
+
   // Add fullWidth class if needed
   const moduleClasses = cn(
     'module',
-    `module-${module.type}`,
+    `module-${moduleType}`,
     isFullWidth ? 'w-full' : '',
     className
   );
@@ -127,131 +139,96 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
       throw new Error('Module is missing required "type" property');
     }
 
-    // Normalize module type names to handle different naming conventions
-    // This helps recognize "tabbed-content" as "tabs" and "faq" as "accordion"
-    const normalizeModuleType = (type: string): string => {
-      if (type === 'tabbed-content') return 'tabs';
-      if (type === 'faq') return 'accordion';
-      if (type === 'selling-points') return 'selling_points';
-      return type;
-    };
-
-    // Apply normalization if needed
-    if (module.type === 'tabbed-content' || module.type === 'faq' || module.type === 'selling-points') {
-      console.log(`Normalized module type from "${module.type}" to "${normalizeModuleType(module.type)}"`);
-      module.type = normalizeModuleType(module.type);
-    }
-
     // Output module type to data attribute for debugging
     const moduleTypeAttr = `module-${module.type}`;
 
     // Render different components based on module type
     const renderModuleContent = () => {
       if (!module) return null;
+      
+      console.log(`Rendering module: ${module.type} (ID: ${module.id})`);
+      
+      // Match based on the actual module type
+      switch (module.type) {
+        case 'hero':
+          return <HeroModule module={module} />;
+        case 'cta':
+          return <CTAModule module={module} />;
+        case 'selling-points':
+        case 'selling_points':  // Support both formats
+          return <SellingPointsModule module={module} />;
+        case 'testimonials':
+          return <TestimonialsModule module={module} />;
+        case 'featured-posts':
+        case 'featured_posts':  // Support both formats
+          return <FeaturedPostsModule module={module} />;
+        case 'stats':
+          return <StatsModule module={module} />;
+        case 'gallery':
+          return <GalleryModule module={module} />;
+        case 'text':
+          return <TextModule module={module} />;
+        case 'form':
+          return <FormModule module={module} />;
+        case 'accordion':
+        case 'accordion-faq':
+        case 'accordion_faq':  // Support all variations
+        case 'faq':
+          return <AccordionModule module={module} />;
+        case 'tabs':
+        case 'tabbed-content':
+        case 'tabbed_content':  // Support all variations
+          return <TabsModule module={module} />;
+        case 'video':
+          return <VideoModule module={module} />;
+        case 'chart':
+          return <ChartModule module={module} />;
+        default:
+          // Log unknown module types for debugging
+          console.warn(`Unknown module type: ${module.type}`, module);
+          
+          // fallback rendering with more information
+          const safeContent = module.content;
 
-      // Check to ensure type exists (should be guaranteed now)
-      if (!module.type) {
-        console.error("Module is missing required 'type' property:", module);
-        return (
-          <div className="p-4 border border-red-200 rounded bg-red-50">
-            <h3 className="font-medium text-red-800">Module Error</h3>
-            <p className="mt-2 text-red-700">
-              Module is missing required "type" property
-            </p>
-          </div>
-        );
+          return (
+            <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
+              <h3 className="font-medium text-yellow-800">
+                Unknown Module Type: {module.type}
+              </h3>
+              {module.title && (
+                <p className="mt-2 text-yellow-700">
+                  Title: {module.title}
+                </p>
+              )}
+              {safeContent && (
+                <div
+                  className="mt-2 prose-sm max-w-none text-yellow-700"
+                  dangerouslySetInnerHTML={{ __html: safeContent }}
+                />
+              )}
+            </div>
+          );
       }
-      // Avoid potential XSS in fallback
-      const sanitizeContent = (content: string | undefined): string => {
-        if (!content) return '';
-        return content;
-      };
-
-      // Use Suspense to handle lazy-loaded components
-      return (
-        <Suspense fallback={<ModulePlaceholder type={module.type} />}>
-          <ModuleErrorBoundary type={module.type}>
-            {(() => {
-              // Use type guards to properly type each module
-              if (isHeroModule(module)) {
-                return <HeroModule module={module} />;
-              } else if (isCTAModule(module)) {
-                return <CTAModule module={module} />;
-              } else if (isSellingPointsModule(module)) {
-                return <SellingPointsModule module={module} />;
-              } else if (isTestimonialsModule(module)) {
-                return <TestimonialsModule module={module} />;
-              } else if (isFeaturedPostsModule(module)) {
-                return <FeaturedPostsModule module={module} />;
-              } else if (isStatsModule(module)) {
-                return <StatsModule module={module} />;
-              } else if (isGalleryModule(module)) {
-                return <GalleryModule module={module} />;
-              } else if (isTextModule(module)) {
-                return <TextModule module={module} />;
-              } else if (isFormModule(module)) {
-                return <FormModule module={module} />;
-              } else if (isAccordionModule(module)) {
-                return <AccordionModule module={module} />;
-              } else if (isTabsModule(module)) {
-                return <TabsModule module={module} />;
-              } else if (isVideoModule(module)) {
-                return <VideoModule module={module} />;
-              } else if (isChartModule(module)) {
-                return <ChartModule module={module} />;
-
-              // fallback rendering
-              } else {
-                  const safeContent = sanitizeContent((module as Module).content);
-
-                  return (
-                    <div className="p-4 border border-yellow-200 rounded bg-yellow-50">
-                      <h3 className="font-medium text-yellow-800">
-                        Unknown Module Type/Template: {(module as Module).type}
-                      </h3>
-                      {(module as Module).title && (
-                        <p className="mt-2 text-yellow-700">
-                          Title: {(module as Module).title}
-                        </p>
-                      )}
-                      {safeContent && (
-                        <div
-                          className="mt-2 prose-sm max-w-none text-yellow-700"
-                          dangerouslySetInnerHTML={{ __html: safeContent }}
-                        />
-                      )}
-                    </div>
-                  );
-                }
-            })()}
-          </ModuleErrorBoundary>
-        </Suspense>
-      );
     };
 
-  // Add error boundary around each module component
-  return (
-    <ErrorBoundary
-      fallback={
-        <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded m-2">
-          Error rendering module: {moduleType} (ID: {moduleId})
-        </div>
-      }
-    >
-      <div
-        className={cn(
-          'module',
-          `module-${moduleType}`,
-          isFullWidth ? 'w-full' : '',
-          className
-        )}
-        data-module-id={moduleId}
-        data-module-type={moduleType}
+    // Add error boundary around each module component
+    return (
+      <ErrorBoundary
+        fallback={
+          <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded m-2">
+            Error rendering module: {moduleType} (ID: {moduleId})
+          </div>
+        }
       >
-        {renderModuleContent()}
+        <div
+          className={moduleClasses}
+          data-module-id={moduleId}
+          data-module-type={moduleType}
+        >
+          {renderModuleContent()}
         </div>
-    </ErrorBoundary>
-  );
+      </ErrorBoundary>
+    );
   } catch (error: unknown) {
     // Handle any runtime errors
     console.error('Error rendering module:', error);

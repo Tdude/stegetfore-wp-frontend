@@ -1,10 +1,6 @@
 // src/lib/api/pageApi.ts
 import { fetchApi } from "./baseApi";
 import { Page, LocalPage } from "@/lib/types";
-import {
-  adaptWordPressPage,
-  adaptWordPressPageToLocalPage,
-} from "@/lib/adapters/pageAdapter";
 
 /**
  * Fetch pages with optional pagination and filtering
@@ -19,7 +15,6 @@ export async function fetchPages(
     parent?: number;
     orderBy?: string;
     order?: "asc" | "desc";
-    includeModules?: boolean;
   } = {}
 ): Promise<Page[]> {
   try {
@@ -30,7 +25,6 @@ export async function fetchPages(
       parent,
       orderBy = "date",
       order = "desc",
-      includeModules = false,
     } = params;
 
     // Build query string
@@ -55,7 +49,8 @@ export async function fetchPages(
       return [];
     }
 
-    return pages.map((page) => adaptWordPressPage(page));
+    // Return the pages directly, with minimal processing
+    return pages;
   } catch (error) {
     console.error("Error fetching pages:", error);
     return [];
@@ -65,30 +60,86 @@ export async function fetchPages(
 /**
  * Fetch a single page by slug
  * @param slug The page slug
- * @param includeModules Whether to include modules in the response
+ * @param usePreviewToken Whether to include a preview token for draft content
  * @returns A LocalPage object or null if not found
  */
 export async function fetchPage(
   slug: string,
-  includeModules = true
+  usePreviewToken = false
 ): Promise<LocalPage | null> {
   try {
-    // Cache individual pages for 20 minutes
-    const pages = await fetchApi(`/wp/v2/pages?slug=${slug}&_embed`, {
-      revalidate: 1200,
+    // Standard WordPress API endpoint for all pages
+    const endpoint = `/wp/v2/pages?slug=${slug}&_embed`;
+    
+    // Make direct fetch request to get raw response
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${apiUrl}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: 'no-store',
     });
-
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    
+    // Get the raw JSON text
+    const text = await response.text();
+    
+    // Check if modules are in the raw response
+    const hasModulesInRaw = text.includes('"modules":');
+    console.log(`Raw API response ${hasModulesInRaw ? 'CONTAINS' : 'DOES NOT CONTAIN'} modules field`);
+    
+    // Parse JSON manually to ensure all fields are preserved
+    const pages = JSON.parse(text);
+    
     if (!Array.isArray(pages) || pages.length === 0) {
+      console.log(`No pages found for slug: ${slug}`);
       return null;
     }
-
+    
+    // Get the first page
     const page = pages[0];
     
-    // The adaptWordPressPageToLocalPage function now handles modules directly
-    // from the WordPress REST API response, so no separate call is needed
-    return adaptWordPressPageToLocalPage(page);
+    // Log all top-level keys to see what's available
+    console.log(`Page object keys for ${slug}:`, Object.keys(page));
+    
+    // Use a temporary variable to build a page object with the correct structure
+    const rawPageData = {
+      id: page.id,
+      slug: page.slug || "",
+      title: {
+        rendered: page.title?.rendered || ""
+      },
+      content: {
+        rendered: page.content?.rendered || ""
+      },
+      excerpt: page.excerpt ? {
+        rendered: page.excerpt.rendered || ""
+      } : undefined,
+      modules: page.modules || [],
+      type: page.type || "",
+      template: page.template || "default",
+      featured_image_url: page.featured_image_url || null,
+      _embedded: page._embedded,
+      // Get the content toggle flag - content is only shown when flag is true
+      // This matches WordPress admin "Show content when modules are present" checkbox
+      show_content_with_modules: page.show_content_with_modules === true || 
+                              (page.meta && page.meta.show_content_with_modules === true) ||
+                              false,
+      // Get content position - default to 'after' if not specified
+      content_position: page.content_position || 
+                     (page.meta && page.meta.content_position) || 
+                     'after'
+    };
+    
+    // Cast to LocalPage to satisfy TypeScript
+    const localPage = rawPageData as LocalPage;
+    
+    return localPage;
   } catch (error) {
-    console.error(`Error fetching page with slug ${slug}:`, error);
+    console.error(`Error fetching page "${slug}":`, error);
     return null;
   }
 }
@@ -96,27 +147,62 @@ export async function fetchPage(
 /**
  * Fetch a page by ID
  * @param id The page ID
- * @param includeModules Whether to include modules in the response
- * @returns A Page object or null if not found
+ * @param usePreviewToken Whether to include a preview token for draft content
+ * @returns A LocalPage object or null if not found
  */
 export async function fetchPageById(
   id: number,
-  includeModules = true
-): Promise<Page | null> {
+  usePreviewToken = false
+): Promise<LocalPage | null> {
   try {
-    // Cache individual pages for 20 minutes
-    const page = await fetchApi(`/wp/v2/pages/${id}?_embed`, {
-      revalidate: 1200,
+    // Standard WordPress API endpoint for getting a page by ID
+    const endpoint = `/wp/v2/pages/${id}?_embed`;
+    
+    // Fetch page data with cache disabled
+    const page = await fetchApi(endpoint, {
+      revalidate: 0, // No caching
     });
-
+    
     if (!page || !page.id) {
+      console.warn(`No page found for ID: ${id}`);
       return null;
     }
 
-    // Return the adapted page with modules
-    return adaptWordPressPage(page);
+    // Use a temporary variable to build a page object with the correct structure
+    const rawPageData = {
+      id: page.id,
+      slug: page.slug || "",
+      title: {
+        rendered: page.title?.rendered || ""
+      },
+      content: {
+        rendered: page.content?.rendered || ""
+      },
+      excerpt: page.excerpt ? {
+        rendered: page.excerpt.rendered || ""
+      } : undefined,
+      modules: page.modules || [],
+      type: page.type || "",
+      template: page.template || "default",
+      featured_image_url: page.featured_image_url || null,
+      _embedded: page._embedded,
+      // Get the content toggle flag - content is only shown when flag is true
+      // This matches WordPress admin "Show content when modules are present" checkbox
+      show_content_with_modules: page.show_content_with_modules === true || 
+                              (page.meta && page.meta.show_content_with_modules === true) ||
+                              false,
+      // Get content position - default to 'after' if not specified
+      content_position: page.content_position || 
+                     (page.meta && page.meta.content_position) || 
+                     'after'
+    };
+    
+    // Cast to LocalPage to satisfy TypeScript
+    const localPage = rawPageData as LocalPage;
+    
+    return localPage;
   } catch (error) {
-    console.error(`Error fetching page with ID ${id}:`, error);
+    console.error(`Error fetching page by ID "${id}":`, error);
     return null;
   }
 }

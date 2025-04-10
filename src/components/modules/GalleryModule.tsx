@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GalleryModule as GalleryModuleType } from '@/lib/types';
+import { GalleryModule as GalleryModuleType } from '@/lib/types/moduleTypes';
 import Image from 'next/image';
 import {
   Carousel,

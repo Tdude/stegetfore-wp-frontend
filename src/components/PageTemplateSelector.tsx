@@ -3,12 +3,10 @@
 
 import React, { memo, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import {
-  PageTemplate,
-  PageTemplateSelectorProps,
-  Module,
-  Page
-} from '@/lib/types';
+import { PageTemplate } from '@/lib/types/baseTypes';
+import { PageTemplateSelectorProps } from '@/lib/types/componentTypes';
+import { Module } from '@/lib/types/moduleTypes';
+import { Page, LocalPage } from '@/lib/types/contentTypes';
 import { FEATURES } from '@/lib/featureFlags';
 
 // Import all templates
@@ -16,7 +14,7 @@ import HomepageTemplate from './templates/HomepageTemplate';
 import DefaultTemplate from './templates/DefaultTemplate';
 import FullWidthTemplate from './templates/FullWidthTemplate';
 import SidebarTemplate from './templates/SidebarTemplate';
-import LandingTemplate from './templates/LandingTemplate';
+import BlogIndexTemplate from './templates/BlogIndexTemplate';
 import EvaluationTemplate from './templates/EvaluationTemplate';
 import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
@@ -32,7 +30,7 @@ const templates: Partial<TemplateMap> = {
   [PageTemplate.HOMEPAGE]: HomepageTemplate,
   [PageTemplate.FULL_WIDTH]: FullWidthTemplate,
   [PageTemplate.SIDEBAR]: SidebarTemplate,
-  [PageTemplate.LANDING]: LandingTemplate,
+  [PageTemplate.BLOG_INDEX]: BlogIndexTemplate,
   [PageTemplate.EVALUATION]: EvaluationTemplate,
   [PageTemplate.CIRCLE_CHART]: CircleChartTemplate,
   [PageTemplate.CONTACT]: ContactFormTemplate,
@@ -52,22 +50,33 @@ function PageTemplateSelector({
 
   // Helper function to determine if page has modules
   const hasModules = useMemo(() => {
-    const pageModules: Module[] = Array.isArray(page?.modules) ? page.modules : [];
+    // Guard clause - ensure page exists
+    if (!page) {
+      return false;
+    }
+    
+    // Simply use the modules directly without extra transformation
+    const pageModules = page.modules || [];
     return pageModules.length > 0;
-  }, [page?.modules]);
+  }, [page]);
 
-  // Render template based on conditions
-  const renderTemplate = useCallback(() => {
+  // Use callback to determine which template to render
+  const renderedTemplate = useCallback(() => {
+    // Double check for required properties
+    if (!page) {
+      return null;
+    }
+
     // Force homepage template if isHomePage is true
     if (isHomePage) {
-      return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
+      return <HomepageTemplate key="homepage" page={page as LocalPage} homepage={homepageData} />;
     }
 
     // Handle modular template
     if (FEATURES.USE_MODULAR_TEMPLATES && ModularTemplate && (hasModules || template === PageTemplate.MODULAR)) {
       return (
         <React.Suspense fallback={<DefaultTemplate key="default" page={page as Page} />}>
-          <ModularTemplate key="modular" page={page} />
+          <ModularTemplate key="modular" page={page as LocalPage} />
         </React.Suspense>
       );
     }
@@ -77,44 +86,24 @@ function PageTemplateSelector({
 
     // Ensure TemplateComponent is not undefined
     if (!TemplateComponent) {
-      console.warn('No template component found, using DefaultTemplate');
       return <DefaultTemplate key="default" page={page as Page} />;
     }
 
     // Pass homepage data to homepage template specifically
     if (template === PageTemplate.HOMEPAGE) {
-      return <HomepageTemplate key="homepage" page={page} homepage={homepageData} />;
+      return <HomepageTemplate key="homepage" page={page as LocalPage} homepage={homepageData} />;
     }
-
-    // Type assertion for page to include potential evaluation properties
-    const typedPage = page as Page & {
-      evaluationId?: string | number;
-      studentId?: string | number;
-      meta?: {
-        student_id?: string | number;
-        [key: string]: any;
-      };
-    };
 
     // Render appropriate template with correct props
     return React.createElement(TemplateComponent, {
       key: template || 'default',
-      page,
-      ...(template === PageTemplate.EVALUATION && { 
-        evaluationId: typedPage.evaluationId ? Number(typedPage.evaluationId) : undefined,
-        studentId: typedPage.studentId ? Number(typedPage.studentId) : 
-                  (typedPage.meta && typedPage.meta.student_id) ? Number(typedPage.meta.student_id) : undefined
-      }),
-      ...(template === PageTemplate.CIRCLE_CHART && {
-        chartData: page.chartData,
-        title: page.title?.rendered
-      })
+      page: page as (Page | LocalPage) // Cast to either Page or LocalPage as needed
     });
   }, [template, page, isHomePage, hasModules, homepageData]);
 
   return (
     <AnimatePresence mode="wait">
-      {renderTemplate()}
+      {renderedTemplate()}
     </AnimatePresence>
   );
 }

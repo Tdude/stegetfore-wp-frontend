@@ -1,5 +1,5 @@
 // src/services/dataService.ts
-import Page, { HomepageData, Module, Post } from "@/lib/types";
+import { Page, HomepageData, Module, Post } from "@/lib/types";
 import {
   fetchHomepageData,
   fetchFeaturedPosts,

@@ -184,3 +184,11 @@ export interface HeaderProps {
     }>;
   }>;
 }
+
+// Image container types for the OptimizedImage component
+export type ImageContainer =
+  | "hero"
+  | "featured"
+  | "card"
+  | "gallery"
+  | "default";

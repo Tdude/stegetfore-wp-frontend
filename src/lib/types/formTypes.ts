@@ -15,11 +15,11 @@ export interface WPCF7Field {
   labels: string[];
   options?: string[];
   default_value?: string;
-  min?: number;
-  max?: number;
-  step?: number;
+  min?: string | number;
+  max?: string | number;
+  step?: string | number;
   multiple?: boolean;
-  class?: string[];
+  class?: string | string[];
   readonly?: boolean;
   disabled?: boolean;
   size?: number;

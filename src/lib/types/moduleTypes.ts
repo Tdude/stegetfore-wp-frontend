@@ -29,6 +29,7 @@ export interface BaseModule {
   order?: number;
   status?: "publish" | "draft";
   settings?: Record<string, any>;
+  originalType?: string; // For debugging purposes
   categories?: string | string[];
   placements?: string[] | string;
 }

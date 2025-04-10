@@ -1,6 +1,8 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
-import { HomepageData, LocalPage, PageTemplate } from '@/lib/types';
+import { HomepageData } from '@/lib/types/contentTypes';
+import { LocalPage } from '@/lib/types/contentTypes';
+import { PageTemplate } from '@/lib/types/baseTypes';
 import { fetchPage, fetchPageById } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';

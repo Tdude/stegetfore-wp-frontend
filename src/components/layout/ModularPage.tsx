@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Module } from '@/lib/types';
+import { Module } from '@/lib/types/moduleTypes';
 import { groupModulesBySection } from '@/services/moduleService';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
 import { cn } from '@/lib/utils';

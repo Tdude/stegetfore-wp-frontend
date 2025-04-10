@@ -39,15 +39,35 @@ export interface BaseContent {
   featured_image_url?: string | null;
   date?: string;
   modified?: string;
+  content_display_settings?: {
+    show_content_with_modules: boolean;
+    content_position: 'before' | 'after';
+  };
+  show_content_with_modules?: boolean; // Legacy field, kept for backward compatibility
 }
 
 /**
  * Post content type
  */
 export interface Post extends BaseContent {
-  featured_image: string | null | undefined;
-  link: string;
-  categories: number[] | string[];
+  featured_image?: {
+    source_url: string;
+    alt_text?: string;
+    media_details?: {
+      width: number;
+      height: number;
+      sizes?: Record<
+        string,
+        {
+          source_url: string;
+          width: number;
+          height: number;
+        }
+      >;
+    };
+  } | string | null;
+  link?: string;
+  categories?: number[] | string[];
   tags?: number[];
   author?: number;
   comment_status?: "open" | "closed";
@@ -80,6 +100,7 @@ export interface Page extends BaseContent {
   parent?: number;
   menu_order?: number;
   comment_status?: "open" | "closed";
+  featured_media?: number;
   chartData?: {
     segments: number[];
   } | null;
@@ -96,19 +117,32 @@ export interface Page extends BaseContent {
  * Includes modules array for modular pages
  */
 export interface LocalPage extends BaseContent {
-  id: number;
-  slug: string;
-  chartData?: {
-    segments: number[];
-  } | null;
-  evaluationId?: string;
-  studentId?: string | number;
+  // We're extending BaseContent, which already has:
+  // id, slug, title, content, excerpt, template, _embedded, featured_image_url, show_content_with_modules
+  
+  // Additional properties specific to LocalPage
+  type?: string;
+  
+  // Override modules to be required (not optional like in BaseContent)
+  modules: Module[];
+  
+  // Hero content for the page
+  hero?: {
+    title?: string;
+    intro?: string;
+    image?: string | string[];
+    buttons?: Array<{
+      text: string;
+      url: string;
+      style: "primary" | "secondary" | "outline";
+    }>;
+  };
+  
+  // Meta information for the page
   meta?: {
-    student_id?: string | number;
+    content_position?: 'before' | 'after';
     [key: string]: any;
   };
-  type?: string;
-  modules: Module[]; // Use Module from moduleTypes.ts
 }
 
 /**
@@ -146,9 +180,48 @@ export interface MenuItem {
 }
 
 /**
+ * Homepage Data
+ */
+export interface HomepageData {
+  id?: number;
+  slug?: string;
+  title?: string | { rendered: string };
+  content?: { rendered: string } | string;
+  excerpt?: { rendered: string } | string;
+  hero?: {
+    title?: string;
+    content?: string;
+    image?: string | string[];
+    intro?: string;
+    cta?: {
+      text: string;
+      url: string;
+    };
+    buttons?: Array<{
+      text: string;
+      url: string;
+      style: "primary" | "secondary" | "outline";
+    }>;
+  };
+  modules?: Module[];
+  featured_posts_title?: string;
+  selling_points?: any[];
+  selling_points_title?: string;
+  stats?: any[];
+  stats_title?: string;
+  stats_subtitle?: string;
+  featured_posts?: any[];
+  categories?: Record<number, { id: number; name: string; slug: string }>;
+  date?: string;
+  modified?: string;
+  featured_image_url?: string | null;
+  template?: string;
+}
+
+/**
  * Complete homepage data
  */
-export interface HomepageData extends BaseContent {
+export interface HomepageDataFull extends BaseContent {
   featured_posts?: LocalPost[];
   categories?: Record<number, { id: number; name: string; slug: string }>;
   hero?: {

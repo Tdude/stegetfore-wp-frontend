@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
-
+import DebugPanel from '@/components/debug/DebugPanel';
 
 async function getSlugFromParams(params: { slug: string }) {
   const result = await Promise.resolve(params);
@@ -21,38 +21,55 @@ async function Post({ slug }: { slug: string }) {
   }
 
   return (
-    <article className="max-w-3xl mx-auto">
-      {post.featured_image_url && (
-        <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
-          <Image
-            src={post.featured_image_url}
-            alt={post.title.rendered.replace(/<[^>]*>/g, '')}
-            fill={true}
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1024px"
-            priority={true}
-            className="object-cover"
-          />
+    <>
+      <article className="max-w-3xl mx-auto px-4">
+        {post.featured_image_url && (
+          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+            <Image
+              src={post.featured_image_url}
+              alt={post.title.rendered.replace(/<[^>]*>/g, '')}
+              fill={true}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1024px"
+              priority={true}
+              className="object-cover"
+            />
+          </div>
+        )}
+
+        <h1
+          className="text-4xl font-bold mb-8"
+          dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+        />
+        <div
+          className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
+          dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+        />
+
+        <div className="mt-8 mb-8">
+          <Link
+            href="/blog"
+            className="text-yellow-500 hover:text-yellow-600"
+          >
+            ← Alla inlägg
+          </Link>
         </div>
-      )}
-
-      <h1
-        className="text-4xl font-bold mb-4"
-        dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-      />
-      <div
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: post.content.rendered }}
-      />
-
-      <div className="mt-8">
-        <Link
-          href="/blog"
-          className="text-yellow-500 hover:text-yellow-600"
-        >
-          ← Alla inlägg
-        </Link>
+      </article>
+      
+      {/* Add debug panel */}
+      <div className="max-w-3xl mx-auto px-4">
+        <DebugPanel 
+          title="Blog Post Debug Information"
+          page={post}
+          additionalData={{
+            'Post ID': post.id,
+            'Slug': post.slug,
+            'Has Featured Image': Boolean(post.featured_image_url),
+            'Categories': post.categories ? Object.keys(post.categories).length : 0,
+            'Content Length': post.content?.rendered?.length || 0,
+          }}
+        />
       </div>
-    </article>
+    </>
   );
 }
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import OptimizedImage from '@/components/OptimizedImage';
-import { Post } from '@/lib/types';
+import { Post } from '@/lib/types/contentTypes';
 
 interface CategoryDisplay {
   id: number;
@@ -12,9 +12,14 @@ interface CategoryDisplay {
   slug: string;
 }
 
+interface CategoriesMap {
+  [key: number]: CategoryDisplay;
+}
+
 interface PostsListProps {
   posts: Post[];
-  categories?: Record<number, CategoryDisplay>;
+  categories?: CategoriesMap;
+  title?: string;
 }
 
 export default function PostsList({ posts, categories }: PostsListProps) {
@@ -39,9 +44,9 @@ export default function PostsList({ posts, categories }: PostsListProps) {
               {post.categories && categories && (
                 <div className="flex flex-wrap gap-2 mb-2">
                   {post.categories.slice(0, 2).map((categoryId) => (
-                    categories[categoryId] && (
+                    categories[categoryId as number] && (
                       <Badge key={categoryId} variant="secondary">
-                        {categories[categoryId].name}
+                        {categories[categoryId as number].name}
                       </Badge>
                     )
                   ))}

@@ -10,7 +10,7 @@ import {
   GalleryModule,
   TextModule,
   FormModule,
-  AccordionModule,
+  AccordionFaqModule,
   TabsModule,
   VideoModule,
   ChartModule,
@@ -95,7 +95,7 @@ export function isTabsModule(module: Module): module is TabsModule {
 /**
  * Type guard to check if a module is an AccordionModule or faq
  */
-export function isAccordionModule(module: Module): module is AccordionModule {
+export function isAccordionModule(module: Module): module is AccordionFaqModule {
   return module.type === "accordion" || module.type === "faq";
 }
 /**

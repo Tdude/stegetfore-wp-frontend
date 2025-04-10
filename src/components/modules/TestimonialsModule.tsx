@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TestimonialsModule as TestimonialsModuleType } from '@/lib/types';
+import { TestimonialsModule as TestimonialsModuleType } from '@/lib/types/moduleTypes';
 import {
   Card,
   CardContent,

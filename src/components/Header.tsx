@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import type { MenuItem, SiteInfo } from '@/lib/types';
+import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
 
 interface HeaderProps {
   siteInfo: SiteInfo;

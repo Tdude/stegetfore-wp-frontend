@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { TextModule as TextModuleType } from '@/lib/types';
+import { TextModule as TextModuleType } from '@/lib/types/moduleTypes';
 import { cn } from '@/lib/utils';
 
 interface TextModuleProps {

@@ -90,12 +90,11 @@ export async function fetchModules(
     page?: number;
     pageId?: number;
     template?: string;
-    category?: string;
     perPage?: number;
   } = {}
 ): Promise<Module[]> {
   try {
-    const { pageId, template, category, page = 1, perPage = 20 } = params;
+    const { pageId, template, page = 1, perPage = 20 } = params;
 
     // Build query string
     const queryParams = new URLSearchParams({
@@ -104,12 +103,6 @@ export async function fetchModules(
     });
 
     if (template) queryParams.append("template", template);
-
-    // For category, we need to handle it differently
-    if (category) {
-      // Try the taxonomy parameter format - may vary depending on your API
-      queryParams.append("module_category", category);
-    }
 
     // Determine the endpoint based on whether we're fetching for a specific page
     const endpoint = pageId
@@ -126,37 +119,7 @@ export async function fetchModules(
     // Handle different response formats
     const modules = result.modules || result;
 
-    // If no modules found with the category filter, try fetching all and filtering client-side
-    if (!modules.length && category) {
-      console.log(
-        "No modules found with category filter, trying client-side filtering"
-      );
-
-      // Fetch all modules
-      const allModulesResult = await fetchApi(
-        `/steget/v1/modules?per_page=${perPage}`,
-        {
-          revalidate: 600,
-        }
-      );
-
-      const allModules = allModulesResult.modules || allModulesResult;
-
-      // Filter modules that include the category in their categories array
-      const filteredModules = allModules.filter(
-        (module: { categories: any[] }) =>
-          Array.isArray(module.categories) &&
-          module.categories.some(
-            (cat) =>
-              typeof cat === "string" &&
-              cat.toLowerCase() === category.toLowerCase()
-          )
-      );
-
-      return adaptWordPressModules(filteredModules);
-    }
-
-    return adaptWordPressModules(Array.isArray(modules) ? modules : []);
+    return adaptWordPressModules(modules);
   } catch (error) {
     console.error("Error fetching modules:", error);
     return [];

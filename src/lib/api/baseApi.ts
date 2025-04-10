@@ -8,7 +8,7 @@ if (!API_URL) {
 }
 
 /**
- * Core function for making API requests to WordPress
+ * Shared function to make API calls to the WordPress backend
  * @param endpoint The API endpoint path (without the base URL)
  * @param options Additional fetch options including revalidation time
  * @returns The JSON response from the API
@@ -22,57 +22,38 @@ export async function fetchApi(
     headers?: Record<string, string>;
   } = {}
 ) {
-  const url = `${API_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
-
+  const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  
   try {
-    // Determine if we should stringify the body based on content type
-    const contentType = options.headers?.["Content-Type"] || "application/json";
-    let body = options.body;
-    
-    // Only stringify JSON bodies, leave others as is
-    if (options.body && contentType === "application/json") {
-      body = JSON.stringify(options.body);
-    }
-    
-    // Set default Content-Type if not specified in headers
-    const headers = {
-      "Content-Type": contentType,
-      ...(options.headers || {})
-    };
-
     const response = await fetch(url, {
       method: options.method || "GET",
-      headers,
-      body: body,
-      // Default to 60 seconds if not specified
-      next: { revalidate: options.revalidate ?? 60 },
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      // Disable cache for all requests
+      cache: 'no-store',
     });
 
     if (!response.ok) {
-      const errorInfo = {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-      };
-      
-      console.error("API Error:", errorInfo);
-      
-      // Try to get more detailed error information from the response if possible
-      try {
-        const errorData = await response.json();
-        throw new Error(
-          `API error (${response.status}): ${errorData.message || response.statusText}`
-        );
-      } catch (jsonError) {
-        // If we can't parse the JSON, just throw with the status info
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
-    return data;
+    // Parse the response carefully to preserve all fields
+    const text = await response.text();
+    
+    try {
+      // Parse JSON while preserving all fields
+      const data = JSON.parse(text);
+      return data;
+    } catch (jsonError: any) {
+      console.error(`JSON parse error for ${url}:`, jsonError);
+      throw new Error(`Failed to parse JSON response: ${jsonError.message}`);
+    }
   } catch (error) {
-    return handleApiError(error, endpoint);
+    console.error(`API request error for ${url}:`, error);
+    throw error;
   }
 }
 

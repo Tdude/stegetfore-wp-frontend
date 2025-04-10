@@ -1,5 +1,5 @@
 // src/lib/adapters/postAdapter.ts
-import { Post } from "@/lib/types";
+import { Post, LocalPost } from "@/lib/types/contentTypes";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 
 /**
@@ -7,33 +7,33 @@ import { getOptimalImageSize } from "@/lib/imageUtils";
  * @param wpPost WordPress post data
  * @returns Post object formatted for the application
  */
-export function adaptWordPressPost(wpPost: any): Post | null {
-  if (!wpPost) return null;
+export function adaptWordPressPost(wpPost: any): Post {
+  // Extract featured image from _embedded if available
+  const featuredImage = wpPost._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null;
 
   return {
     id: wpPost.id,
-    slug: wpPost.slug,
+    slug: wpPost.slug || "",
     title: {
       rendered: wpPost.title?.rendered || "",
-    },
-    excerpt: {
-      rendered: wpPost.excerpt?.rendered || "",
     },
     content: {
       rendered: wpPost.content?.rendered || "",
     },
-    featured_image_url:
-      wpPost._embedded?.["wp:featuredmedia"]?.[0]?.source_url ||
-      wpPost.featured_image_url ||
-      null,
+    excerpt: {
+      rendered: wpPost.excerpt?.rendered || "",
+    },
+    featured_image: featuredImage,
+    link: wpPost.link || "",
     categories: wpPost.categories || [],
     tags: wpPost.tags || [],
+    template: wpPost.template || "default",
+    featured_image_url: featuredImage,
     date: wpPost.date,
     modified: wpPost.modified,
-    author: wpPost.author,
-    // Get author name and avatar from embedded data if available
-    author_name: wpPost._embedded?.["author"]?.[0]?.name,
-    author_avatar: wpPost._embedded?.["author"]?.[0]?.avatar_urls?.["96"],
+    author: wpPost.author || 0,
+    author_name: wpPost._embedded?.["author"]?.[0]?.name || "",
+    author_avatar: wpPost._embedded?.["author"]?.[0]?.avatar_urls?.["96"] || "",
   };
 }
 
@@ -42,12 +42,10 @@ export function adaptWordPressPost(wpPost: any): Post | null {
  * @param wpPosts Array of WordPress post data
  * @returns Array of Post objects formatted for the application
  */
-export function adaptWordPressPosts(wpPosts: any[]): (Post | null)[] {
+export function adaptWordPressPosts(wpPosts: any[]): Post[] {
   if (!Array.isArray(wpPosts)) return [];
 
-  return wpPosts
-    .map((post) => adaptWordPressPost(post))
-    .filter((post): post is Post => post !== null); // Remove null values
+  return wpPosts.map((post) => adaptWordPressPost(post));
 }
 
 /**

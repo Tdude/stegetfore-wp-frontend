@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { VideoModule as VideoModuleType } from '@/lib/types';
+import { VideoModule as VideoModuleType } from '@/lib/types/moduleTypes';
 import OptimizedImage from '@/components/OptimizedImage';
 import { cn } from '@/lib/utils';
 

@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { CTAModule as CTAModuleType } from '@/lib/types';
+import { CTAModule as CTAModuleType } from '@/lib/types/moduleTypes';
 import { Button } from '@/components/ui/button';
 import { cn, cleanWordPressContent } from '@/lib/utils';
 import OptimizedImage from '@/components/OptimizedImage';
