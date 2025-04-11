@@ -40,7 +40,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
         <div className="h-full flex items-center">
           <Link
             href={href}
-            className="flex items-center h-full px-4 text-gray-800 hover:text-black transition-colors border-t-2 border-transparent hover:border-primary"
+            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent hover:border-primary"
             {...linkProps}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -58,7 +58,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
                 <li key={child.ID}>
                   <Link
                     href={getFormattedHref(child.slug)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                    className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 whitespace-nowrap"
                     {...(child.target ? { target: child.target } : {})}
                     onClick={() => setMobileMenuOpen(false)}
                   >
