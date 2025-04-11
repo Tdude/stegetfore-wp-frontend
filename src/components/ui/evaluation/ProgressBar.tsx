@@ -1,33 +1,154 @@
 // src/components/ui/evaluation/ProgressBar.tsx
-import React from 'react';
 import { ProgressBarProps } from '@/lib/types/formTypesEvaluation';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 /**
- * Progress Bar component with gradient support
- * Displays progress with color gradients based on value and stage
+ * Progress bar gradient classes to match original styling with intricate cross-fading
  */
-const ProgressBar: React.FC<ProgressBarProps> = ({ value, type, stage }) => {
-  const baseClasses = "h-2 rounded-full transition-all duration-300";
-  const typeClasses = type === 'section' ? 'h-1' : 'h-6';
+const progressGradients = {
+  low: 'bg-gradient-to-r from-red-400 via-red-300 to-amber-200',
+  medium: 'bg-gradient-to-r from-amber-300 via-amber-200 to-green-200',
+  high: 'bg-gradient-to-r from-amber-200 via-green-300 to-green-400',
+  complete: 'bg-gradient-to-r from-green-300 via-green-400 to-green-500'
+};
 
-  // Create a gradient color based on the value
-  const getProgressColor = (value: number, stage?: 'ej' | 'trans' | 'full') => {
-    if (type === 'total' && stage === 'ej') return 'bg-red-500';
-    
-    // Gradient colors based on value
-    if (value < 20) return 'bg-gradient-to-r from-red-600 to-red-400';
-    if (value < 40) return 'bg-gradient-to-r from-red-400 to-amber-400';
-    if (value < 60) return 'bg-gradient-to-r from-amber-400 to-amber-300';
-    if (value < 80) return 'bg-gradient-to-r from-amber-300 to-green-400';
-    return 'bg-gradient-to-r from-green-400 to-green-600';
-  };
+/**
+ * Progress bar component used to display progress in the evaluation form
+ */
+const ProgressBar: React.FC<ProgressBarProps> = ({ 
+  value = 0, 
+  type = 'section', 
+  stage,
+  label,
+  showLabel = false
+}) => {
+  // Ensure value is between 0 and 1
+  const normalizedValue = Math.max(0, Math.min(value, 1));
+  const percentage = Math.round(normalizedValue * 100);
+  
 
+  let gradientClass = '';
+  if (stage === 'ej') {
+    gradientClass = progressGradients.low;
+  } else if (stage === 'trans') {
+    gradientClass = progressGradients.medium;
+  } else if (stage === 'full') {
+    gradientClass = progressGradients.complete;
+  } else if (value < 0.55) {
+    gradientClass = progressGradients.low;
+  } else if (value < 0.7) {
+    gradientClass = progressGradients.medium;
+  } else {
+    gradientClass = progressGradients.complete;
+  }
+  
+  // Set bar height based on type
+  const barHeight = type === 'total' ? 'h-6' : 'h-2';
+  
   return (
-    <div className="w-full bg-gray-50 rounded-full">
-      <div
-        className={`${baseClasses} ${typeClasses} ${getProgressColor(value, stage)}`}
-        style={{ width: `${value}%` }}
-      />
+    <div className="w-full">
+      {showLabel && label && (
+        <div className="mb-1 text-sm font-medium">{label} ({percentage}%)</div>
+      )}
+      <div className={cn(
+        "w-full rounded-full bg-gray-200 overflow-hidden",
+        type === 'total' ? 'mb-4' : 'mb-2',
+        barHeight
+      )}>
+        <div 
+          className={cn("h-full rounded-full transition-all duration-300", gradientClass)}
+          style={{ width: `${percentage}%` }}
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Marker pill component for progress bar
+ */
+const MarkerPill: React.FC<{
+  position: number; // 0 to 1
+  label: string;
+}> = ({ position, label }) => {
+  // Ensure position is between 0 and 1
+  const normalizedPosition = Math.max(0, Math.min(position, 1));
+  const positionPercent = normalizedPosition * 100;
+  
+  return (
+    <div 
+      className="absolute top-0 transform -translate-y-full"
+      style={{ left: `${positionPercent}%` }}
+    >
+      <div className="bg-white border border-gray-300 rounded-full px-2 py-0.5 text-xs font-medium shadow-sm whitespace-nowrap">
+        {label}
+      </div>
+      <div className="w-0.5 h-3 bg-gray-400 mx-auto mt-0.5"></div>
+    </div>
+  );
+};
+
+/**
+ * Dual section progress bar component
+ * Shows two independent progress bars (anknytning & ansvar) side by side
+ */
+export const DualSectionProgressBar: React.FC<{
+  anknytningProgress: number;
+  ansvarProgress: number;
+}> = ({ anknytningProgress, ansvarProgress }) => {
+  return (
+    <div className="w-full mb-8 mt-4">
+      <div className="flex flex-col sm:flex-row gap-8">
+        <div className="flex-1">
+          <h3 className="text-md font-medium mb-8">Anknytningstecken</h3>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-medium">{Math.round(anknytningProgress * 100)}%</span>
+          </div>
+          <div className="relative">
+            <div className="w-full h-6 rounded-full bg-gray-200 overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-300",
+                  anknytningProgress < 0.55 ? progressGradients.low :
+                  anknytningProgress < 0.7 ? progressGradients.medium : progressGradients.high
+                )}
+                style={{ width: `${Math.round(anknytningProgress * 100)}%` }}
+              />
+            </div>
+            {/* Marker pills for anknytning - positioned at 1/3 and 2/3 */}
+            <MarkerPill position={0.15} label="Ej ankuten" />
+            <MarkerPill position={0.45} label="Ankuten" />
+            <MarkerPill position={0.73} label="Spiller över" />
+          </div>
+        </div>
+        
+        <div className="flex-1">
+          <h3 className="text-md font-medium mb-8">Ansvarstecken</h3>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-medium">{Math.round(ansvarProgress * 100)}%</span>
+          </div>
+          <div className="relative">
+            <div className="w-full h-6 rounded-full bg-gray-200 overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-300",
+                  ansvarProgress < 0.5 ? progressGradients.low :
+                  ansvarProgress < 0.7 ? progressGradients.medium : progressGradients.high
+                )}
+                style={{ width: `${Math.round(ansvarProgress * 100)}%` }}
+              />
+            </div>
+            {/* Middle marker pill for ansvar */}
+            <MarkerPill position={0.3} label="Ej elev" />
+            <MarkerPill position={0.55} label="Elev" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

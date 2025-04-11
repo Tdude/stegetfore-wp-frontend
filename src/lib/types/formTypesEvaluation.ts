@@ -79,6 +79,8 @@ export interface ProgressBarProps {
   value: number;
   type: "section" | "total";
   stage?: "ej" | "trans" | "full";
+  label?: string;
+  showLabel?: boolean;
 }
 
 /**

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
-import ProgressBar from '@/components/ui/evaluation/ProgressBar';
+import ProgressBar, { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
 
 interface StepByStepViewProps {
@@ -26,6 +26,7 @@ interface StepByStepViewProps {
   handleStepByStepQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   calculateProgress: (sectionId: keyof FormData, questionId: string) => number;
+  calculateSectionProgress: (sectionId: keyof FormData) => number;
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
@@ -48,17 +49,18 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   handleStepByStepQuestionChange,
   handleCommentChange,
   calculateProgress,
+  calculateSectionProgress,
   isSaving,
   handleSubmit,
   evaluationId
 }) => {
-  const questionCardRef = useRef<HTMLDivElement>(null);
+  const questionContainerRef = useRef<HTMLDivElement>(null);
   
   // Current question data
-  const currentQuestionData = allQuestions[currentQuestionIndex] || null;
+  const currentQuestion = allQuestions[currentQuestionIndex] || null;
   
   // If no current question, show a message
-  if (!currentQuestionData) {
+  if (!currentQuestion) {
     return (
       <div className="py-8">
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
@@ -87,35 +89,31 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   }
 
   return (
-    <div className="space-y-8">
-      {/* Progress indicator */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium">Progress totalt</span>
-          {/*<span className="text-sm font-medium">{Math.round((currentQuestionIndex / allQuestions.length) * 100)}%</span>*/}
-        </div>
-        <ProgressBar 
-          value={Math.round((currentQuestionIndex / allQuestions.length) * 100)} 
-          type="total" 
-        />
+    <div className="space-y-6 p-4 max-w-3xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Utvärdering</h2>
       </div>
-
-      {/* Question card with fade animation */}
+      
+      <DualSectionProgressBar 
+        anknytningProgress={calculateSectionProgress("anknytning")} 
+        ansvarProgress={calculateSectionProgress("ansvar")}
+      />
+      
       <div 
-        ref={questionCardRef}
+        ref={questionContainerRef}
         className={`transition-opacity duration-500 ${
           fadeState === 'fading-out' ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        {currentQuestionData && (
+        {currentQuestion && (
           <QuestionCard
-            question={currentQuestionData.question}
-            questionId={currentQuestionData.questionId}
-            sectionId={currentQuestionData.sectionId}
-            value={formData[currentQuestionData.sectionId]?.questions?.[currentQuestionData.questionId] || ''}
-            comment={formData[currentQuestionData.sectionId]?.comments?.[currentQuestionData.questionId] || ''}
-            onChange={handleStepByStepQuestionChange(currentQuestionData.sectionId, currentQuestionData.questionId)}
-            onCommentChange={handleCommentChange(currentQuestionData.sectionId, currentQuestionData.questionId)}
+            question={currentQuestion.question}
+            questionId={currentQuestion.questionId}
+            sectionId={currentQuestion.sectionId}
+            value={formData[currentQuestion.sectionId]?.questions?.[currentQuestion.questionId] || ''}
+            comment={formData[currentQuestion.sectionId]?.comments?.[currentQuestion.questionId] || ''}
+            onChange={handleStepByStepQuestionChange(currentQuestion.sectionId, currentQuestion.questionId)}
+            onCommentChange={handleCommentChange(currentQuestion.sectionId, currentQuestion.questionId)}
             calculateProgress={calculateProgress}
             currentIndex={currentQuestionIndex}
             totalQuestions={allQuestions.length}
@@ -123,7 +121,6 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
         )}
       </div>
 
-      {/* Navigation buttons */}
       <div className="flex justify-between items-center mt-8">
         <div className="flex gap-2">
           <Button
@@ -141,7 +138,8 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             type="button"
             variant="outline"
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === allQuestions.length - 1}
+            disabled={currentQuestionIndex === allQuestions.length - 1 || 
+              !formData[currentSection]?.questions?.[currentQuestion.questionId]}
             className="flex items-center gap-2"
           >
             Nästa
@@ -159,7 +157,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             <List size={16} />
             Visa alla frågor
           </Button>
-          
+        
           {currentQuestionIndex === allQuestions.length - 1 && (
             <Button
               type="submit"

@@ -5,9 +5,12 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { FormData, FormSection, QuestionsStructure, StudentEvaluationFormProps, initialFormState, EvaluationResponse } from '@/lib/types/formTypesEvaluation';
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
+import { Button } from "@/components/ui/button";
+import LoadingDots, { LoadingSpinner } from '@/components/ui/LoadingDots';
+import ProgressBar, { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
-import LoadingDots, { LoadingSpinner } from '@/components/ui/LoadingDots';
+import confetti from 'canvas-confetti';
 
 /**
  * Student Evaluation Form component
@@ -27,6 +30,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const [currentSection, setCurrentSection] = useState<keyof FormData>('anknytning');
   const [fadeState, setFadeState] = useState<'visible' | 'fading-out' | 'fading-in'>('visible');
   const [disableAutoAdvance, setDisableAutoAdvance] = useState(false);
+  const [localStorageKey, setLocalStorageKey] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<number | null>(
     initialStudentId !== undefined 
       ? (typeof initialStudentId === 'string' 
@@ -38,20 +42,33 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   // Auto-advance timeout ref
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch questions structure on mount
+  // Fetch question structure on mount, using the same robust approach as before
   useEffect(() => {
-    const fetchQuestionsStructure = async () => {
+    const fetchData = async () => {
       try {
-        const structure = await evaluationApi.getQuestionsStructure();
-        setQuestionsStructure(structure);
+        setIsLoading(true);
+        
+        // 1. Get the question structure - this might include admin template or user data
+        const questionStructure = await evaluationApi.getQuestionsStructure();
+        console.log('Question structure loaded');
+        
+        // 2. Handle whatever comes back - we don't care if it's admin or user data
+        //    We just need the structure for rendering the form UI
+        setQuestionsStructure(questionStructure);
+        
+        // 3. CRITICAL: Always use a clean form state for the answers
+        //    This ensures we never show previous answers, just the question structure
+        setFormData(initialFormState);
+        
         setIsLoading(false);
       } catch (error) {
+        console.error('Error loading question structure:', error);
         toast.error('Misslyckades med att ladda in frågeställningarna');
         setIsLoading(false);
       }
     };
 
-    fetchQuestionsStructure();
+    fetchData();
   }, []);
 
   // Fetch current user info if no studentId is provided
@@ -85,28 +102,35 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     fetchCurrentUser();
   }, [studentId]);
 
-  // Fetch existing evaluation data if evaluationId is provided
+  // Set up the local storage key without loading any draft data
   useEffect(() => {
-    const fetchEvaluationData = async () => {
-      if (evaluationId) {
-        try {
-          setIsLoading(true);
-          const evaluationData = await evaluationApi.getEvaluation(evaluationId);
-          
-          if (evaluationData) {
-            setFormData(evaluationData.formData);
-            setStudentId(evaluationData.studentId);
-          }
-        } catch (error) {
-          toast.error('Misslyckades med att ladda in utvärderingen');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
+    if (studentId) {
+      // We're still setting up the key for saving, but we won't load anything from it
+      const key = `evaluation_draft_${studentId}_${new Date().toISOString().split('T')[0]}`;
+      setLocalStorageKey(key);
+      console.log('Set up localStorage key for saving:', key);
+    }
+  }, [studentId]);
 
-    fetchEvaluationData();
-  }, [evaluationId]);
+  // Auto-save to localStorage every 30 seconds if form has changes
+  // We'll keep this so users don't lose work, but we never load from localStorage on startup
+  useEffect(() => {
+    if (!localStorageKey || !studentId || typeof window === 'undefined') return;
+    
+    const saveInterval = setInterval(() => {
+      // Only save if the form is different from initialFormState
+      if (JSON.stringify(formData) !== JSON.stringify(initialFormState)) {
+        localStorage.setItem(localStorageKey, JSON.stringify({
+          studentId,
+          formData,
+          updatedAt: new Date().toISOString()
+        }));
+        console.log('Auto-saved form draft to localStorage');
+      }
+    }, 30000); // Save every 30 seconds
+    
+    return () => clearInterval(saveInterval);
+  }, [formData, localStorageKey, studentId]);
 
   // Create a flat list of all questions for step-by-step navigation
   const allQuestions = useMemo(() => {
@@ -267,68 +291,80 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   }, []);
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Ensure we have a student ID
-    if (!studentId) {
-      try {
-        const userInfo = await authApi.getCurrentUser();
-        
-        if (userInfo && userInfo.student_id) {
-          setStudentId(userInfo.student_id);
-        } else if (userInfo && userInfo.id) {
-          setStudentId(userInfo.id);
-        } else {
-          console.warn('Using default student ID (1) for development');
-          setStudentId(1);
-        }
-      } catch (error) {
-        console.warn('Using default student ID (1) for development');
-        setStudentId(1);
-      }
-    }
-    
-    setIsSaving(true);
-    
+  const handleSubmit = async () => {
     try {
-      // Include the evaluation ID if we're updating an existing evaluation
-      const evaluationData = {
-        ...(evaluationId ? { id: evaluationId } : {}),
-        anknytning: formData.anknytning,
-        ansvar: formData.ansvar
-      };
-      
-      // Log the data being sent to help with debugging
-      console.log('Sending evaluation data:', evaluationData);
-      console.log('Student ID:', studentId);
-      
-      // ALWAYS send to backend in Docker environment, regardless of NODE_ENV
-      // This ensures data is properly saved to WordPress
-      const result = await evaluationApi.saveEvaluation(studentId!, evaluationData);
-      console.log('API response:', result);
-      
-      // Also save to localStorage for development persistence if in dev mode
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (isDevelopment) {
-        const mockId = evaluationId || Date.now();
-        console.log('DEV MODE: Also saving locally with ID:', mockId);
-        
-        localStorage.setItem(`evaluation_${mockId}`, JSON.stringify({
-          id: mockId,
-          studentId,
-          formData: evaluationData,
-          updatedAt: new Date().toISOString()
-        }));
+      if (!studentId) {
+        toast.error('Student ID saknas');
+        return;
       }
       
-      toast.success('Evaluation saved successfully');
+      setIsSaving(true);
+      
+      const response = await evaluationApi.saveEvaluation(
+        studentId,
+        formData
+      );
+      
+      // Clear the local storage draft if we have a key
+      if (localStorageKey) {
+        localStorage.removeItem(localStorageKey);
+      }
+      
+      // Success - show toast and confetti celebration
+      toast.success('Utvärderingen har sparats');
+      
+      // Trigger confetti celebration
+      launchConfetti();
+      
+      // If we have an evaluation ID from the response, update the URL
+      if (response?.id && typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('evaluationId', response.id.toString());
+        window.history.replaceState({}, '', url.toString());
+      }
+      
+      setIsSaving(false);
     } catch (error) {
-      toast.error('Failed to save evaluation');
       console.error('Error saving evaluation:', error);
-    } finally {
+      toast.error('Något gick fel vid sparande av utvärderingen');
       setIsSaving(false);
     }
+  };
+
+  // Confetti celebration function
+  const launchConfetti = () => {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      
+      // Since particles fall down, start a bit higher than random
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#FFD700', '#FF4500', '#00BFFF', '#7CFC00', '#DA70D6'], // Gold, orange, blue, green, purple
+      });
+      
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#FFD700', '#FF4500', '#00BFFF', '#7CFC00', '#DA70D6'],
+      });
+    }, 250);
   };
 
   // Handle question change in step-by-step view
@@ -370,21 +406,8 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   // Show appropriate view based on showFullForm state
   return (
     <div className="form-container">
-      {showFullForm ? (
-        <FullFormView
-          formData={formData}
-          questionsStructure={questionsStructure}
-          toggleFullForm={toggleFullForm}
-          handleQuestionChange={handleQuestionChange}
-          handleCommentChange={handleCommentChange}
-          calculateProgress={calculateSectionProgress}
-          calculateSectionProgress={calculateSectionProgress}
-          isSaving={isSaving}
-          handleSubmit={handleSubmit}
-          evaluationId={evaluationId}
-        />
-      ) : (
-        <StepByStepView
+      {!showFullForm ? (
+        <StepByStepView 
           formData={formData}
           questionsStructure={questionsStructure}
           allQuestions={allQuestions}
@@ -397,6 +420,20 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           handleStepByStepQuestionChange={handleStepByStepQuestionChange}
           handleCommentChange={handleCommentChange}
           calculateProgress={calculateProgress}
+          calculateSectionProgress={calculateSectionProgress}
+          isSaving={isSaving}
+          handleSubmit={handleSubmit}
+          evaluationId={evaluationId}
+        />
+      ) : (
+        <FullFormView
+          formData={formData}
+          questionsStructure={questionsStructure}
+          toggleFullForm={toggleFullForm}
+          handleQuestionChange={handleQuestionChange}
+          handleCommentChange={handleCommentChange}
+          calculateProgress={calculateSectionProgress}
+          calculateSectionProgress={calculateSectionProgress}
           isSaving={isSaving}
           handleSubmit={handleSubmit}
           evaluationId={evaluationId}

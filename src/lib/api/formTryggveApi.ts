@@ -172,107 +172,72 @@ export const evaluationApi = {
         console.log('Data received from WP REST endpoint:', data);
       }
       
-      // If data is completely empty after both attempts, return default structure
+      // If data is completely empty after both attempts, try the assessment template endpoint
       if (!data) {
-        console.warn('No data received from either endpoint, using default structure');
+        console.warn('No data received from either questions endpoint, trying assessment template');
+        try {
+          data = await fetchApi('/public/v1/assessment/template');
+          console.log('Data from assessment template endpoint:', data);
+        } catch (templateError) {
+          console.warn('Failed to fetch from assessment template endpoint:', templateError);
+        }
+      }
+      
+      // If still no data, use default structure
+      if (!data) {
+        console.warn('No data received from any endpoint, using default structure');
         return getDefaultQuestionsStructure();
       }
       
       // Log the complete data structure - this helps diagnose exactly where the questions are located
       console.log('Complete API response structure:', JSON.stringify(data, null, 2));
       
-      // First, check if the data already has the detailed structure format from the admin
-      if (data.anknytning && 
-          data.anknytning.questions && 
-          Object.keys(data.anknytning.questions).length > 0 &&
-          data.anknytning.questions.a1 && 
-          data.anknytning.questions.a1.text) {
-        
-        console.log('Found detailed questions structure directly in API response');
-        return data;
-      }
+      // IMPROVED ERROR HANDLING: Check each level of the structure and provide defaults
+      // rather than requiring a complete structure
       
-      // Check if we have the expected data structure
-      const hasAnknytning = data.anknytning && typeof data.anknytning === 'object';
-      const hasAnsvar = data.ansvar && typeof data.ansvar === 'object';
-      
-      if (!hasAnknytning || !hasAnsvar) {
-        console.warn('API response missing expected sections, using default structure');
-        return getDefaultQuestionsStructure();
-      }
-      
-      // Check for questions_structure field (as seen in the admin console output)
-      if (data.questions_structure) {
-        console.log('Found questions_structure field in API response, will use this data');
-        // If we have a nested questions_structure, use it
-        if (data.questions_structure.anknytning && data.questions_structure.ansvar) {
-          return {
-            anknytning: data.questions_structure.anknytning,
-            ansvar: data.questions_structure.ansvar
-          };
-        }
-      }
-      
-      // Handle the specific case where sections exist but questions arrays are empty or not arrays
-      const anknytningQuestions = hasAnknytning && data.anknytning.questions && 
-                                  (Array.isArray(data.anknytning.questions) ? 
-                                    data.anknytning.questions : 
-                                    Object.keys(data.anknytning.questions || {}).length > 0 ? 
-                                      data.anknytning.questions : 
-                                      null);
-                                      
-      const ansvarQuestions = hasAnsvar && data.ansvar.questions && 
-                              (Array.isArray(data.ansvar.questions) ? 
-                                data.ansvar.questions.length > 0 ? data.ansvar.questions : null : 
-                                Object.keys(data.ansvar.questions || {}).length > 0 ? 
-                                  data.ansvar.questions : 
-                                  null);
-      
-      const hasValidAnknytningQuestions = anknytningQuestions !== null;
-      const hasValidAnsvarQuestions = ansvarQuestions !== null;
-      
-      console.log('Sections status:', {
-        anknytning: hasAnknytning ? (hasValidAnknytningQuestions ? 'has questions' : 'empty questions') : 'missing',
-        ansvar: hasAnsvar ? (hasValidAnsvarQuestions ? 'has questions' : 'empty questions') : 'missing'
-      });
-      
-      // If both sections have empty or invalid questions, use the default structure
-      if (!hasValidAnknytningQuestions && !hasValidAnsvarQuestions) {
-        console.warn('No valid questions found in either section, using default structure');
-        
-        // Try to directly fetch the structure from the assessment templates
-        try {
-          console.log('Attempting to fetch assessment template structure directly');
-          
-          // This is a hunch - try a different endpoint that might provide the template
-          const templateData = await fetchApi('/public/v1/assessment/template');
-          console.log('Template data:', templateData);
-          
-          if (templateData && 
-              templateData.anknytning && 
-              templateData.anknytning.questions &&
-              Object.keys(templateData.anknytning.questions).length > 0) {
-            console.log('Successfully retrieved template data');
-            return templateData;
-          }
-        } catch (error) {
-          console.warn('Failed to fetch assessment template:', error);
-        }
-        
-        return getDefaultQuestionsStructure();
-      }
-      
-      // Create structure with the section data, using defaults for empty sections
+      // Setup the final structure object with defaults for missing parts
       const structure = {
         anknytning: {
-          title: data.anknytning.title || 'Anknytningstecken',
-          questions: hasValidAnknytningQuestions ? data.anknytning.questions : getDefaultAnknytningQuestions()
+          title: data.anknytning?.title || 'Anknytningstecken',
+          questions: {}
         },
         ansvar: {
-          title: data.ansvar.title || 'Ansvarstecken',
-          questions: hasValidAnsvarQuestions ? data.ansvar.questions : getDefaultAnsvarQuestions()
+          title: data.ansvar?.title || 'Ansvarstecken',
+          questions: {}
         }
       };
+      
+      // Helper function to check if questions object is valid and non-empty
+      const hasValidQuestions = (section: any, name: string): boolean => {
+        return !!section && 
+               !!section.questions && 
+               typeof section.questions === 'object' &&
+               Object.keys(section.questions || {}).length > 0;
+      };
+      
+      // Handle anknytning section
+      if (hasValidQuestions(data.anknytning, 'anknytning')) {
+        console.log('Using API data for anknytning questions');
+        structure.anknytning.questions = data.anknytning.questions;
+      } else if (hasValidQuestions(data.questions_structure?.anknytning, 'anknytning structure')) {
+        console.log('Using questions_structure for anknytning questions');
+        structure.anknytning.questions = data.questions_structure.anknytning.questions;
+      } else {
+        console.log('Using default questions for anknytning section');
+        structure.anknytning.questions = getDefaultAnknytningQuestions();
+      }
+      
+      // Handle ansvar section
+      if (hasValidQuestions(data.ansvar, 'ansvar')) {
+        console.log('Using API data for ansvar questions');
+        structure.ansvar.questions = data.ansvar.questions;
+      } else if (hasValidQuestions(data.questions_structure?.ansvar, 'ansvar structure')) {
+        console.log('Using questions_structure for ansvar questions');
+        structure.ansvar.questions = data.questions_structure.ansvar.questions;
+      } else {
+        console.log('Using default questions for ansvar section');
+        structure.ansvar.questions = getDefaultAnsvarQuestions();
+      }
       
       console.log('Final structure:', {
         anknytning: {
@@ -284,10 +249,10 @@ export const evaluationApi = {
           questionCount: Object.keys(structure.ansvar.questions).length
         }
       });
+      
       return structure;
     } catch (error) {
       console.error('Error fetching questions structure:', error);
-      // Return a default structure in case of error
       return getDefaultQuestionsStructure();
     }
   },
