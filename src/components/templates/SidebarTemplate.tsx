@@ -1,21 +1,39 @@
 // src/components/templates/SidebarTemplate.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { LocalPage } from '@/lib/types/contentTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
+import { useModules } from '@/hooks/useModules';
 
 export default function SidebarTemplate({ page }: { page: LocalPage }) {
+  const [mounted, setMounted] = useState(false);
+  
+  // Use the modules hook to check for header modules
+  const { modulesBySection } = useModules({
+    pageModules: Array.isArray(page.modules) ? page.modules : [],
+  });
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Check if a Hero module is present
+  const hasHeroModule = modulesBySection?.header?.some(module => module.type === 'hero');
+  
   return (
     <TemplateTransitionWrapper>
-      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 my-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <p>The sidebar templ</p>
         <article className="md:col-span-3">
-          <h1
-            className="text-4xl font-bold mb-4"
-            dangerouslySetInnerHTML={{ __html: page.title.rendered }}
-          />
+          {/* Only show title if no Hero module is present */}
+          {!hasHeroModule && (
+            <h1
+              className="text-4xl font-bold mb-4"
+              dangerouslySetInnerHTML={{ __html: page.title.rendered }}
+            />
+          )}
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: page.content.rendered }}

@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
 import ProgressBar from '@/components/ui/evaluation/ProgressBar';
+import LoadingDots from '@/components/ui/LoadingDots';
 
 interface StepByStepViewProps {
   formData: FormData;
@@ -166,7 +167,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
               disabled={isSaving}
               className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
             >
-              {isSaving ? 'Sparar...' : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
+              {isSaving ? <LoadingDots text="Sparar" /> : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
             </Button>
           )}
         </div>

@@ -1,9 +1,9 @@
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 
-export default function PageLoading() {
+export default function Loading() {
   return (
-    <main className="container mx-auto px-4 py-8 flex-grow">
+    <section className="container mx-auto px-4 py-8 flex-grow">
       <SinglePostSkeleton />
-    </main>
+    </section>
   );
 }

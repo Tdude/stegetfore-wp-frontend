@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { FormData, FormSection, QuestionsStructure } from '@/lib/types/formTypes
 import { stageClasses, getOptionClasses } from '@/components/ui/evaluation/styles';
 import ProgressHeader from '@/components/ui/evaluation/ProgressHeader';
 import ProgressBar from '@/components/ui/evaluation/ProgressBar';
+import LoadingDots from '@/components/ui/LoadingDots';
 
 interface FullFormViewProps {
   formData: FormData;
@@ -23,6 +24,7 @@ interface FullFormViewProps {
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
+  handleResetForm?: () => void;
 }
 
 /**
@@ -39,7 +41,8 @@ const FullFormView: React.FC<FullFormViewProps> = ({
   calculateSectionProgress,
   isSaving,
   handleSubmit,
-  evaluationId
+  evaluationId,
+  handleResetForm
 }) => {
   return (
     <div className="space-y-8">
@@ -180,7 +183,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
           disabled={isSaving}
           className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
         >
-          {isSaving ? 'Sparar...' : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
+          {isSaving ? <LoadingDots text="Sparar" /> : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
         </Button>
       </div>
     </div>

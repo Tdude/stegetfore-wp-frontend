@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { FeaturedPostsModule as FeaturedPostsModuleType } from '@/lib/types/moduleTypes';
 import { LocalPost, Post } from '@/lib/types/contentTypes';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import OptimizedImage from '@/components/OptimizedImage';
 import { cn } from '@/lib/utils';
@@ -198,9 +199,12 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
 
                   {module.show_read_more !== false && (
                     <CardFooter>
-                      <div className="text-sm text-primary hover:underline">
-                        Read more →
-                      </div>
+                      <span className={cn(
+                        badgeVariants({ variant: "secondary" }),
+                        "inline-block"
+                      )}>
+                        Läs mer →
+                      </span>
                     </CardFooter>
                   )}
                 </Card>

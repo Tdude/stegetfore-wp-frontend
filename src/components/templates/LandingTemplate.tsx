@@ -13,7 +13,7 @@ export default function LandingTemplate({ page }: { page: Page }) {
   return (
     <TemplateTransitionWrapper>
       <div>This should be the Landing/Start </div>
-      <article className="max-w-3xl mx-auto">
+      <article className="max-w-3xl mx-auto px-4 my-8">
         {featuredImage && (
         <Image
           src={featuredImage}

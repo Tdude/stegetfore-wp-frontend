@@ -86,27 +86,19 @@ export const evaluationApi = {
    */
   saveEvaluation: async (studentId: number, formData: any) => {
     try {
-      // Log the data being sent for debugging
-      console.log('saveEvaluation called with studentId:', studentId);
-      console.log('saveEvaluation formData:', formData);
-      
-      // Use URLSearchParams to send data in the format WordPress REST API expects
-      const params = new URLSearchParams();
-      
-      // Check if studentId exists and convert to string safely
-      if (studentId !== undefined && studentId !== null) {
-        params.append('student_id', String(studentId));
-      } else {
-        console.error('Student ID is undefined or null');
+      if (!studentId) {
         throw new Error('Student ID is required');
       }
       
       // Convert formData to a JSON string
       const formDataString = JSON.stringify(formData);
       console.log('formData as string:', formDataString);
-      params.append('formData', formDataString);
       
-      console.log('Request params:', params.toString());
+      // Create a proper URL-encoded body directly rather than using FormData
+      // This bypasses the JSON.stringify in the fetchApi function
+      const body = `student_id=${encodeURIComponent(studentId)}&formData=${encodeURIComponent(formDataString)}`;
+      
+      console.log('Request body:', body);
       
       const response = await fetchApi('/ham/v1/evaluation/save', {
         method: 'POST',
@@ -114,7 +106,7 @@ export const evaluationApi = {
           ...getHeaders(),
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: params.toString()
+        body: body // Pass the pre-encoded string directly
       });
       
       console.log('API response:', response);

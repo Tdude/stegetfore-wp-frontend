@@ -72,7 +72,7 @@ function DefaultTemplate({ page }: { page: Page }) {
       ))}
 
       {/* Main article section with featured image, title, and content */}
-      <article className="max-w-3xl mx-auto px-4 py-8">
+      <article className={`max-w-3xl mx-auto px-4 ${modulesBySection?.header?.length ? 'pb-8' : 'my-8'}`}>
         {/* Featured image */}
         {featuredImageUrl && (
           <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
@@ -87,8 +87,8 @@ function DefaultTemplate({ page }: { page: Page }) {
           </div>
         )}
 
-        {/* Page title */}
-        {pageTitle && (
+        {/* Page title - hide when Hero module is present */}
+        {pageTitle && !modulesBySection?.header?.some(module => module.type === 'hero') && (
           <h1
             className="text-4xl font-bold mb-8"
             dangerouslySetInnerHTML={{ __html: pageTitle }}

@@ -7,6 +7,8 @@ import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import Image from 'next/image';
 import DebugPanel from '@/components/debug/DebugPanel';
 import Link from 'next/link';
+import { badgeVariants } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // Blog index template for displaying posts with pagination
 export default function BlogIndexTemplate({ page, posts, categories }: { page: Page, posts?: any[], categories?: any }) {
@@ -67,9 +69,12 @@ export default function BlogIndexTemplate({ page, posts, categories }: { page: P
                   )}
                   <Link 
                     href={`/posts/${post.slug}`} 
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                    className={cn(
+                      badgeVariants({ variant: "secondary" }),
+                      "no-underline inline-block"
+                    )}
                   >
-                    Read more →
+                    Läs mer →
                   </Link>
                 </div>
               </article>

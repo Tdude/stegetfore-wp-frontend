@@ -1,3 +1,5 @@
+// components/ui/card.tsx
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
@@ -33,9 +35,9 @@ const CardTitle = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <h2
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn("font-bold leading-none tracking-tight text-4xl line-clamp-2", className)}
     {...props}
   />
 ))

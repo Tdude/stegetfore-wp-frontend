@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import DebugPanel from '@/components/debug/DebugPanel';
+import { badgeVariants } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 async function getSlugFromParams(params: { slug: string }) {
   const result = await Promise.resolve(params);
@@ -22,7 +24,7 @@ async function Post({ slug }: { slug: string }) {
 
   return (
     <>
-      <article className="max-w-3xl mx-auto px-4">
+      <article className="max-w-3xl mx-auto px-4 my-8">
         {post.featured_image_url && (
           <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
             <Image
@@ -37,7 +39,7 @@ async function Post({ slug }: { slug: string }) {
         )}
 
         <h1
-          className="text-4xl font-bold mb-8"
+          className="text-3xl font-bold mb-8"
           dangerouslySetInnerHTML={{ __html: post.title.rendered }}
         />
         <div
@@ -46,11 +48,13 @@ async function Post({ slug }: { slug: string }) {
         />
 
         <div className="mt-8 mb-8">
-          <Link
-            href="/blog"
-            className="text-yellow-500 hover:text-yellow-600"
-          >
-            ← Alla inlägg
+          <Link href="/blog">
+            <span className={cn(
+              badgeVariants({ variant: "secondary" }),
+              "inline-block"
+            )}>
+              ← Alla inlägg
+            </span>
           </Link>
         </div>
       </article>
@@ -81,10 +85,10 @@ export default async function PostPage({
   const slug = await getSlugFromParams(params);
 
   return (
-    <main className="container mx-auto px-4 py-8 flex-grow">
+    <article className="container mx-auto px-4 my-8 flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
         <Post slug={slug} />
       </Suspense>
-    </main>
+    </article>
   );
 }

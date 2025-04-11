@@ -69,11 +69,11 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
       ))}
       
       {/* Main article section with just title and content */}
-      <article className="max-w-3xl mx-auto px-4 py-8">
-        {/* Show page title if available */}
-        {pageTitle && (
+      <article className={`max-w-3xl mx-auto px-4 ${modulesBySection?.header?.length > 0 ? 'pb-8' : 'my-8'}`}>
+        {/* Show page title if available and no Hero module is present in header */}
+        {pageTitle && !modulesBySection?.header?.some(module => module.type === 'hero') && (
           <h1 
-            className="text-4xl font-bold mb-8" 
+            className="text-3xl font-bold mb-8" 
             dangerouslySetInnerHTML={{ __html: pageTitle }}
           />
         )}

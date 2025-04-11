@@ -1,11 +1,12 @@
 // src/app/[slug]/page.tsx
 import { Suspense } from 'react';
-import { fetchPage } from '@/lib/api/pageApi'; // Import directly from pageApi.ts
+import { fetchPage } from '@/lib/api/pageApi'; 
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
-import { LocalPage } from '@/lib/types/contentTypes';
+import { LocalPage } from '@/lib/types/contentTypes'; 
 import { PageTemplate } from '@/lib/types/baseTypes';
+import { Module } from '@/lib/types/moduleTypes';
 import * as imageHelper from '@/lib/imageUtils';
 import { ResolvingMetadata, Metadata } from 'next';
 
@@ -24,17 +25,39 @@ export const dynamic = 'force-dynamic';
  * @returns Page data with modules
  */
 async function getPageData(slug: string): Promise<LocalPage | null> {
-  // Simply use the standard fetchPage method for all pages
+  // Fetch the page from the API  
   const page = await fetchPage(slug, false);
   
-  // Basic logging
+  // Basic logging - safely access properties to avoid TypeScript errors
   console.log(`[getPageData] Page retrieved for ${slug}:`, {
     id: page?.id,
     template: page?.template,
-    hasModules: Array.isArray(page?.modules) && page.modules.length > 0
+    hasModules: Array.isArray((page as any)?.modules) && (page as any).modules.length > 0
   });
   
-  return page;
+  // Normalize the page data to ensure it has the required structure
+  return normalizePageData(page);
+}
+
+/**
+ * Normalizes page data to ensure it has all required properties for the PageTemplateSelector
+ * This acts as a compatibility layer between the API data and UI components
+ */
+function normalizePageData(page: any): LocalPage | null {
+  if (!page) return null;
+  
+  // Create a normalized version of the page with required fields for LocalPage
+  return {
+    id: page.id,
+    slug: page.slug,
+    title: page.title || { rendered: '' },
+    content: page.content || { rendered: '' },
+    modules: Array.isArray(page.modules) ? page.modules : [],
+    template: page.template || PageTemplate.DEFAULT,
+    meta: page.meta || {},
+    // Include any other fields from the original page
+    ...(page as any)
+  } as LocalPage;
 }
 
 // Individual page component
@@ -54,12 +77,7 @@ async function PageContent({ slug }: { slug: string }) {
     template: page.template
   });
 
-  // Ensure page has proper content metadata
-  if (page && !page.meta) {
-    page.meta = {};
-  }
-  
-  // Render the page using the template selector
+  // Template selector component will handle rendering the appropriate template
   return <PageTemplateSelector page={page} />;
 }
 
@@ -70,11 +88,11 @@ export default async function PageWrapper({ params }: PageParams) {
   const slug = resolvedParams.slug;
 
   return (
-    <main className="mx-auto flex-grow">
+    <section className="mx-auto flex-grow">
       <Suspense fallback={<SinglePostSkeleton />}>
         <PageContent slug={slug} />
       </Suspense>
-    </main>
+    </section>
   );
 }
 

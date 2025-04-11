@@ -42,12 +42,14 @@ function FullWidthTemplate({ page }: { page: Page }) {
         </div>
       )}
 
-      <div className="mx-auto">
+      <div className={`mx-auto ${modulesBySection?.header?.length > 0 ? '' : 'my-8'}`}>
         {/* Page Title */}
-        <h1
-          className="sr-only text-4xl font-bold mb-4"
-          dangerouslySetInnerHTML={{ __html: page?.title?.rendered || '' }}
-        />
+        {!modulesBySection?.header?.some(module => module.type === 'hero') && page?.title?.rendered && (
+          <h1
+            className="sr-only text-4xl font-bold mb-4"
+            dangerouslySetInnerHTML={{ __html: page?.title?.rendered || '' }}
+          />
+        )}
 
         {/* Page Content */}
         {page?.content?.rendered && (

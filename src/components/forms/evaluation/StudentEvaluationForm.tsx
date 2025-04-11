@@ -7,6 +7,7 @@ import { FormData, FormSection, QuestionsStructure, StudentEvaluationFormProps, 
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
+import LoadingDots, { LoadingSpinner } from '@/components/ui/LoadingDots';
 
 /**
  * Student Evaluation Form component
@@ -45,7 +46,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         setQuestionsStructure(structure);
         setIsLoading(false);
       } catch (error) {
-        toast.error('Failed to load questions structure');
+        toast.error('Misslyckades med att ladda in frågeställningarna');
         setIsLoading(false);
       }
     };
@@ -97,7 +98,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             setStudentId(evaluationData.studentId);
           }
         } catch (error) {
-          toast.error('Failed to load evaluation data');
+          toast.error('Misslyckades med att ladda in utvärderingen');
         } finally {
           setIsLoading(false);
         }
@@ -146,85 +147,119 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     return questions;
   }, [questionsStructure]);
 
-  // Handle navigation between questions
+  // Get current question based on index
+  const currentQuestion = useMemo(() => {
+    return allQuestions[currentQuestionIndex] || null;
+  }, [allQuestions, currentQuestionIndex]);
+
+  // Handle going to previous question
   const handlePrevQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
-      // Disable auto-advance when going back
-      setDisableAutoAdvance(true);
-      
-      // Start fade out animation
+      // Start transition
       setFadeState('fading-out');
       
-      // After fade out completes, update index and start fade in
+      // Actual navigation happens after the transition
       setTimeout(() => {
-        setCurrentQuestionIndex(prev => prev - 1);
+        setCurrentQuestionIndex(prevIndex => prevIndex - 1);
         setFadeState('fading-in');
         
-        // After a brief moment, complete the fade in
+        // Reset visibility
         setTimeout(() => {
           setFadeState('visible');
-        }, 50);
-      }, 500); // Match this with the CSS transition duration
+        }, 300);
+      }, 300);
     }
   }, [currentQuestionIndex]);
 
+  // Handle going to next question
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < allQuestions.length - 1) {
-      // Re-enable auto-advance when manually going forward
-      setDisableAutoAdvance(false);
-      
-      // Start fade out animation
+      // Start transition
       setFadeState('fading-out');
       
-      // After fade out completes, update index and start fade in
+      // Actual navigation happens after the transition
       setTimeout(() => {
-        setCurrentQuestionIndex(prev => prev + 1);
+        setCurrentQuestionIndex(prevIndex => prevIndex + 1);
         setFadeState('fading-in');
         
-        // After a brief moment, complete the fade in
+        // Reset visibility
         setTimeout(() => {
           setFadeState('visible');
-        }, 50);
-      }, 500); // Match this with the CSS transition duration
+        }, 300);
+      }, 300);
     }
   }, [currentQuestionIndex, allQuestions.length]);
 
-  // Auto-advance to next question after selection
-  useEffect(() => {
-    // Clear any existing timeout
-    if (autoAdvanceTimeoutRef.current) {
-      clearTimeout(autoAdvanceTimeoutRef.current);
-      autoAdvanceTimeoutRef.current = null;
-    }
-    
-    // Don't auto-advance if we're showing the full form
-    if (showFullForm) return;
-    
-    // Don't auto-advance if it's been disabled (after clicking Previous)
-    if (disableAutoAdvance) return;
-    
-    // Get current question data
-    const currentQuestionData = allQuestions[currentQuestionIndex];
-    if (!currentQuestionData) return;
-    
-    // Check if current question has been answered
-    const { sectionId, questionId } = currentQuestionData;
-    const isAnswered = !!formData[sectionId]?.questions?.[questionId];
-    
-    // If answered and not the last question, auto-advance after a delay
-    if (isAnswered && currentQuestionIndex < allQuestions.length - 1) {
-      autoAdvanceTimeoutRef.current = setTimeout(() => {
-        handleNextQuestion();
-      }, 800); // Delay before auto-advancing
-    }
-    
-    // Cleanup timeout on unmount
-    return () => {
-      if (autoAdvanceTimeoutRef.current) {
-        clearTimeout(autoAdvanceTimeoutRef.current);
+  // Handle question changes in full form view
+  const handleQuestionChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        questions: {
+          ...prev[sectionId]?.questions,
+          [questionId]: value
+        }
       }
-    };
-  }, [formData, currentQuestionIndex, allQuestions, handleNextQuestion, showFullForm, disableAutoAdvance]);
+    }));
+  }, []);
+
+  // Handle comment changes
+  const handleCommentChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        comments: {
+          ...prev[sectionId]?.comments,
+          [questionId]: value || undefined // Don't save empty comments
+        }
+      }
+    }));
+  }, []);
+
+  // Calculate progress percentage for a specific question
+  const calculateProgress = useCallback((sectionId: keyof FormData, questionId: string) => {
+    const answer = formData[sectionId]?.questions?.[questionId];
+    
+    if (!answer) return 0;
+    
+    return parseInt(answer, 10) / 5; // Convert 1-5 scale to 0-1 percentage
+  }, [formData]);
+
+  // Calculate overall progress for a section
+  const calculateSectionProgress = useCallback((sectionId: keyof FormData) => {
+    const section = questionsStructure[sectionId];
+    if (!section) return 0;
+    
+    let totalQuestions = 0;
+    let progressSum = 0;
+    
+    // Process questions directly in the section
+    if (section.questions) {
+      Object.keys(section.questions).forEach(questionId => {
+        totalQuestions++;
+        // Add the progress value (will be 0 if not answered)
+        progressSum += calculateProgress(sectionId, questionId);
+      });
+    }
+    
+    // Process questions in subsections
+    if (section.subsections) {
+      Object.values(section.subsections).forEach(subsection => {
+        if (subsection.questions) {
+          Object.keys(subsection.questions).forEach(questionId => {
+            totalQuestions++;
+            // Add the progress value (will be 0 if not answered)
+            progressSum += calculateProgress(sectionId, questionId);
+          });
+        }
+      });
+    }
+    
+    // Return the total progress divided by the total number of questions
+    return totalQuestions > 0 ? progressSum / totalQuestions : 0;
+  }, [formData, questionsStructure, calculateProgress]);
 
   // Toggle between full form and step-by-step views
   const toggleFullForm = useCallback(() => {
@@ -235,8 +270,8 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Ensure we have a student ID
     if (!studentId) {
-      // If still no studentId, try to get it one more time
       try {
         const userInfo = await authApi.getCurrentUser();
         
@@ -245,7 +280,6 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         } else if (userInfo && userInfo.id) {
           setStudentId(userInfo.id);
         } else {
-          // Use a default student ID for development purposes
           console.warn('Using default student ID (1) for development');
           setStudentId(1);
         }
@@ -309,119 +343,33 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         }
       }
     }));
-  }, []);
-
-  // Handle question change in full form view
-  const handleQuestionChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
-        questions: {
-          ...prev[sectionId]?.questions,
-          [questionId]: value
-        }
+    
+    // Auto-advance to next question after a short delay if not disabled
+    if (!disableAutoAdvance && currentQuestionIndex < allQuestions.length - 1) {
+      // Clear any existing timeout
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
       }
-    }));
-  }, []);
-
-  // Handle comment change in both views
-  const handleCommentChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
-        comments: {
-          ...prev[sectionId]?.comments,
-          [questionId]: value
-        }
-      }
-    }));
-  }, []);
-
-  // Calculate progress for a specific question
-  const calculateProgress = useCallback((sectionId: keyof FormData, questionId: string): number => {
-    const answer = formData[sectionId]?.questions?.[questionId];
-    if (!answer) return 0;
-    
-    // Find the question to get its options
-    let question: any = null;
-    
-    // Look in direct section questions
-    if (questionsStructure[sectionId]?.questions?.[questionId]) {
-      question = questionsStructure[sectionId].questions[questionId];
-    } 
-    // Look in subsections
-    else if (questionsStructure[sectionId]?.subsections) {
-      for (const subsection of Object.values(questionsStructure[sectionId].subsections || {})) {
-        if (subsection.questions?.[questionId]) {
-          question = subsection.questions[questionId];
-          break;
-        }
-      }
+      
+      // Set a new timeout to auto-advance
+      autoAdvanceTimeoutRef.current = setTimeout(() => {
+        handleNextQuestion();
+      }, 1000); // Wait 1 second before advancing
     }
-    
-    if (!question || !question.options) return 50; // Default to 50% if we can't find the question
-    
-    // Find the selected option
-    const selectedOption = question.options.find((opt: any) => opt.value === answer);
-    if (!selectedOption) return 50; // Default to 50% if we can't find the option
-    
-    // Calculate progress based on the stage
-    switch (selectedOption.stage) {
-      case 'ej':
-        return 33;
-      case 'trans':
-        return 66;
-      case 'full':
-        return 100;
-      default:
-        return 50;
-    }
-  }, [formData, questionsStructure]);
-
-  // Calculate progress for a section
-  const calculateSectionProgress = useCallback((sectionId: keyof FormData): number => {
-    const section = questionsStructure[sectionId];
-    if (!section) return 0;
-    
-    let totalQuestions = 0;
-    let progressSum = 0;
-    
-    // Process questions directly in the section
-    if (section.questions) {
-      Object.keys(section.questions).forEach(questionId => {
-        totalQuestions++;
-        // Add the progress value (will be 0 if not answered)
-        progressSum += calculateProgress(sectionId, questionId);
-      });
-    }
-    
-    // Process questions in subsections
-    if (section.subsections) {
-      Object.values(section.subsections).forEach(subsection => {
-        if (subsection.questions) {
-          Object.keys(subsection.questions).forEach(questionId => {
-            totalQuestions++;
-            // Add the progress value (will be 0 if not answered)
-            progressSum += calculateProgress(sectionId, questionId);
-          });
-        }
-      });
-    }
-    
-    // Return the total progress divided by the total number of questions
-    return totalQuestions > 0 ? progressSum / totalQuestions : 0;
-  }, [formData, questionsStructure, calculateProgress]);
+  }, [currentQuestionIndex, allQuestions.length, disableAutoAdvance, handleNextQuestion]);
 
   // Show loading state
   if (isLoading) {
-    return <div className="text-center py-8">Loading evaluation form...</div>;
+    return (
+      <div className="text-center py-8">
+        <LoadingDots text="Laddar utvärderingsformulär" />
+      </div>
+    );
   }
 
   // Show appropriate view based on showFullForm state
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto py-8">
+    <div className="form-container">
       {showFullForm ? (
         <FullFormView
           formData={formData}
@@ -429,7 +377,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           toggleFullForm={toggleFullForm}
           handleQuestionChange={handleQuestionChange}
           handleCommentChange={handleCommentChange}
-          calculateProgress={calculateProgress}
+          calculateProgress={calculateSectionProgress}
           calculateSectionProgress={calculateSectionProgress}
           isSaving={isSaving}
           handleSubmit={handleSubmit}
@@ -454,7 +402,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           evaluationId={evaluationId}
         />
       )}
-    </form>
+    </div>
   );
 };
 

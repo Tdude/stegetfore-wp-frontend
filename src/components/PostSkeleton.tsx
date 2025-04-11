@@ -36,7 +36,7 @@ export function PostSkeleton({ count = 3 }: { count?: number }) {
 // Single post skeleton for post page
 export function SinglePostSkeleton() {
   return (
-    <article className="max-w-3xl mx-auto">
+    <article className="max-w-3xl mx-auto my-8 py-8">
       <Skeleton className="w-full h-64 md:h-96 rounded-lg mb-8" />
       <Skeleton className="h-12 w-3/4 mb-4" />
       <div className="space-y-4">

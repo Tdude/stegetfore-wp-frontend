@@ -25,13 +25,22 @@ export async function fetchApi(
   const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
   
   try {
+    // Determine if we should stringify the body based on content type
+    const contentType = options.headers?.['Content-Type'] || options.headers?.['content-type'] || 'application/json';
+    let processedBody = options.body;
+    
+    // Only stringify if it's JSON content type and the body isn't already a string
+    if (contentType.includes('application/json') && options.body && typeof options.body !== 'string') {
+      processedBody = JSON.stringify(options.body);
+    }
+    
     const response = await fetch(url, {
       method: options.method || "GET",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": contentType,
         ...(options.headers || {})
       },
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: processedBody,
       // Disable cache for all requests
       cache: 'no-store',
     });

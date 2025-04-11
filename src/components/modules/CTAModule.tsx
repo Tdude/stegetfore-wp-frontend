@@ -42,7 +42,7 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
       <div className={cn(isFullWidth ? "w-full px-4" : "container mx-auto px-4 md:px-6")}>
         <div
           className={cn(
-            "flex flex-col gap-8",
+            "flex flex-col gap-8 px-6",
             hasImage && (isLeftAligned || isRightAligned) ? 'md:flex-row' : '',
             isRightAligned && hasImage ? 'md:flex-row-reverse' : '',
             isCentered ? 'items-center text-center' : '',
@@ -64,7 +64,7 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
 
               {cleanDescription && (
                 <div
-                  className="md:text-xl prose prose-invert max-w-none"
+                  className="text-bold md:text-3xl prose prose-invert max-w-none"
                   style={{ color: module.textColor ? `${module.textColor}/90` : "inherit" }}
                   dangerouslySetInnerHTML={{ __html: cleanDescription }}
                 />
