@@ -3,6 +3,36 @@
 import { QuestionsStructure } from '../types/formTypesEvaluation';
 import { API_URL, fetchApi } from './baseApi';
 
+// Define interface for the evaluation API response data
+interface EvaluationAPIResponse {
+  success: boolean;
+  data: {
+    anknytning?: {
+      title?: string;
+      questions?: Record<string, unknown>;
+    };
+    ansvar?: {
+      title?: string;
+      questions?: Record<string, unknown>;
+    };
+    questions_structure?: {
+      anknytning?: {
+        title?: string;
+        questions?: Record<string, unknown>;
+      };
+      ansvar?: {
+        title?: string;
+        questions?: Record<string, unknown>;
+      };
+    };
+    [key: string]: unknown;
+  } | null;
+  status: number;
+  error?: {
+    message: string;
+  };
+}
+
 // JWT token handling
 let token: string | null = null;
 
@@ -90,7 +120,7 @@ export const evaluationApi = {
   /**
    * Save an evaluation
    */
-  saveEvaluation: async (studentId: number, formData: any) => {
+  saveEvaluation: async (studentId: number, formData: Record<string, unknown>) => {
     try {
       if (!studentId) {
         throw new Error('Student ID is required');
@@ -159,7 +189,7 @@ export const evaluationApi = {
   getQuestionsStructure: async () => {
     try {
       // Try both endpoint formats to ensure we get data
-      let data;
+      let data: EvaluationAPIResponse;
       let endpointUsed = '';
       
       // First try the standard endpoint format that should work
@@ -204,42 +234,55 @@ export const evaluationApi = {
       // Setup the final structure object with defaults for missing parts
       const structure = {
         anknytning: {
-          title: data.anknytning?.title || 'Anknytningstecken',
+          title: data.data?.anknytning?.title || 'Anknytningstecken',
           questions: {}
         },
         ansvar: {
-          title: data.ansvar?.title || 'Ansvarstecken',
+          title: data.data?.ansvar?.title || 'Ansvarstecken',
           questions: {}
         }
       };
       
       // Helper function to check if questions object is valid and non-empty
-      const hasValidQuestions = (section: any, name: string): boolean => {
+      const hasValidQuestions = (section: Record<string, unknown> | undefined): boolean => {
         return !!section && 
+               'questions' in section &&
                !!section.questions && 
                typeof section.questions === 'object' &&
                Object.keys(section.questions || {}).length > 0;
       };
       
       // Handle anknytning section
-      if (hasValidQuestions(data.anknytning, 'anknytning')) {
+      if (data.data && hasValidQuestions(data.data.anknytning)) {
         console.log('Using API data for anknytning questions');
-        structure.anknytning.questions = data.anknytning.questions;
-      } else if (hasValidQuestions(data.questions_structure?.anknytning, 'anknytning structure')) {
+        // TypeScript safe assignment with non-null assertion
+        if (data.data.anknytning?.questions) {
+          structure.anknytning.questions = data.data.anknytning.questions as Record<string, unknown>;
+        }
+      } else if (data.data?.questions_structure && hasValidQuestions(data.data.questions_structure.anknytning)) {
         console.log('Using questions_structure for anknytning questions');
-        structure.anknytning.questions = data.questions_structure.anknytning.questions;
+        // TypeScript safe assignment with non-null assertion
+        if (data.data.questions_structure.anknytning?.questions) {
+          structure.anknytning.questions = data.data.questions_structure.anknytning.questions as Record<string, unknown>;
+        }
       } else {
         console.log('Using default questions for anknytning section');
         structure.anknytning.questions = getDefaultAnknytningQuestions();
       }
       
       // Handle ansvar section
-      if (hasValidQuestions(data.ansvar, 'ansvar')) {
+      if (data.data && hasValidQuestions(data.data.ansvar)) {
         console.log('Using API data for ansvar questions');
-        structure.ansvar.questions = data.ansvar.questions;
-      } else if (hasValidQuestions(data.questions_structure?.ansvar, 'ansvar structure')) {
+        // TypeScript safe assignment with non-null assertion
+        if (data.data.ansvar?.questions) {
+          structure.ansvar.questions = data.data.ansvar.questions as Record<string, unknown>;
+        }
+      } else if (data.data?.questions_structure && hasValidQuestions(data.data.questions_structure.ansvar)) {
         console.log('Using questions_structure for ansvar questions');
-        structure.ansvar.questions = data.questions_structure.ansvar.questions;
+        // TypeScript safe assignment with non-null assertion
+        if (data.data.questions_structure.ansvar?.questions) {
+          structure.ansvar.questions = data.data.questions_structure.ansvar.questions as Record<string, unknown>;
+        }
       } else {
         console.log('Using default questions for ansvar section');
         structure.ansvar.questions = getDefaultAnsvarQuestions();
@@ -378,17 +421,17 @@ function getDefaultAnknytningQuestions() {
     'default-anknytning-1': {
       text: 'Hur upplever du att barnet söker kontakt?',
       options: [
-        { value: 'option1', label: 'Söker sällan kontakt', stage: 'ej' as 'ej' },
-        { value: 'option2', label: 'Söker ibland kontakt', stage: 'trans' as 'trans' },
-        { value: 'option3', label: 'Söker ofta kontakt', stage: 'full' as 'full' }
+        { value: 'option1', label: 'Söker sällan kontakt', stage: 'ej' as const },
+        { value: 'option2', label: 'Söker ibland kontakt', stage: 'trans' as const },
+        { value: 'option3', label: 'Söker ofta kontakt', stage: 'full' as const }
       ]
     },
     'default-anknytning-2': {
       text: 'Hur nyfiket är barnet på sin omgivning?',
       options: [
-        { value: 'option1', label: 'Visar lite nyfikenhet', stage: 'ej' as 'ej' },
-        { value: 'option2', label: 'Visar viss nyfikenhet', stage: 'trans' as 'trans' },
-        { value: 'option3', label: 'Visar stor nyfikenhet', stage: 'full' as 'full' }
+        { value: 'option1', label: 'Visar lite nyfikenhet', stage: 'ej' as const },
+        { value: 'option2', label: 'Visar viss nyfikenhet', stage: 'trans' as const },
+        { value: 'option3', label: 'Visar stor nyfikenhet', stage: 'full' as const }
       ]
     }
   };
@@ -400,17 +443,17 @@ function getDefaultAnsvarQuestions() {
     'default-ansvar-1': {
       text: 'Hur tar barnet ansvar för sina handlingar?',
       options: [
-        { value: 'option1', label: 'Tar sällan ansvar', stage: 'ej' as 'ej' },
-        { value: 'option2', label: 'Tar ibland ansvar', stage: 'trans' as 'trans' },
-        { value: 'option3', label: 'Tar ofta ansvar', stage: 'full' as 'full' }
+        { value: 'option1', label: 'Tar sällan ansvar', stage: 'ej' as const },
+        { value: 'option2', label: 'Tar ibland ansvar', stage: 'trans' as const },
+        { value: 'option3', label: 'Tar ofta ansvar', stage: 'full' as const }
       ]
     },
     'default-ansvar-2': {
       text: 'Hur självständigt är barnet i vardagliga aktiviteter?',
       options: [
-        { value: 'option1', label: 'Behöver mycket stöd', stage: 'ej' as 'ej' },
-        { value: 'option2', label: 'Behöver visst stöd', stage: 'trans' as 'trans' },
-        { value: 'option3', label: 'Klarar sig mestadels själv', stage: 'full' as 'full' }
+        { value: 'option1', label: 'Behöver mycket stöd', stage: 'ej' as const },
+        { value: 'option2', label: 'Behöver visst stöd', stage: 'trans' as const },
+        { value: 'option3', label: 'Klarar sig mestadels själv', stage: 'full' as const }
       ]
     }
   };

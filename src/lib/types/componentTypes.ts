@@ -28,14 +28,14 @@ export interface PageTemplateProps<T = Record<string, unknown>> {
 export interface PageTemplateSelectorProps {
   page: LocalPage;
   isHomePage?: boolean;
-  homepageData?: any; // Changed from HomepageData to any to avoid circular dependency
+  homepageData?: Record<string, unknown>; 
 }
 
 /**
  * Props for the HomepageTemplate component
  */
 export interface HomepageTemplateProps extends PageTemplateProps {
-  homepage?: any; // Changed from HomepageData | string to any to avoid circular dependency
+  homepage?: Record<string, unknown>; 
 }
 
 /**
@@ -66,7 +66,7 @@ export interface ModularTemplateProps {
  * Props for the ModuleRenderer component
  */
 export interface ModuleRendererProps {
-  module: any; // Changed from Module to any to avoid circular dependency
+  module: unknown; 
   className?: string;
 }
 
@@ -152,7 +152,7 @@ export interface GallerySectionProps {
  * Props for the ModularPage component
  */
 export interface ModularPageProps {
-  modules: any[]; // Changed from Module[] to any[] to avoid circular dependency
+  modules: unknown[]; 
   className?: string;
   sectionLayouts?: Record<string, string>;
   headerClassName?: string;

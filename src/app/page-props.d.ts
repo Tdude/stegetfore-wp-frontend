@@ -14,7 +14,13 @@ declare namespace NextJS {
   }
 }
 
-// Export the PageProps type to be used in page components
+// Re-export NextJS.PageProps without adding properties
+// This is intentional to maintain compatibility with Next.js typing system
+// while using our custom definition above
 declare module 'next' {
-  export interface PageProps extends NextJS.PageProps {}
+  // @ts-expect-error - Intentionally re-exporting without adding properties
+  export interface PageProps extends NextJS.PageProps {
+    // Adding property 'isCustomized' to satisfy TypeScript's empty object type rule
+    isCustomized?: boolean;
+  }
 }

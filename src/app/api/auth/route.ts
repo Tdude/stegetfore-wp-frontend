@@ -9,7 +9,8 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Development credentials from environment variables
 const DEV_USERNAME = process.env.NEXT_PUBLIC_DEV_USERNAME;
-const DEV_PASSWORD = process.env.NEXT_PUBLIC_DEV_PASSWORD;
+// We're not using DEV_PASSWORD but keeping it commented for future use
+// const DEV_PASSWORD = process.env.NEXT_PUBLIC_DEV_PASSWORD;
 
 export async function POST(request: Request) {
   try {
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     // Route to appropriate auth endpoint
     let endpoint = '';
     let method = 'GET';
-    let body: any = null;
+    let body: string | null = null;
     
     switch (action) {
       case 'login':
@@ -141,7 +142,7 @@ export async function POST(request: Request) {
     
     // In development mode, return mock success responses even on error
     if (isDevelopment) {
-      const { action, username, token } = await request.json().catch(() => ({ action: '', username: '', token: '' }));
+      const { action, username } = await request.json().catch(() => ({ action: '', username: '' }));
       
       if (action === 'login') {
         console.log('Development mode: Returning mock login response after error');

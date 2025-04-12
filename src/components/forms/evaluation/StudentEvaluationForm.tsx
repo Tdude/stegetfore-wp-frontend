@@ -3,11 +3,9 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { FormData, FormSection, QuestionsStructure, StudentEvaluationFormProps, initialFormState, EvaluationResponse } from '@/lib/types/formTypesEvaluation';
+import { FormData, QuestionsStructure, StudentEvaluationFormProps, initialFormState } from '@/lib/types/formTypesEvaluation';
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
-import { Button } from "@/components/ui/button";
-import LoadingDots, { LoadingSpinner } from '@/components/ui/LoadingDots';
-import ProgressBar, { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
+import LoadingDots from '@/components/ui/LoadingDots';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 import confetti from 'canvas-confetti';
@@ -300,9 +298,10 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       
       setIsSaving(true);
       
+      // Cast formData to Record<string, unknown> to satisfy TypeScript
       const response = await evaluationApi.saveEvaluation(
         studentId,
-        formData
+        formData as unknown as Record<string, unknown>
       );
       
       // Clear the local storage draft if we have a key
@@ -316,10 +315,14 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       // Trigger confetti celebration
       launchConfetti();
       
-      // If we have an evaluation ID from the response, update the URL
-      if (response?.id && typeof window !== 'undefined') {
+      // Check for evaluation ID safely in the response structure
+      // The API response might have the ID in data.id, or it might be on response.data.evaluation_id
+      const responseData = response?.data || {};
+      const evaluationId = responseData.id || responseData.evaluation_id;
+      
+      if (evaluationId && typeof window !== 'undefined') {
         const url = new URL(window.location.href);
-        url.searchParams.set('evaluationId', response.id.toString());
+        url.searchParams.set('evaluationId', String(evaluationId));
         window.history.replaceState({}, '', url.toString());
       }
       

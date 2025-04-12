@@ -100,7 +100,7 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
             <Alert variant="warning" className="mb-8">
               <AlertTitle>No modules found</AlertTitle>
               <AlertDescription>
-                This page is configured to use the modular template but doesn't have any modules yet.
+                This page is configured to use the modular template but doesn&apos;t have any modules yet.
               </AlertDescription>
             </Alert>
             
@@ -138,8 +138,7 @@ export default function ModularTemplate({ page }: ModularTemplateProps) {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <DebugPanel 
           title="Page Debug Information"
-          page={page}
-          additionalData={{
+          debugData={{
             'Page ID': page.id,
             'Template': page.template || 'Modular',
             'Title': pageTitle ? 'Set' : 'Missing',

@@ -4,7 +4,7 @@ import {
   WPCF7Field,
   WPCF7SubmissionResponse,
   FormValidationState,
-} from "@/lib/types";
+} from "@/lib/types/formTypes";
 import { fetchFormStructure, submitForm, submitSimpleForm } from "@/lib/api";
 import { formatFormDataForSubmission } from "@/lib/adapters";
 
@@ -15,7 +15,7 @@ import { formatFormDataForSubmission } from "@/lib/adapters";
  * @returns Validation result with errors if any
  */
 export function validateFormData(
-  formData: Record<string, any>,
+  formData: Record<string, unknown>,
   form: WPCF7Form
 ): FormValidationState {
   const errors: Record<string, string> = {};
@@ -43,7 +43,7 @@ export function validateFormData(
     // Email validation
     if (field.type === "email" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) {
+      if (typeof value === 'string' && !emailRegex.test(value)) {
         errors[field.name] = "Please enter a valid email address";
       }
     }
@@ -51,8 +51,10 @@ export function validateFormData(
     // URL validation
     if (field.type === "url" && value) {
       try {
-        new URL(value);
-      } catch (e) {
+        if (typeof value === 'string') {
+          new URL(value);
+        }
+      } catch {
         errors[field.name] = "Please enter a valid URL";
       }
     }
@@ -61,9 +63,9 @@ export function validateFormData(
     if (field.type === "number" && value) {
       const num = Number(value);
 
-      if (isNaN(num)) {
+      if (typeof num === 'number' && isNaN(num)) {
         errors[field.name] = "Please enter a valid number";
-      } else {
+      } else if (typeof num === 'number') {
         if (field.min !== undefined && num < Number(field.min)) {
           errors[
             field.name
@@ -79,13 +81,15 @@ export function validateFormData(
 
     // Text length validation
     if ((field.type === "text" || field.type === "textarea") && value) {
-      if (field.min !== undefined && value.length < Number(field.min)) {
-        errors[field.name] = `Please enter at least ${field.min} characters`;
-      }
-      if (field.max !== undefined && value.length > Number(field.max)) {
-        errors[
-          field.name
-        ] = `Please enter no more than ${field.max} characters`;
+      if (typeof value === 'string') {
+        if (field.min !== undefined && value.length < Number(field.min)) {
+          errors[field.name] = `Please enter at least ${field.min} characters`;
+        }
+        if (field.max !== undefined && value.length > Number(field.max)) {
+          errors[
+            field.name
+          ] = `Please enter no more than ${field.max} characters`;
+        }
       }
     }
 
@@ -123,8 +127,8 @@ export function validateFormData(
  * @param form Form structure
  * @returns Initial form values
  */
-export function createInitialFormValues(form: WPCF7Form): Record<string, any> {
-  const initialValues: Record<string, any> = {};
+export function createInitialFormValues(form: WPCF7Form): Record<string, unknown> {
+  const initialValues: Record<string, unknown> = {};
 
   form.fields.forEach((field) => {
     if (field.type === "checkbox" || field.type === "radio") {
@@ -157,7 +161,7 @@ export function createInitialFormValues(form: WPCF7Form): Record<string, any> {
  */
 export async function submitFormWithValidation(
   formId: number,
-  formData: Record<string, any>,
+  formData: Record<string, unknown>,
   useSimpleSubmit: boolean = false
 ): Promise<{
   success: boolean;

@@ -26,8 +26,12 @@ export default function PostsList({ posts, categories }: PostsListProps) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {posts.map((post) => (
-        <Link href={`/posts/${post.slug}`} className="text-sm text-primary">
-          <Card key={post.id} className="h-full overflow-hidden">
+        <Link 
+          href={`/posts/${post.slug}`} 
+          className="text-sm text-primary"
+          key={post.id}
+        >
+          <Card className="h-full overflow-hidden">
             {post.featured_image_url && (
               <div className="aspect-video relative overflow-hidden">
                 <NextImage

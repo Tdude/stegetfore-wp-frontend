@@ -1,28 +1,9 @@
 // src/components/modules/ModuleRenderer.tsx
 'use client';
 
-import React, { Suspense, lazy, ReactNode } from 'react';
+import React, { lazy, ReactNode } from 'react';
 import { Module } from '@/lib/types/moduleTypes';
 import { cn } from '@/lib/utils';
-import {
-  isHeroModule,
-  isCTAModule,
-  isSellingPointsModule,
-  isTestimonialsModule,
-  isFeaturedPostsModule,
-  isStatsModule,
-  isGalleryModule,
-  isTextModule,
-  isFormModule,
-  isAccordionModule,
-  isTabsModule,
-  isVideoModule,
-  isChartModule
-} from '@/lib/typeGuards';
-
-// Import basic placeholder components
-import ModulePlaceholder from './ModulePlaceholder';
-import ModuleErrorBoundary from './ModuleErrorBoundary';
 
 // Simple error boundary component
 interface ErrorBoundaryProps {

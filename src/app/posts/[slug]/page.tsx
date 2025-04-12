@@ -9,6 +9,8 @@ import { notFound } from 'next/navigation';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+// Using type-only import to avoid conflicts
+import type { Post } from '@/lib/types/contentTypes';
 
 async function getSlugFromParams(params: { slug: string }) {
   const result = await Promise.resolve(params);
@@ -63,10 +65,11 @@ async function Post({ slug }: { slug: string }) {
       <div className="max-w-3xl mx-auto px-4">
         <DebugPanel 
           title="Blog Post Debug Information"
-          page={post}
-          additionalData={{
+          debugData={{
             'Post ID': post.id,
+            'Title': post.title?.rendered || '',
             'Slug': post.slug,
+            'Content': post.content ? `${post.content.rendered.substring(0, 100)}...` : '',
             'Has Featured Image': Boolean(post.featured_image_url),
             'Categories': post.categories ? Object.keys(post.categories).length : 0,
             'Content Length': post.content?.rendered?.length || 0,

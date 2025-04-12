@@ -9,27 +9,27 @@ export function cn(...inputs: ClassValue[]) {
  * Recursively normalizes backslashes in any string property of an object
  * This prevents the compounding escaping issue when saving repeatedly in WordPress
  */
-export function normalizeBackslashes(obj: any): any {
+export function normalizeBackslashes<T>(obj: T): T {
   if (obj === null || obj === undefined) return obj;
 
   if (typeof obj === "string") {
     // Use a regex that matches exactly one backslash followed by a quotation mark
     // and replace with just the quotation mark
-    return obj.replace(/\\(["'\\])/g, "$1");
+    return obj.replace(/\\(["'\\])/g, "$1") as unknown as T;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => normalizeBackslashes(item));
+    return obj.map((item) => normalizeBackslashes(item)) as unknown as T;
   }
 
   if (typeof obj === "object") {
-    const result: Record<string, any> = {};
+    const result: Record<string, unknown> = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        result[key] = normalizeBackslashes(obj[key]);
+        result[key] = normalizeBackslashes((obj as Record<string, unknown>)[key]);
       }
     }
-    return result;
+    return result as unknown as T;
   }
 
   return obj;

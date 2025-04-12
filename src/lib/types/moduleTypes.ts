@@ -28,7 +28,7 @@ export interface BaseModule {
   }>;
   order?: number;
   status?: "publish" | "draft";
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
   originalType?: string; // For debugging purposes
   categories?: string | string[];
   placements?: string[] | string;
@@ -107,21 +107,39 @@ export interface TestimonialsModule extends BaseModule {
 }
 
 /**
+ * Category type for modules
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  [key: string]: unknown;
+}
+
+/**
  * Featured Posts module
  */
 export interface FeaturedPostsModule extends BaseModule {
-  type: "featured-posts";
+  type: 'featured-posts';
   title: string;
   subtitle?: string;
-  posts: any[];
+  backgroundColor?: string;
+  categories?: string | string[];
+  categoriesData?: Category[];
+  post_count?: number;
   columns?: number;
-  display_style?: "grid" | "list" | "carousel";
+  display_style?: 'grid' | 'list' | 'carousel';
+  show_categories?: boolean;
   show_date?: boolean;
   show_excerpt?: boolean;
+  show_button?: boolean;
+  button_text?: string;
+  show_view_all?: boolean;
+  view_all_url?: string;
+  view_all_text?: string;
   show_author?: boolean;
-  show_categories?: boolean;
   show_read_more?: boolean;
-  backgroundColor?: string;
+  posts: unknown[];
 }
 
 /**
@@ -257,7 +275,7 @@ export interface ChartModule extends BaseModule {
       borderColor?: string;
     }>;
   };
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 }
 
 /**

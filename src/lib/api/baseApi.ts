@@ -28,62 +28,143 @@ export async function testConnection(): Promise<boolean> {
  * @param options Additional fetch options
  * @returns The JSON response from the API
  */
-export async function fetchApi(
+export async function makeRequest(
   endpoint: string,
   options: {
     method?: string;
-    body?: any;
+    body?: string | Record<string, unknown>; // Allow string or object for body
     headers?: Record<string, string>;
+    revalidate?: number; // Add revalidate option for Next.js cache control
   } = {}
 ) {
-  const url = API_URL + (endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
-  
-  // Prepare the body if it's a JSON request
-  let body = options.body;
-  if (body && typeof body === 'object' && !(body instanceof FormData)) {
-    body = JSON.stringify(body);
+  const { method = "GET", body, headers = {}, revalidate } = options;
+
+  // Set up the headers with defaults
+  const requestHeaders = {
+    ...headers,
+  };
+
+  // Handle Content-Type header for JSON bodies
+  if (body && typeof body === 'object') {
+    requestHeaders["Content-Type"] = "application/json";
   }
-  
-  console.log(`API Request: ${options.method || 'GET'} ${url}`);
-  
+
+  // Make the request
   try {
-    const response = await fetch(url, {
-      method: options.method || "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      body,
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method,
+      headers: requestHeaders,
+      body: typeof body === 'object' ? JSON.stringify(body) : body, // Stringify only if object
     });
 
-    if (!response.ok) {
-      console.warn(`API error: ${response.status} ${response.statusText} for ${url}`);
-      return { 
-        error: true, 
+    // Try to parse the response as JSON
+    try {
+      const data = await response.json();
+      return {
+        success: response.ok,
+        data,
         status: response.status,
-        message: response.statusText
+      };
+    } catch (error) {
+      // If we can't parse as JSON, return the raw response
+      return {
+        success: response.ok,
+        data: null,
+        status: response.status,
       };
     }
-
-    // Handle empty responses
-    const text = await response.text();
-    if (!text) {
-      return {};
-    }
-
-    // Parse JSON response
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.warn('Failed to parse JSON response');
-      return { content: text };
-    }
   } catch (error) {
-    console.error(`Network error calling ${url}:`, error);
-    return { 
-      error: true, 
-      network: true,
-      message: error instanceof Error ? error.message : 'Unknown error'
+    console.error("API request failed:", error);
+    // Return a standardized error response
+    return {
+      success: false,
+      data: null,
+      status: 0,
+      error: {
+        message: "Failed to fetch data",
+      },
     };
   }
+}
+
+/**
+ * Alias for makeRequest to maintain backward compatibility with existing code
+ * that imports fetchApi
+ */
+export const fetchApi = makeRequest;
+
+/**
+ * Transforms an error response into a standardized format
+ * @param error Error object from fetch or other source
+ * @returns Standardized error object
+ */
+export function handleApiError(error: unknown): ApiErrorResponse {
+  console.error("API Error:", error);
+  
+  // Return a standardized error response
+  return {
+    code: "error",
+    message: error instanceof Error ? error.message : "An unknown error occurred",
+    success: false
+  };
+}
+
+/**
+ * Makes an API request with error handling and response parsing
+ * @param url The URL to fetch from
+ * @param options Request options
+ * @returns Promise with the API response
+ */
+export async function fetchWithErrorHandling<T>(
+  url: string,
+  options?: RequestInit
+): Promise<ApiResponse<T>> {
+  try {
+    const response = await fetch(url, options);
+    
+    // Try to parse as JSON
+    let data: T;
+    try {
+      data = await response.json();
+    } catch (error) {
+      // If JSON parsing fails, return null data
+      console.warn(`Failed to parse JSON from ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      data = null as unknown as T;
+    }
+    
+    return {
+      data,
+      status: response.status,
+      // Map headers to a simple object
+      headers: Object.fromEntries([...response.headers.entries()]),
+    };
+  } catch (error) {
+    // Handle fetch errors gracefully without exposing the error
+    return {
+      data: null as unknown as T,
+      status: 0,
+      headers: {}, // Add empty headers object to satisfy the interface
+      error: {
+        message: "Failed to fetch data. Please check your connection.",
+        code: "network_error"
+      }
+    };
+  }
+}
+
+interface ApiErrorResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  data?: unknown;
+}
+
+interface ApiResponse<T> {
+  data: T | null;
+  status: number;
+  headers: Record<string, string>;
+  error?: {
+    message: string;
+    code?: string;
+  };
 }

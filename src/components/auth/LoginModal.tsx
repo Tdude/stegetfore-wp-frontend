@@ -44,8 +44,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       } else {
         setError('Inloggningen misslyckades. Kontrollera dina uppgifter.');
       }
-    } catch (err) {
-      setError('Ett fel uppstod vid inloggning.');
+    } catch (error) {
+      // Log error and show detailed message if available
+      console.error('Login error:', error);
+      setError(`Ett fel uppstod vid inloggning: ${error instanceof Error ? error.message : 'Okänt fel'}`);
     } finally {
       setLoading(false);
     }
@@ -69,8 +71,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       } else {
         setError('Dev-inloggning misslyckades. Kontrollera .env.local filen.');
       }
-    } catch (err) {
-      setError('Ett fel uppstod vid dev-inloggning.');
+    } catch (error) {
+      // Log error details for debugging
+      console.error('Dev login error:', error);
+      setError(`Ett fel uppstod vid dev-inloggning: ${error instanceof Error ? error.message : 'Okänt fel'}`);
     } finally {
       setLoading(false);
     }

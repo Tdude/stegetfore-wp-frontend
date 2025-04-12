@@ -4,7 +4,7 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, List } from 'lucide-react';
-import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
+import { FormData, QuestionsStructure, Question } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
 import ProgressBar, { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
@@ -15,7 +15,7 @@ interface StepByStepViewProps {
   allQuestions: Array<{
     sectionId: keyof FormData;
     questionId: string;
-    question: any;
+    question: Question;
   }>;
   currentQuestionIndex: number;
   currentSection: keyof FormData;

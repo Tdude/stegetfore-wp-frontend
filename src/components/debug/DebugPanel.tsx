@@ -3,18 +3,37 @@
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { LocalPage } from '@/lib/types/contentTypes';
+
+// Define a more specific type for page data
+interface PageData {
+  id?: number;
+  title?: string | { rendered: string };
+  content?: string | { rendered: string };
+  slug?: string;
+  template?: string;
+  featured_image_url?: string;
+  _embedded?: Record<string, unknown>;
+  modules?: Array<ModuleData>;
+  show_content_with_modules?: boolean;
+  meta?: Record<string, unknown>;
+}
+
+// Define a type for module data
+interface ModuleData {
+  type: string;
+  [key: string]: unknown;
+}
 
 interface DebugPanelProps {
   title?: string;
-  // Option to just pass the page object directly
-  page?: any;
-  // Optional additional data to include in debugging
-  additionalData?: Record<string, any>;
+  // Replaced any with PageData
+  page?: PageData;
+  // Replaced any with unknown for better type safety
+  additionalData?: Record<string, unknown>;
   // For backward compatibility, can still provide fully prepared debug data
-  debugData?: Record<string, any>;
+  debugData?: Record<string, unknown>;
   // Optional custom renderer for specific data types
-  customRenderer?: (data: Record<string, any>) => React.ReactNode;
+  customRenderer?: (data: Record<string, unknown>) => React.ReactNode;
 }
 
 /**
@@ -35,7 +54,7 @@ export default function DebugPanel({
 
   // If debug data is directly provided, use that
   // Otherwise, generate it from the page object
-  const debugData = providedDebugData || prepareDebugData(page, additionalData);
+  const debugData = providedDebugData || (page ? prepareDebugData(page, additionalData) : { 'Error': 'No page data provided', ...additionalData });
 
   return (
     <div className="debug-panel mt-12 mb-4 border-t-2 border-gray-200 pt-4">
@@ -118,7 +137,7 @@ function formatTemplateName(templatePath: string): string {
 /**
  * Prepares standard debug data from a page object
  */
-function prepareDebugData(page: any, additionalData: Record<string, any> = {}): Record<string, any> {
+function prepareDebugData(page: PageData, additionalData: Record<string, unknown> = {}): Record<string, unknown> {
   if (!page) {
     return {
       'Error': 'No page data provided',
@@ -129,9 +148,23 @@ function prepareDebugData(page: any, additionalData: Record<string, any> = {}): 
   // Extract basic page data with defensive checks
   const pageId = page.id || 'Unknown';
   const template = page.template ? formatTemplateName(page.template) : 'Default';
-  const title = page.title?.rendered || page.title || 'Unknown';
-  const hasContent = Boolean(page.content?.rendered || page.content);
-  const contentLength = (page.content?.rendered || page.content || '').length;
+  
+  // Fix type errors with proper type guards
+  const title = typeof page.title === 'object' && page.title?.rendered 
+    ? page.title.rendered 
+    : (typeof page.title === 'string' ? page.title : 'Unknown');
+    
+  const hasContent = Boolean(
+    typeof page.content === 'object' && page.content?.rendered 
+    || typeof page.content === 'string' && page.content
+  );
+  
+  const contentLength = (
+    typeof page.content === 'object' && page.content?.rendered 
+      ? page.content.rendered 
+      : (typeof page.content === 'string' ? page.content : '')
+  ).length;
+  
   const hasFeaturedImage = Boolean(page.featured_image_url || (page._embedded && page._embedded['wp:featuredmedia']));
   const modulesCount = Array.isArray(page.modules) ? page.modules.length : 0;
   const slug = page.slug || 'Unknown';
@@ -139,21 +172,13 @@ function prepareDebugData(page: any, additionalData: Record<string, any> = {}): 
   // Create module type count
   let moduleTypes: Record<string, number> = {};
   if (Array.isArray(page.modules)) {
-    moduleTypes = page.modules.reduce((acc: Record<string, number>, module: any) => {
+    moduleTypes = page.modules.reduce((acc: Record<string, number>, module: ModuleData) => {
       if (module.type) {
         acc[module.type] = (acc[module.type] || 0) + 1;
       }
       return acc;
     }, {});
   }
-
-  // Calculate which module sections are present
-  const moduleSections = {
-    header: 0,
-    main: 0,
-    other: 0,
-    footer: 0
-  };
 
   // Try to extract meta information with defensive coding
   const meta = page.meta || {};

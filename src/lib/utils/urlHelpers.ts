@@ -8,7 +8,7 @@ import { Post, LocalPost } from '@/lib/types/contentTypes';
  * @param post The post object (can be from WordPress API or local data)
  * @returns The URL to the post
  */
-export function getPostUrl(post: Post | LocalPost | any): string {
+export function getPostUrl(post: Post | LocalPost | Record<string, unknown>): string {
   // If the post has a link property, use that (WordPress API format)
   if (post.link && typeof post.link === 'string') {
     // If it's a full URL, try to make it relative
@@ -16,7 +16,7 @@ export function getPostUrl(post: Post | LocalPost | any): string {
       try {
         const url = new URL(post.link);
         return url.pathname;
-      } catch (e) {
+      } catch {
         // If URL parsing fails, just return the link
         return post.link;
       }

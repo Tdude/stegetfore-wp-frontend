@@ -49,7 +49,7 @@ export function useModules({
     } else {
       setParsedHomepageData(homepageData);
     }
-  }, [homepageData]);
+  }, [homepageData, defaultHomepageData]);
 
   // Combine modules from all sources with explicit typing
   const allModules: Module[] = useMemo(() => {

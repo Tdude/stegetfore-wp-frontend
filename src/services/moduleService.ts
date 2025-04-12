@@ -1,13 +1,16 @@
 // src/services/moduleService.ts
-import { Module } from "@/lib/types/moduleTypes";
-import {
-  fetchModule,
-  fetchModules,
-  fetchModulesByTemplate,
-  fetchModulesByCategory,
-} from "@/lib/api";
-import { fetchPostsByIds, fetchFeaturedPosts } from "@/lib/api";
+import { Module, FeaturedPostsModule } from "@/lib/types/moduleTypes";
+import { fetchModules } from "@/lib/api";
+import { fetchFeaturedPosts } from "@/lib/api";
 import { fetchCategories } from "@/lib/api";
+
+// Define proper interface for category data based on how it's used in the codebase
+interface CategoryData {
+  id: number;
+  name: string;
+  slug: string;
+  [key: string]: unknown; // Add index signature for additional properties
+}
 
 /**
  * Enhances modules with additional data like posts and categories
@@ -22,7 +25,7 @@ export async function enhanceModules(modules: Module[]): Promise<Module[]> {
     modules.map(async (module) => {
       switch (module.type) {
         case "featured-posts":
-          return await enhanceFeaturedPostsModule(module);
+          return await enhanceFeaturedPostsModule(module as FeaturedPostsModule);
         default:
           return module;
       }
@@ -37,36 +40,49 @@ export async function enhanceModules(modules: Module[]): Promise<Module[]> {
  * @param module The featured posts module to enhance
  * @returns Enhanced module with posts data
  */
-async function enhanceFeaturedPostsModule(module: any): Promise<Module> {
+async function enhanceFeaturedPostsModule(module: FeaturedPostsModule): Promise<FeaturedPostsModule> {
+  if (!module.categories || module.categories.length === 0) {
+    // No categories specified, use default logic
+    return module;
+  }
+
   try {
-    // If the module already has posts with content, return as is
-    if (module.posts?.length && module.posts[0].content) {
-      return module;
-    }
+    // Process category IDs as needed for the API
+    const categoryIds = Array.isArray(module.categories) 
+      ? module.categories.join(',') 
+      : module.categories.toString();
 
-    // Get post IDs from the module or use a count
-    const postIds = module.post_ids || [];
-    const count = module.count || 3;
+    // Fetch posts for the specified categories
+    const featuredPosts = await fetchFeaturedPosts({
+      categories: categoryIds,
+      per_page: module.post_count || 3,
+    });
 
-    // Fetch posts based on IDs or featured status
-    const posts = postIds.length
-      ? await fetchPostsByIds(postIds)
-      : await fetchFeaturedPosts(count);
+    // Fetch categories data once and build an array
+    const categories = await fetchCategories();
+    
+    // Convert the categories from Record to array format with proper typing
+    const categoriesData: CategoryData[] = Array.isArray(categories) 
+      ? categories.map(category => ({
+          ...category // Include all properties from original
+        }))
+      : Object.values(categories).map(category => ({
+          ...category // Include all properties from original
+        }));
 
-    // Get categories if show_categories is true
-    let categories = {};
-    if (module.show_categories) {
-      categories = await fetchCategories();
-    }
-
+    // Return enhanced module with posts and categories
     return {
       ...module,
-      posts,
-      categories,
+      posts: featuredPosts,
+      categoriesData: categoriesData
     };
   } catch (error) {
-    console.error("Error enhancing featured posts module:", error);
-    return module;
+    console.error('Error enhancing featured posts module:', error);
+    return {
+      ...module,
+      posts: [],
+      categoriesData: []
+    };
   }
 }
 
@@ -82,16 +98,23 @@ export async function getPageModules(
 ): Promise<Module[]> {
   try {
     // Fetch modules for the page
-    const endpoint = templateFilter
-      ? `/steget/v1/page/${pageId}/modules?template=${templateFilter}`
-      : `/steget/v1/page/${pageId}/modules`;
-
     const modules = await fetchModules({ page: pageId });
 
-    // Enhance modules with additional data
-    return await enhanceModules(modules);
+    // Filter by template if requested
+    const filteredModules = templateFilter
+      ? modules.filter(module => {
+          // If template is defined on the module, filter by it
+          if (module.template) {
+            return module.template === templateFilter;
+          }
+          return true; // Include modules without a template
+        })
+      : modules;
+
+    // Return enhanced modules with any additional data needed
+    return await enhanceModules(filteredModules);
   } catch (error) {
-    console.error(`Error fetching modules for page ${pageId}:`, error);
+    console.error(`Error getting modules for page ${pageId}:`, error);
     return [];
   }
 }
@@ -106,8 +129,11 @@ export function groupModulesBySection(
 ): Record<string, Module[]> {
   if (!modules?.length) return {};
 
+  // Define valid section types
+  type SectionKey = 'header' | 'main' | 'sidebar' | 'footer' | 'other';
+
   // Default sections
-  const sections: Record<string, Module[]> = {
+  const sections: Record<SectionKey, Module[]> = {
     header: [],
     main: [],
     sidebar: [],
@@ -117,9 +143,11 @@ export function groupModulesBySection(
 
   // Group modules by their section property
   modules.forEach((module) => {
-    const section = module.settings?.section || "main";
-
-    if (sections[section]) {
+    const sectionName = module.settings?.section as string || "main";
+    
+    // Type-safe check if section exists
+    const section = sectionName as SectionKey;
+    if (Object.prototype.hasOwnProperty.call(sections, section)) {
       sections[section].push(module);
     } else {
       sections.other.push(module);
@@ -128,7 +156,7 @@ export function groupModulesBySection(
 
   // Sort modules by order property within each section
   Object.keys(sections).forEach((section) => {
-    sections[section].sort((a, b) => {
+    sections[section as SectionKey].sort((a, b) => {
       const orderA = a.order || 0;
       const orderB = b.order || 0;
       return orderA - orderB;

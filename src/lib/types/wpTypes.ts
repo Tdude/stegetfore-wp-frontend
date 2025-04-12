@@ -266,7 +266,7 @@ export interface LocalPage extends WordPressPage {
   type: string;
   template: string;
   featured_image_url?: string | null;
-  _embedded?: any;
+  _embedded?: Record<string, unknown>;
   hero?: {
     title?: string;
     intro?: string;

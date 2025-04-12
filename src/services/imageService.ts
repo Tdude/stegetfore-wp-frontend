@@ -1,5 +1,25 @@
 // src/services/imageService.ts
 import { ImageContainer } from "@/lib/types";
+import { WordPressMedia } from "@/lib/types/wpTypes";
+
+// Define a flexible WordPress content interface with common image-related properties
+interface WordPressContent {
+  featured_image_url?: string | null;
+  featured_image?: string | null;
+  _embedded?: {
+    "wp:featuredmedia"?: Array<WordPressMedia>;
+  };
+  [key: string]: unknown;
+}
+
+// Define a flexible homepage data interface with hero image properties
+interface HomepageContent {
+  hero?: {
+    image?: string | string[];
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 /**
  * Strips HTML content from a string
@@ -33,7 +53,7 @@ export function isExternalImage(url: string): boolean {
 
     // Check if hostname is in our allowed domains
     return !allowedDomains.some((domain) => hostname.includes(domain));
-  } catch (e) {
+  } catch {
     // If URL parsing fails, assume it's a relative path and therefore internal
     return false;
   }
@@ -68,7 +88,7 @@ export function getImageSizes(containerType: ImageContainer): string {
  * @param media WordPress media object
  * @returns Width and height
  */
-export function getImageDimensions(media: any): {
+export function getImageDimensions(media: WordPressMedia): {
   width: number;
   height: number;
 } {
@@ -93,7 +113,7 @@ export function getImageDimensions(media: any): {
  * @returns URL of the image in the requested size
  */
 export function getOptimalImageSize(
-  media: any,
+  media: WordPressMedia,
   size: "thumbnail" | "medium" | "large" | "full" = "full"
 ): string {
   if (!media || !media.media_details || !media.media_details.sizes) {
@@ -123,18 +143,24 @@ export function getOptimalImageSize(
  * @param content WordPress post or page
  * @returns Featured image URL or null
  */
-export function getFeaturedImageUrl(content: any): string | null {
+export function getFeaturedImageUrl(content: WordPressContent): string | null {
   if (!content) return null;
 
   // Direct featured_image_url property
-  if (content.featured_image_url) return content.featured_image_url;
+  if (content.featured_image_url) {
+    return content.featured_image_url;
+  }
 
-  // Check in _embedded data (typical WP REST API response)
-  if (content._embedded?.["wp:featuredmedia"]?.[0]?.source_url) {
+  // Direct featured_image property
+  if (content.featured_image) {
+    return content.featured_image;
+  }
+
+  // Handle _embedded object with featuredmedia
+  if (content._embedded && content._embedded["wp:featuredmedia"]?.[0]) {
     return content._embedded["wp:featuredmedia"][0].source_url;
   }
 
-  // Not found
   return null;
 }
 
@@ -143,7 +169,7 @@ export function getFeaturedImageUrl(content: any): string | null {
  * @param homepageData Homepage data
  * @returns Hero image URL or fallback
  */
-export function getHeroImageUrl(homepageData: any): string {
+export function getHeroImageUrl(homepageData: HomepageContent): string {
   if (!homepageData?.hero) return "/images/hero-fallback.jpg";
 
   const { image } = homepageData.hero;
@@ -163,18 +189,14 @@ export function getHeroImageUrl(homepageData: any): string {
  * @param fallback Fallback alt text
  * @returns Alt text for the image
  */
-export function getImageAlt(media: any, fallback: string = "Image"): string {
+export function getImageAlt(media: WordPressMedia, fallback: string = "Image"): string {
   if (!media) return fallback;
 
   // Check for alt_text in the media object
-  if (media.alt_text) return media.alt_text;
-
-  // Check for alt_text in embedded media
-  if (media._embedded?.["wp:featuredmedia"]?.[0]?.alt_text) {
-    return media._embedded["wp:featuredmedia"][0].alt_text;
+  if (media.alt_text) {
+    return media.alt_text;
   }
 
-  // Return the fallback
   return fallback;
 }
 

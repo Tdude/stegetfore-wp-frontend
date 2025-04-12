@@ -1,5 +1,6 @@
 // src/services/dataService.ts
-import { Page, HomepageData, Module, Post } from "@/lib/types";
+import { Post } from "@/lib/types";
+import { HomepageData } from "@/lib/types/contentTypes";
 import {
   fetchHomepageData,
   fetchFeaturedPosts,
@@ -58,7 +59,7 @@ export async function getEnhancedHomepageData(): Promise<HomepageData> {
  * @param rawData Raw homepage data (could be string or object)
  * @returns Processed homepage data
  */
-export function processHomepageData(rawData: any): HomepageData {
+export function processHomepageData(rawData: string | Record<string, unknown>): HomepageData {
   try {
     // If data is a string, try to parse it
     if (typeof rawData === "string") {

@@ -159,9 +159,17 @@ export async function fetchPageById(
     const endpoint = `/wp/v2/pages/${id}?_embed`;
     
     // Fetch page data with cache disabled
-    const page = await fetchApi(endpoint, {
+    const response = await fetchApi(endpoint, {
       revalidate: 0, // No caching
     });
+    
+    // Handle API response standardized format
+    if (!response.success || !response.data) {
+      console.warn(`No page found for ID: ${id}`);
+      return null;
+    }
+    
+    const page = response.data;
     
     if (!page || !page.id) {
       console.warn(`No page found for ID: ${id}`);

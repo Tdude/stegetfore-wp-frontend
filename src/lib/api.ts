@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { Page, Post, SiteInfo, MenuItem } from "./types";
+import { Page, Post, SiteInfo, MenuItem } from "./types/contentTypes";
 import { getOptimalImageSize } from "./imageUtils";
 
 export * from "./api/index";
@@ -78,6 +78,7 @@ export async function fetchPosts(): Promise<Post[]> {
           content: {
             rendered: post.content.rendered,
           },
+          // Use the properly typed featured_image property
           featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
           featured_image_url:
             post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null,
@@ -104,7 +105,6 @@ export async function fetchPost(slug: string): Promise<Post | null> {
     const featuredMedia = post._embedded?.["wp:featuredmedia"]?.[0];
 
     return {
-      featured_image: featuredMedia || null,
       id: post.id,
       slug: post.slug,
       title: {
@@ -116,7 +116,8 @@ export async function fetchPost(slug: string): Promise<Post | null> {
       content: {
         rendered: post.content.rendered,
       },
-      // Use the utility to get the optimal image size from the media object
+      // Use the properly typed featured_image property
+      featured_image: featuredMedia || null,
       featured_image_url: featuredMedia
         ? getOptimalImageSize(featuredMedia, "large")
         : null,
@@ -149,19 +150,35 @@ export async function fetchCategories(): Promise<
 }
 
 // Fetch featured posts
-export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
+export async function fetchFeaturedPosts(
+  options: number | { categories?: string; per_page?: number } = 3
+): Promise<Post[]> {
   try {
     const featuredTagId = 17; // Actual "fokus" tag ID (17)
-    const posts = await fetchAPI(
-      `/wp/v2/posts?_embed&per_page=${count}&categories=${featuredTagId}`,
-      {
-        revalidate: 3600, // Cache for 1 hour
-      }
-    );
+    
+    // Determine the parameters based on options type
+    let per_page: number;
+    let categories: string | undefined;
+    
+    if (typeof options === 'number') {
+      per_page = options;
+      categories = String(featuredTagId);
+    } else {
+      per_page = options.per_page || 3;
+      categories = options.categories || String(featuredTagId);
+    }
+    
+    // Build the API endpoint with query parameters
+    const endpoint = `/wp/v2/posts?_embed&per_page=${per_page}${categories ? `&categories=${categories}` : ''}`;
+    
+    const posts = await fetchAPI(endpoint, {
+      revalidate: 3600, // Cache for 1 hour
+    });
 
     // Map the response to match our Post interface
     return Array.isArray(posts)
       ? posts.map((post: Post) => ({
+          // Use the properly typed featured_image property
           featured_image: post._embedded?.["wp:featuredmedia"]?.[0] || null,
           id: post.id,
           slug: post.slug,
@@ -185,7 +202,6 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
   }
 }
 
-// Different cache times for different types of content
 export async function fetchSiteInfo(): Promise<SiteInfo> {
   try {
     // Cache site info for 1 hour
@@ -253,7 +269,7 @@ export async function fetchPages(): Promise<Page[]> {
 
 export async function fetchPage(
   slug: string,
-  p0: boolean
+  _previewMode = false
 ): Promise<Page | null> {
   try {
     // Reduce cache time during testing to see changes immediately

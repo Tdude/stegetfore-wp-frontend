@@ -6,7 +6,7 @@
 // Debug Mode hook types
 export interface DebugMode {
   isEnabled: boolean;
-  pageData: any;
+  pageData: unknown;
 }
 
 // Add other hook-related types here as needed

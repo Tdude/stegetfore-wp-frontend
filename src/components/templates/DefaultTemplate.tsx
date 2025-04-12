@@ -1,7 +1,7 @@
 // src/components/templates/DefaultTemplate.tsx
 'use client';
 
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useEffect } from 'react';
 import NextImage from '@/components/NextImage';
 import { useModules } from '@/hooks/useModules';
 import { getFeaturedImageUrl } from '@/lib/imageUtils';
@@ -12,23 +12,23 @@ import DebugPanel from '@/components/debug/DebugPanel';
 
 // Handle modules directly in the component
 function DefaultTemplate({ page }: { page: Page }) {
-  const [mounted, setMounted] = useState(false);
+  // Move hooks to the top level to follow React Hook rules
+  // Always call hooks unconditionally
+  const { modulesBySection } = useModules({
+    pageModules: Array.isArray(page?.modules) ? page.modules : [],
+  });
 
-  // Defensive programming - ensure page is valid
+  // Set mounted after initial render - called unconditionally
+  useEffect(() => {
+    // Effect runs on mount, nothing needs to be done here
+    // Removed the mounted state since it wasn't being used
+  }, []);
+
+  // Defensive programming - ensure page is valid after hooks
   if (!page) {
     console.error('DefaultTemplate: Page is undefined');
     return <div className="py-8 text-center">Error: Page content could not be loaded</div>;
   }
-
-  // Use the modules hook directly with null checks
-  const { modulesBySection } = useModules({
-    pageModules: Array.isArray(page.modules) ? page.modules : [],
-  });
-
-  // Set mounted after initial render
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Add null checks for all properties
   const featuredImageUrl = getFeaturedImageUrl(page);
@@ -151,35 +151,16 @@ function DefaultTemplate({ page }: { page: Page }) {
       {page && (
         <DebugPanel 
           title="Page Debug Information"
-          page={page}
-          additionalData={{
+          debugData={{
             'Page ID': page.id,
             'Template': page.template || 'Default',
             'Title': pageTitle ? 'Set' : 'Missing',
             'Has Content': Boolean(pageContent),
             'Content Length': pageContent?.length || 0,
             'Featured Image': featuredImageUrl ? 'Set' : 'None',
-            'Modules Count': page.modules?.length || 0,
+            'Modules Count': modulesBySection ? Object.values(modulesBySection).flat().length : 0,
             'Show Content With Modules': showContentWithModules ? 'Yes' : 'No',
-            'Content Position': contentPosition,
-            'Module Sections': JSON.stringify({
-              header: modulesBySection?.header?.length || 0,
-              main: modulesBySection?.main?.length || 0,
-              other: modulesBySection?.other?.length || 0,
-              footer: modulesBySection?.footer?.length || 0
-            }),
-            'Module Types': page.modules?.reduce((acc, m) => {
-              if (m.type) {
-                acc[m.type] = (acc[m.type] || 0) + 1;
-              }
-              return acc;
-            }, {} as Record<string, number>) || {},
-            'Content Display': pageContent 
-              ? (showContentWithModules 
-                  ? `Showing content ${contentPosition} modules` 
-                  : 'Showing content without modules') 
-              : 'No content to display',
-            'Slug': page.slug || 'Unknown',
+            'Content Position': contentPosition
           }}
         />
       )}

@@ -108,7 +108,7 @@ export interface Page extends BaseContent {
   studentId?: string | number;
   meta?: {
     student_id?: string | number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -141,7 +141,7 @@ export interface LocalPage extends BaseContent {
   // Meta information for the page
   meta?: {
     content_position?: 'before' | 'after';
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -206,12 +206,12 @@ export interface HomepageData {
   };
   modules?: Module[];
   featured_posts_title?: string;
-  selling_points?: any[];
+  selling_points?: unknown[];
   selling_points_title?: string;
-  stats?: any[];
+  stats?: unknown[];
   stats_title?: string;
   stats_subtitle?: string;
-  featured_posts?: any[];
+  featured_posts?: unknown[];
   categories?: Record<number, { id: number; name: string; slug: string }>;
   date?: string;
   modified?: string;
@@ -275,5 +275,5 @@ export interface HomepageDataFull extends BaseContent {
     background_color?: string;
   };
   modules?: Module[]; // Use Module from moduleTypes.ts
-  [key: string]: any;
+  [key: string]: unknown;
 }

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
 
@@ -38,6 +38,14 @@ const AuthProtect: React.FC<AuthProtectProps> = ({
   const { isAuthenticated, loading } = useAuth();
   const [showLoginModal, setShowLoginModal] = React.useState(false);
 
+  // Move the useEffect hook outside of conditional to comply with React Hooks rules
+  // Use the loginPrompt condition inside the effect instead
+  useEffect(() => {
+    if (loginPrompt && !isAuthenticated && !showLoginModal) {
+      setShowLoginModal(true);
+    }
+  }, [loginPrompt, isAuthenticated, showLoginModal]);
+
   // If still loading auth state, you can show a loading indicator or nothing
   if (loading) {
     return null; // Or return a loading spinner
@@ -46,14 +54,6 @@ const AuthProtect: React.FC<AuthProtectProps> = ({
   // If authenticated, show the protected content
   if (isAuthenticated) {
     return <>{children}</>;
-  }
-
-  // If not authenticated and login prompt is enabled, show login modal
-  if (loginPrompt && !showLoginModal) {
-    // Show login modal on first render
-    React.useEffect(() => {
-      setShowLoginModal(true);
-    }, []);
   }
 
   // Render fallback content or null if not authenticated

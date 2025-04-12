@@ -1,15 +1,6 @@
 // src/lib/types.ts - Application Types Section
 // DEPRECATED? CHECK THIS FILE AGAINST ALL IN /types
-declare namespace NodeJS {
-  export interface ProcessEnv {
-    NEXT_PUBLIC_API_URL: string;
-    NEXT_PUBLIC_WORDPRESS_URL: string;
-    NEXT_PUBLIC_THEME_SLUG: string;
-    REVALIDATION_TOKEN: string;
-    HOMEPAGE_ID: string;
-    NODE_ENV: "development" | "production" | "test";
-  }
-}
+// Reference to the ProcessEnv interface is intentionally removed as it's defined properly in baseTypes.ts
 
 import * as React from "react";
 import // WordPressPost,
@@ -68,8 +59,8 @@ export type ImageContainer =
 
 // Image-related helper functions
 export interface ImageHelper {
-  getImageUrl: (media: any, size?: string) => string;
-  getImageAlt: (media: any, fallback?: string) => string;
+  getImageUrl: (media: unknown, size?: string) => string;
+  getImageAlt: (media: unknown, fallback?: string) => string;
   stripHtml: (html: string) => string;
 }
 
