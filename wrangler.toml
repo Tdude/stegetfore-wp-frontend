@@ -1,0 +1,17 @@
+[build]
+command = "npm run build"
+output_directory = ".next"
+node_compat = true
+
+[site]
+bucket = ".next"
+
+[env.production]
+name = "stegetfore"
+routes = [
+  { pattern = "/api/*", zone_name = "stegetfore.nu" }
+]
+
+# Enable Node.js compatibility
+[build.upload]
+format = "service-worker"
