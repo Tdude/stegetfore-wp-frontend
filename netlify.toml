@@ -4,6 +4,8 @@
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --no-fund"
 
 # Production context: all deploys from the Production branch set in your site's
 # deploy contexts will inherit these settings.
@@ -14,18 +16,23 @@
 [context.branch-deploy]
   environment = { NODE_ENV = "development" }
 
-# Redirects and headers are GLOBAL for all builds – they do not get scoped to
-# contexts as functions do
+# Use the Next.js Runtime plugin
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Handle image optimization routes
 [[redirects]]
-  from = "/*"
-  to = "/_ipx/process"
+  from = "/_next/image*"
+  to = "/.netlify/images"
   status = 200
-  force = true
-  conditions = {Path = ["/api/images/*"]}
 
+# Handle API routes that should be server-side
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/next_api/:splat"
+  status = 200
+
+# Handle 404s
 [[redirects]]
   from = "/*"
   to = "/404"
@@ -33,3 +40,10 @@
 
 [functions]
   external_node_modules = ["@netlify/plugin-nextjs"]
+  node_bundler = "esbuild"
+
+# Set cache headers for static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
