@@ -17,14 +17,15 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <div className="min-h-screen flex flex-col">
-          <Header siteInfo={siteInfo} menuItems={menuItems} />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Providers />
-          <Footer />
-        </div>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            <Header siteInfo={siteInfo} menuItems={menuItems} />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );

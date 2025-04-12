@@ -2,7 +2,17 @@
 'use client';
 
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
 
-export default function Providers() {
-  return <Toaster />;
+interface ProvidersProps {
+  children?: React.ReactNode;
+}
+
+export default function Providers({ children }: ProvidersProps) {
+  return (
+    <AuthProvider>
+      {children}
+      <Toaster />
+    </AuthProvider>
+  );
 }

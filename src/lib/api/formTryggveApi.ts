@@ -9,16 +9,22 @@ let token: string | null = null;
 /**
  * Set the JWT token for API requests
  */
-export const setToken = (newToken: string) => {
+const setTokenInternal = (newToken: string) => {
   token = newToken;
+  console.log('Auth token set');
 };
 
 /**
  * Clear the JWT token
  */
-export const clearToken = () => {
+const clearTokenInternal = () => {
   token = null;
+  console.log('Auth token cleared');
 };
+
+// Also export these for backward compatibility
+export const setToken = setTokenInternal;
+export const clearToken = clearTokenInternal;
 
 /**
  * Get authorization headers with JWT token
@@ -263,26 +269,47 @@ export const evaluationApi = {
  */
 export const authApi = {
   /**
+   * Set the JWT token for API requests
+   */
+  setToken: (newToken: string) => {
+    setTokenInternal(newToken);
+  },
+
+  /**
+   * Clear the JWT token
+   */
+  clearToken: () => {
+    clearTokenInternal();
+  },
+
+  /**
    * Login to get JWT token
    */
   login: async (username: string, password: string) => {
     try {
-      const response = await fetchApi('/ham/v1/auth/token', {
+      // Use the Next.js API route instead of calling WordPress directly
+      const response = await fetch('/api/auth', {
         method: 'POST',
-        body: {
-          username,
-          password
-        }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: 'login',
+          username, 
+          password 
+        }),
       });
-
-      if (response && response.token) {
-        setToken(response.token);
+      
+      const data = await response.json();
+      
+      if (data.token) {
+        setTokenInternal(data.token);
       }
-
-      return response;
+      
+      return data;
     } catch (error) {
       console.error('Error during login:', error);
-      throw error;
+      return { error: true, message: 'Login failed' };
     }
   },
 
@@ -291,19 +318,25 @@ export const authApi = {
    */
   getCurrentUser: async () => {
     try {
-      // Check if we have a valid token first
+      // Validate token first
       const isValid = await authApi.validateToken();
       if (!isValid) {
-        console.warn('No valid token found when getting current user');
         return null;
       }
       
-      // Get user info from the HAM plugin
-      const userInfo = await fetchApi('/ham/v1/user/current', {
-        headers: getHeaders()
+      // Use the Next.js API route
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: 'user',
+          token
+        }),
       });
       
-      return userInfo;
+      return await response.json();
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
@@ -317,13 +350,23 @@ export const authApi = {
     if (!token) return false;
 
     try {
-      const response = await fetchApi('/ham/v1/auth/validate', {
-        headers: getHeaders()
+      // Use the Next.js API route
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: 'validate',
+          token
+        }),
       });
-      return response.valid;
+      
+      const data = await response.json();
+      return data.valid === true;
     } catch (error) {
       console.error('Error validating token:', error);
-      clearToken();
+      clearTokenInternal();
       return false;
     }
   }

@@ -147,10 +147,11 @@ export interface LocalPage extends BaseContent {
 
 /**
  * Parameters for page URLs
+ * Aligned with Next.js App Router expectations
  */
 export interface PageParams {
   params: {
-    slug: string | Promise<string>;
+    slug: string;
   };
 }
 

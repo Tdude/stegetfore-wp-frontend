@@ -4,19 +4,11 @@ import { fetchPage } from '@/lib/api/pageApi';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
-import { LocalPage } from '@/lib/types/contentTypes'; 
-import { PageTemplate } from '@/lib/types/baseTypes';
-import { Module } from '@/lib/types/moduleTypes';
+import { LocalPage } from '@/lib/types/contentTypes';
 import * as imageHelper from '@/lib/imageUtils';
-import { ResolvingMetadata, Metadata } from 'next';
+import type { Metadata } from 'next/types';
 
-// Define params interface for the page
-interface PageParams {
-  params: {
-    slug: string;
-  };
-}
-
+// Tell Next.js to dynamically render this page
 export const dynamic = 'force-dynamic';
 
 /**
@@ -53,39 +45,34 @@ function normalizePageData(page: any): LocalPage | null {
     title: page.title || { rendered: '' },
     content: page.content || { rendered: '' },
     modules: Array.isArray(page.modules) ? page.modules : [],
-    template: page.template || PageTemplate.DEFAULT,
+    template: page.template || 'default',
+    featured_media: page.featured_media,
+    date: page.date,
+    modified: page.modified,
     meta: page.meta || {},
-    // Include any other fields from the original page
+    // Include any other fields from the original page that are needed
     ...(page as any)
-  } as LocalPage;
+  } satisfies LocalPage;
 }
 
 // Individual page component
 async function PageContent({ slug }: { slug: string }) {
+  // Fetch page data
   const page = await getPageData(slug);
-
+  
+  // Handle 404
   if (!page) {
     notFound();
   }
 
-  // Debug the page object being passed to PageTemplateSelector
-  console.log(`[PageContent] Passing page to PageTemplateSelector for ${slug}:`, {
-    id: page.id,
-    slug: page.slug,
-    hasModules: Array.isArray(page.modules),
-    moduleCount: Array.isArray(page.modules) ? page.modules.length : 0,
-    template: page.template
-  });
-
-  // Template selector component will handle rendering the appropriate template
+  // Return the appropriate template with page data
   return <PageTemplateSelector page={page} />;
 }
 
-// Main page wrapper component
-export default async function PageWrapper({ params }: PageParams) {
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+// Main page component
+export default async function Page(props: any) {
+  // Extract slug from params
+  const slug = props.params.slug;
 
   return (
     <section className="mx-auto flex-grow">
@@ -96,14 +83,10 @@ export default async function PageWrapper({ params }: PageParams) {
   );
 }
 
-// Generate metadata for the page. DO NOT REMOVE!
-export async function generateMetadata(
-  { params }: PageParams,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+// Metadata generator
+export async function generateMetadata(props: any, parent: any): Promise<Metadata> {
+  // Extract slug from params
+  const slug = props.params.slug;
   const page = await getPageData(slug);
 
   if (!page) {

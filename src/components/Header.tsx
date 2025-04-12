@@ -3,8 +3,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginModal from '@/components/auth/LoginModal';
 
 interface HeaderProps {
   siteInfo: SiteInfo;
@@ -15,6 +17,8 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
   const { name } = siteInfo || {};
   const items = menuItems || [];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   function getFormattedHref(slug: string) {
     if (slug === '/' || !slug) {
@@ -108,9 +112,31 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
 
           {/* Login or other button - desktop */}
           <div className="hidden lg:flex items-center h-16">
-            <button className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black">
-              Börja nu
-            </button>
+            <div className="flex items-center space-x-2">
+              <Link href="/start" className="hidden lg:inline-block">
+                <button className="px-4 py-1.5 bg-primary text-white rounded hover:bg-primary/90">
+                  Börja nu
+                </button>
+              </Link>
+
+              {isAuthenticated ? (
+                <button 
+                  onClick={logout}
+                  className="hidden lg:flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 opacity-50 hover:opacity-100 transition-opacity"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Logga ut</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setLoginModalOpen(true)}
+                  className="hidden lg:flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  <LogIn className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Logga in</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu */}
@@ -151,13 +177,43 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
                 })}
 
                 <li className="mt-4 mb-2">
-                  <button className="w-full px-4 py-1.5 bg-primary text-white rounded hover:bg-primary/90">
-                    Börja nu
-                  </button>
+                  <Link href="/start">
+                    <button className="w-full px-4 py-1.5 bg-primary text-white rounded hover:bg-primary/90">
+                      Börja nu
+                    </button>
+                  </Link>
+                </li>
+
+                <li className="mt-2 mb-4">
+                  {isAuthenticated ? (
+                    <button 
+                      onClick={logout}
+                      className="w-full flex items-center justify-center px-4 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 opacity-50 hover:opacity-100 transition-opacity"
+                    >
+                      <LogOut className="h-4 w-4 mr-1" />
+                      <span className="text-sm">Logga ut</span>
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        setLoginModalOpen(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center px-4 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                    >
+                      <LogIn className="h-4 w-4 mr-1" />
+                      <span className="text-sm">Logga in</span>
+                    </button>
+                  )}
                 </li>
               </ul>
             </div>
           )}
+          {/* Login Modal */}
+          <LoginModal 
+            isOpen={loginModalOpen}
+            onClose={() => setLoginModalOpen(false)}
+          />
         </nav>
       </div>
     </header>
