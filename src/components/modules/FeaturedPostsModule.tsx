@@ -125,8 +125,12 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
           )}
         >
           {module.posts.map((post) => {
-            const hasFeaturedImage = (post: Post | LocalPost): boolean => {
-              return Boolean(post.featured_image);
+            const hasFeaturedImage = (post: any): boolean => {
+              return Boolean(post.featured_image_url || post.featured_image);
+            };
+
+            const getFeaturedImageUrl = (post: any): string | null => {
+              return post.featured_image_url || post.featured_image || null;
             };
 
             const postTitle = typeof post.title === 'string'
@@ -146,8 +150,8 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                   {hasFeaturedImage(post) && (
                     <div className="aspect-video relative overflow-hidden">
                       <NextImage
-                        src={post.featured_image_url}
-                        htmlTitle={post.title.rendered}
+                        src={getFeaturedImageUrl(post)}
+                        htmlTitle={postTitle}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
