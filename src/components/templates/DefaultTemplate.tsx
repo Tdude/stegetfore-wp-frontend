@@ -2,7 +2,7 @@
 'use client';
 
 import React, { memo, useState, useEffect } from 'react';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import { useModules } from '@/hooks/useModules';
 import { getFeaturedImageUrl } from '@/lib/imageUtils';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
@@ -76,12 +76,11 @@ function DefaultTemplate({ page }: { page: Page }) {
         {/* Featured image */}
         {featuredImageUrl && (
           <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
-            <OptimizedImage
+            <NextImage
               src={featuredImageUrl}
               htmlTitle={pageTitle}
-              fill={true}
-              containerType="default"
-              priority={true}
+              fill
+              priority
               className="object-cover rounded-lg"
             />
           </div>

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import { Post } from '@/lib/types/contentTypes';
 
 interface CategoryDisplay {
@@ -30,7 +30,7 @@ export default function PostsList({ posts, categories }: PostsListProps) {
           <Card key={post.id} className="h-full overflow-hidden">
             {post.featured_image_url && (
               <div className="aspect-video relative overflow-hidden">
-                <OptimizedImage
+                <NextImage
                   src={post.featured_image_url}
                   htmlTitle={post.title.rendered}
                   fill={true}

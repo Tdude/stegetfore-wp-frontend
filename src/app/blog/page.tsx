@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { fetchPosts, fetchCategories } from '@/lib/api';
 import { Post } from '@/lib/types/contentTypes';
 import { PostSkeleton } from '@/components/PostSkeleton';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -54,12 +54,11 @@ async function BlogContent() {
             <Card className="h-full overflow-hidden">
               {post.featured_image_url && (
                 <div className="aspect-video relative overflow-hidden">
-                  <OptimizedImage
+                  <NextImage
                     src={post.featured_image_url}
                     htmlTitle={post.title.rendered}
-                    fill={true}
-                    containerType="card"
-                    className="object-cover transition-transform hover:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
               )}

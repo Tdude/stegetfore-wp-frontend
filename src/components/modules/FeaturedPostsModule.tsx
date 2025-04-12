@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import { cn } from '@/lib/utils';
 
 interface FeaturedPostsModuleProps {
@@ -145,12 +145,11 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                 <Card className="h-full overflow-hidden">
                   {hasFeaturedImage(post) && (
                     <div className="aspect-video relative overflow-hidden">
-                      <OptimizedImage
-                        src={post.featured_image}
-                        alt={post.title || 'Featured post'}
-                        fill={true}
-                        containerType="card"
-                        className="object-cover transition-transform hover:scale-105"
+                      <NextImage
+                        src={post.featured_image_url}
+                        htmlTitle={post.title.rendered}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
                   )}

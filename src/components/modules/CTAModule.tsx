@@ -5,7 +5,7 @@ import React from 'react';
 import { CTAModule as CTAModuleType } from '@/lib/types/moduleTypes';
 import { Button } from '@/components/ui/button';
 import { cn, cleanWordPressContent } from '@/lib/utils';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 
 interface CTAModuleProps {
   module: CTAModuleType;
@@ -27,13 +27,11 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
     >
       {module.backgroundImage && (
         <div className="absolute inset-0 w-full h-full">
-          <OptimizedImage
+          <NextImage
             src={module.backgroundImage}
             alt="Background"
-            fill={true}
-            containerType="hero"
+            fill
             className="object-cover"
-            priority={true}
           />
           <div className="absolute inset-0 bg-black" style={{ opacity: module.overlayOpacity || 0.3 }} />
         </div>
@@ -98,12 +96,11 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
               isCentered ? "max-w-2xl mx-auto" : "md:w-1/2"
             )}>
               <div className="relative rounded-lg overflow-hidden aspect-video">
-                <OptimizedImage
+                <NextImage
                   src={module.featured_image}
                   alt={module.title}
-                  fill={true}
+                  fill
                   className="object-cover"
-                  containerType="featured"
                 />
               </div>
             </div>

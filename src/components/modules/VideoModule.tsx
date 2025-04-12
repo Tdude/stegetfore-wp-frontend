@@ -3,7 +3,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { VideoModule as VideoModuleType } from '@/lib/types/moduleTypes';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import { cn } from '@/lib/utils';
 
 interface VideoModuleProps {

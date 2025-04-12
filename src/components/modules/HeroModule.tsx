@@ -4,7 +4,7 @@
 import React from 'react';
 import type { HeroModule } from '@/lib/types/index';
 import { Button } from '@/components/ui/button';
-import OptimizedImage from '@/components/OptimizedImage';
+import NextImage from '@/components/NextImage';
 import { cn, cleanWordPressContent } from '@/lib/utils';
 
 interface HeroModuleProps {
@@ -60,11 +60,10 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
           </div>
         ) : (
           <div className="relative w-full h-full">
-            <OptimizedImage
+            <NextImage
               src={finalImageUrl}
               alt={module.title || "Hero background"}
               fill={true}
-              containerType="hero"
               priority={true}
               className="object-cover"
               fallbackSrc="/images/hero-fallback.jpg"
