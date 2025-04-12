@@ -1,0 +1,35 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Production context: all deploys from the Production branch set in your site's
+# deploy contexts will inherit these settings.
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+# Development context: deploys from branches that aren't production
+[context.branch-deploy]
+  environment = { NODE_ENV = "development" }
+
+# Redirects and headers are GLOBAL for all builds – they do not get scoped to
+# contexts as functions do
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/*"
+  to = "/_ipx/process"
+  status = 200
+  force = true
+  conditions = {Path = ["/api/images/*"]}
+
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404
+
+[functions]
+  external_node_modules = ["@netlify/plugin-nextjs"]

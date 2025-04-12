@@ -1,0 +1,5 @@
+# Redirect API requests to WordPress backend
+/api/*  https://stegetfore.nu/wp-json/:splat  200
+
+# Handle Next.js client-side routing
+/*      /index.html   200
