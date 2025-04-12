@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image, { ImageProps } from 'next/image';
 import { ImageContainer } from '@/lib/types/componentTypes';
 import { stripHtml, getImageSizes } from '@/lib/imageUtils';
@@ -21,8 +21,8 @@ export default function NextImage({
   fallbackSrc = '/images/placeholder.jpg',
   ...props
 }: NextImageProps) {
-  // Use the provided source or fallback if null/undefined
-  const imageSrc = src || fallbackSrc;
+  // Use state to manage the image source with fallback handling
+  const [imgSrc, setImgSrc] = useState<string>(src || fallbackSrc);
   
   // Clean HTML from title if provided
   const safeAlt = htmlTitle ? stripHtml(htmlTitle) : (alt || 'Image');
@@ -30,16 +30,20 @@ export default function NextImage({
   // Get correct sizes value based on container type
   const sizes = getImageSizes(containerType);
 
+  // Handle loading errors by switching to fallback
+  const handleError = () => {
+    console.warn('Image load error, switching to fallback:', imgSrc);
+    if (imgSrc !== fallbackSrc) {
+      setImgSrc(fallbackSrc);
+    }
+  };
+
   return (
     <Image
-      src={imageSrc}
+      src={imgSrc}
       alt={safeAlt}
       sizes={sizes}
-      onError={() => {
-        // This is handled differently in Next.js 14+
-        // The error boundary or placeholder prop is preferred
-        console.warn('Image load error:', imageSrc);
-      }}
+      onError={handleError}
       {...props}
     />
   );
