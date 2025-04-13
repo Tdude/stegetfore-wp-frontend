@@ -8,10 +8,10 @@ import { DebugMode } from '@/lib/types/hookTypes';
 
 /**
  * Hook to manage debug mode functionality
- * @param data Any data to be displayed in the debug panel
+ * @param data Data to be displayed in the debug panel
  * @returns Object containing debug status and processed data
  */
-export function useDebugMode(data: any): DebugMode {
+export function useDebugMode(data: unknown): DebugMode {
   const [isEnabled, setIsEnabled] = useState(false);
   
   useEffect(() => {

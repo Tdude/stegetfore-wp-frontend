@@ -51,6 +51,15 @@ export async function submitForm(
   formData: Record<string, string | File>
 ): Promise<WPCF7SubmissionResponse> {
   try {
+    // Validate input
+    if (!formId || isNaN(formId)) {
+      console.error('Invalid form ID provided:', formId);
+      return {
+        status: "validation_failed",
+        message: "Invalid form ID provided",
+      };
+    }
+    
     // Convert to FormData if there are files
     const hasFiles = Object.values(formData).some(
       (value) => value instanceof File
@@ -63,35 +72,62 @@ export async function submitForm(
       });
 
       // Use fetch directly for FormData
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/steget/v1/cf7/submit/${formId}`,
-        {
-          method: "POST",
-          body: data,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Form submission failed: ${response.status} ${response.statusText}`
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/steget/v1/cf7/submit/${formId}`,
+          {
+            method: "POST",
+            body: data,
+          }
         );
-      }
 
-      return await response.json();
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(
+            `Form submission failed: ${response.status} ${response.statusText}. Details: ${errorText}`
+          );
+        }
+
+        return await response.json();
+      } catch (fetchError) {
+        console.error(`Error in form fetch operation:`, fetchError);
+        throw fetchError;
+      }
     }
 
     // Use fetchApi for regular JSON data
-    return await fetchApi(`/steget/v1/cf7/submit/${formId}`, {
+    const response = await fetchApi(`/steget/v1/cf7/submit/${formId}`, {
       method: "POST",
       body: formData,
       revalidate: 0, // Don't cache form submissions
     });
+    
+    // Ensure the response conforms to WPCF7SubmissionResponse
+    if (!('message' in response)) {
+      console.warn('API response missing required "message" field:', response);
+      return {
+        ...response,
+        status: typeof response.status === 'number' ? 'mail_failed' : response.status || 'mail_failed',
+        message: 'Form submitted but response format was unexpected'
+      };
+    }
+    
+    // Convert the response to match WPCF7SubmissionResponse
+    return {
+      status: typeof response.status === 'string' ? response.status : 'mail_sent',
+      message: response.message,
+      postedData: response.postedData,
+      invalidFields: response.invalidFields,
+      into: response.into
+    };
   } catch (error) {
     console.error(`Error submitting form ${formId}:`, error);
     return {
       status: "mail_failed",
       message:
-        "There was an error submitting the form. Please try again later.",
+        error instanceof Error 
+          ? `Error: ${error.message}` 
+          : "There was an error submitting the form. Please try again later.",
     };
   }
 }
