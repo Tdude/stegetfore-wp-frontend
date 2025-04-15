@@ -23,7 +23,7 @@ import ContactFormTemplate from './templates/ContactFormTemplate';
 // Instead of React.ComponentType<unknown>, use the actual prop types for each template
 // For demonstration, here's a safer approach for TemplateMap type:
 type TemplateMap = {
-  [key in PageTemplate]: React.ComponentType<any>; // TODO: Replace 'any' with correct prop types per template
+  [key in PageTemplate]: React.ComponentType<unknown>; // Replaced 'any' with 'unknown'
 };
 
 // Create a map of templates

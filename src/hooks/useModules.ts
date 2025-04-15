@@ -7,7 +7,6 @@ import { groupModulesBySection } from "@/services/moduleService";
 interface UseModulesProps {
   pageModules?: Module[];
   homepageData?: HomepageData;
-  featuredPostsPosition?: number;
   directModules?: Module[]; // Allow direct injection of modules for testing
 }
 
@@ -20,18 +19,17 @@ interface UseModulesResult {
 export function useModules({
   pageModules = [],
   homepageData,
-  featuredPostsPosition = 2,
   directModules = [],
 }: UseModulesProps): UseModulesResult {
   // Create a default HomepageData that satisfies the interface
-  const defaultHomepageData: HomepageData = {
+  const defaultHomepageData = useMemo(() => ({
     id: 0,
     slug: '',
     title: { rendered: '' },
     content: { rendered: '' },
     modules: []
-  };
-  
+  }), []);
+
   const [parsedHomepageData, setParsedHomepageData] = useState<HomepageData>(defaultHomepageData);
   
   // Parse homepage data if it's a string

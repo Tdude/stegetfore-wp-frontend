@@ -267,10 +267,7 @@ export async function fetchPages(): Promise<Page[]> {
   }
 }
 
-export async function fetchPage(
-  slug: string,
-  _previewMode = false
-): Promise<Page | null> {
+export async function fetchPage(slug: string): Promise<Page | null> {
   try {
     // Reduce cache time during testing to see changes immediately
     const pages = await fetchAPI(`/wp/v2/pages?slug=${slug}&_embed`, {

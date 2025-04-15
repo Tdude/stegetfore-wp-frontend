@@ -1,9 +1,6 @@
 // src/lib/adapters/pageAdapter.ts
 import { Page } from "@/lib/types";
 import { LocalPage } from "@/lib/types/contentTypes";
-// Import Module type directly from moduleTypes to avoid conflicts
-import { Module } from "@/lib/types/moduleTypes";
-import { getOptimalImageSize } from "@/lib/imageUtils";
 import { adaptWordPressModules } from "./moduleAdapter";
 
 /**
@@ -47,7 +44,7 @@ type WPEmbedded = {
 function isWPEmbedded(obj: unknown): obj is WPEmbedded {
   if (!obj || typeof obj !== "object") return false;
   if ("wp:featuredmedia" in obj) {
-    return Array.isArray((obj as any)["wp:featuredmedia"]);
+    return Array.isArray((obj as WPEmbedded)["wp:featuredmedia"]);
   }
   return true;
 }
@@ -72,9 +69,6 @@ export function adaptWordPressPage(wpPage: unknown): Page {
       featured_image_url: undefined,
     };
   }
-
-  // Extract and ensure modules is an array if present
-  const modules = extractModulesFromWordPressPage(wpPage);
 
   return {
     id: wpPage.id,
@@ -125,10 +119,7 @@ export function adaptWordPressPageToLocalPage(wpPage: unknown): LocalPage {
   });
 
   // Extract modules with standardized approach for all pages
-  const modules = extractModulesFromWordPressPage(wpPage);
-  
-  // Adapt the modules with our standard adapter
-  const adaptedModules = adaptWordPressModules(modules);
+  const adaptedModules = adaptWordPressModules(extractModulesFromWordPressPage(wpPage));
   
   // Create a local page object with all necessary properties
   const localPage: LocalPage = {
@@ -209,109 +200,6 @@ export function extractModulesFromWordPressPage(wpPage: unknown): unknown[] {
     return (wpPage as { modules: unknown[] }).modules;
   }
   return [];
-}
-
-/**
- * Extracts chart data from a WordPress page
- * @param wpPage WordPress page data
- * @returns Chart data object or undefined
- */
-function extractChartData(wpPage: unknown): unknown {
-  if (!isWPPage(wpPage)) return undefined;
-  // Check for acf property and chart_data inside it
-  if (
-    'acf' in wpPage &&
-    typeof (wpPage as { acf?: unknown }).acf === 'object' &&
-    (wpPage as { acf?: unknown }).acf !== null &&
-    'chart_data' in (wpPage as { acf: Record<string, unknown> }).acf
-  ) {
-    return (wpPage as { acf: { chart_data: unknown } }).acf.chart_data;
-  }
-  return {};
-}
-
-/**
- * Gets a nested property from an object using a path string
- * Handles both dot notation and bracket notation
- * @param obj The object to extract the property from
- * @param path The path to the property, e.g., 'acf.modules' or '_embedded["wp:meta"].modules'
- * @returns The value at the path or undefined if the path doesn't exist
- */
-function getNestedProperty(obj: unknown, path: string): unknown {
-  if (!obj || !path) return undefined;
-  
-  // Check if the path has brackets (complex path)
-  if (path.includes('[')) {
-    // Split the path at dots that are not inside brackets
-    const parts = path.split(/\.(?![^\[]*\])/);
-    let current: unknown = obj;
-    
-    for (const part of parts) {
-      if (!current) return undefined;
-      
-      // Handle bracket notation
-      if (part.includes('[')) {
-        // Extract the base part and the bracket parts
-        const basePart = part.split('[')[0];
-        const rest = part.substring(basePart.length);
-        
-        // First navigate to the base part
-        if (typeof current === 'object' && current !== null) {
-          current = (current as Record<string, unknown>)[basePart];
-        } else {
-          return undefined;
-        }
-        
-        if (!current) return undefined;
-        
-        // Then handle each bracket part
-        const bracketParts = rest.match(/\[(.*?)\]/g);
-        if (!bracketParts) continue;
-        
-        for (const bracketPart of bracketParts) {
-          // Extract the key inside the brackets (removing quotes if present)
-          let cleanPart = bracketPart.slice(1, -1).trim();
-          if ((cleanPart.startsWith('"') && cleanPart.endsWith('"')) || 
-              (cleanPart.startsWith("'") && cleanPart.endsWith("'"))) {
-            cleanPart = cleanPart.slice(1, -1);
-          }
-          
-          // Handle numeric indices vs string keys
-          if (!isNaN(Number(cleanPart))) {
-            // Use numeric index for arrays
-            if (Array.isArray(current)) {
-              current = current[Number(cleanPart)];
-            } else {
-              return undefined;
-            }
-          } else {
-            // Use string key for objects
-            if (typeof current === 'object' && current !== null) {
-              current = (current as Record<string, unknown>)[cleanPart];
-            } else {
-              return undefined;
-            }
-          }
-          
-          if (current === undefined || current === null) return undefined;
-        }
-      } else {
-        // Simple property access
-        if (typeof current === 'object' && current !== null) {
-          current = (current as Record<string, unknown>)[part];
-        } else {
-          return undefined;
-        }
-        
-        if (current === undefined || current === null) return undefined;
-      }
-    }
-    
-    return current;
-  }
-  
-  // Simple dot notation
-  return path.split('.').reduce<unknown>((o, i) => (typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[i] : undefined), obj);
 }
 
 /**

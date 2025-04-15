@@ -12,7 +12,7 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
   const [mounted, setMounted] = useState(false);
 
   // Use the custom hook to handle all module processing and organization
-  const { allModules, modulesBySection } = useModules({
+  const { modulesBySection } = useModules({
     pageModules: page?.modules || [],
     homepageData: typeof homepage === 'object' ? homepage : undefined,
     featuredPostsPosition: 2 // Position the featured posts at index 2
@@ -76,10 +76,10 @@ export default function HomepageTemplate({ page, homepage }: HomepageTemplatePro
           page={page}
           additionalData={{
             "Homepage Data": typeof homepage === 'object' && homepage ? {
-              id: (homepage as any).id,
-              title: (homepage as any).title?.rendered,
-              featuredPosts: Array.isArray((homepage as any).featured_posts) ? 
-                (homepage as any).featured_posts.length : 0
+              id: homepage.id,
+              title: homepage.title?.rendered,
+              featuredPosts: Array.isArray(homepage.featured_posts) ? 
+                homepage.featured_posts.length : 0
             } : 'Not available'
           }}
         />

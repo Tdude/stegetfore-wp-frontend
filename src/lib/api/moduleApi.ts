@@ -44,7 +44,7 @@ export async function fetchModules(
     }
 
     return modules
-      .map((module: any) => adaptWordPressModule(module))
+      .map((item: unknown) => adaptWordPressModule(item))
       .filter(Boolean) as Module[];
   } catch (error) {
     console.error("Error fetching modules:", error);
@@ -59,11 +59,11 @@ export async function fetchModules(
  */
 export async function fetchModule(id: number): Promise<Module | null> {
   try {
-    const module = await fetchApi(`/steget/v1/modules/${id}`, {
+    const data = await fetchApi(`/steget/v1/modules/${id}`, {
       revalidate: 600, // Cache for 10 minutes
     });
 
-    return module ? adaptWordPressModule(module) : null;
+    return data ? adaptWordPressModule(data) : null;
   } catch (error) {
     console.error(`Error fetching module with ID ${id}:`, error);
     return null;
@@ -150,7 +150,7 @@ export async function fetchModulesByCategory(
     }
 
     return modulesData
-      .map((module: any) => adaptWordPressModule(module))
+      .map((item: unknown) => adaptWordPressModule(item))
       .filter(Boolean) as Module[];
   } catch (error) {
     console.error(`Error fetching modules for category ${category}:`, error);

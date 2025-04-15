@@ -61,12 +61,10 @@ export async function fetchPages(
 /**
  * Fetch a single page by slug
  * @param slug The page slug
- * @param usePreviewToken Whether to include a preview token for draft content
  * @returns A LocalPage object or null if not found
  */
 export async function fetchPage(
-  slug: string,
-  usePreviewToken = false
+  slug: string
 ): Promise<LocalPage | null> {
   try {
     // Standard WordPress API endpoint for all pages
@@ -148,12 +146,10 @@ export async function fetchPage(
 /**
  * Fetch a page by ID
  * @param id The page ID
- * @param usePreviewToken Whether to include a preview token for draft content
  * @returns A LocalPage object or null if not found
  */
 export async function fetchPageById(
-  id: number,
-  usePreviewToken = false
+  id: number
 ): Promise<LocalPage | null> {
   try {
     // Standard WordPress API endpoint for getting a page by ID

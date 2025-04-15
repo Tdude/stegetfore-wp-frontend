@@ -6,12 +6,9 @@ import { ChartModule as ChartModuleType } from '@/lib/types/moduleTypes';
 import { Card } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
+  ChartContainer
 } from "@/components/ui/chart";
 import {
-  ResponsiveContainer,
   BarChart,
   LineChart,
   PieChart,
@@ -26,8 +23,7 @@ import {
   Tooltip,
   Legend,
   PolarGrid,
-  PolarAngleAxis,
-  RadialBar
+  PolarAngleAxis
 } from 'recharts';
 
 interface ChartModuleProps {

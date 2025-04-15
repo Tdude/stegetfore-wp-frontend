@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  */
 async function getPageData(slug: string): Promise<LocalPage | null> {
   // Fetch the page from the API  
-  const page = await fetchPage(slug, false);
+  const page = await fetchPage(slug);
   
   // Basic logging - safely access properties to avoid TypeScript errors
   console.log(`[getPageData] Page retrieved for ${slug}:`, {

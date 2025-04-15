@@ -1,12 +1,10 @@
 // src/components/templates/ModularTemplate.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { LocalPage } from '@/lib/types/contentTypes';
-import { Module } from '@/lib/types/moduleTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import ModuleRenderer from '@/components/modules/ModuleRenderer';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { useModules } from '@/hooks/useModules';

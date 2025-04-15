@@ -1,5 +1,5 @@
 // src/lib/adapters/postAdapter.ts
-import { Post, LocalPost } from "@/lib/types/contentTypes";
+import { Post } from "@/lib/types/contentTypes";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 
 /**

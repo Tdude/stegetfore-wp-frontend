@@ -24,7 +24,7 @@ interface BlogSettings {
 }
 
 // Blog index template for displaying posts with pagination
-export default function BlogIndexTemplate({ page, posts, categories }: { page: Page, posts?: any[], categories?: any }) {
+export default function BlogIndexTemplate({ page, posts, categories }: { page: Page, posts?: Post[], categories?: Record<string, unknown> }) {
   // Apply defensive coding to handle potentially missing data
   const safetyPosts = Array.isArray(posts) ? posts : [];
   const featuredImage = page._embedded?.['wp:featuredmedia']?.[0]?.source_url;
@@ -183,7 +183,7 @@ export default function BlogIndexTemplate({ page, posts, categories }: { page: P
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6">Categories</h2>
             <div className="flex flex-wrap gap-3">
-              {Object.entries(categories).map(([id, category]: [string, any]) => (
+              {Object.entries(categories).map(([id, category]: [string, unknown]) => (
                 <Link
                   key={id}
                   href={`/posts/category/${category.slug}`}
@@ -216,7 +216,7 @@ export default function BlogIndexTemplate({ page, posts, categories }: { page: P
             featured_image_url: page.featured_image_url || undefined,
             _embedded: page._embedded,
             // Cast modules to any to avoid type errors between Module and ModuleData
-            modules: page.modules as any,
+            modules: page.modules as unknown,
             show_content_with_modules: page.show_content_with_modules,
             meta: page.meta
           }}

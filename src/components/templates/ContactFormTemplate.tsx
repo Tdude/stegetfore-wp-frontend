@@ -1,12 +1,13 @@
 // src/components/templates/ContactFormTemplate.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LocalPage } from '@/lib/types/contentTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import ContactForm from './ContactForm';
 import { Card, CardContent } from "@/components/ui/card";
 import DebugPanel from '@/components/debug/DebugPanel';
+import Image from 'next/image';
 
 interface ContactFormTemplateProps {
   page: LocalPage;
@@ -21,7 +22,7 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
   
   // Content positioning logic using the new content_display_settings structure
   // Try multiple source paths for better compatibility with different post types
-  const contentDisplaySettings = 
+  const contentDisplaySettings = useMemo(() => 
     page?.content_display_settings || 
     (page.meta && {
       show_content_with_modules: Boolean(page.meta.show_content_with_modules),
@@ -29,7 +30,9 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
     }) || {
       show_content_with_modules: true, // Default to true for contact form
       content_position: 'before'
-    };
+    },
+    [page]
+  );
   
   const showContentWithForm = contentDisplaySettings.show_content_with_modules;
   const contentPosition = contentDisplaySettings.content_position || 'before';
@@ -73,9 +76,11 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {featuredImage && (
-            <img
+            <Image
               src={featuredImage}
               alt={page.title.rendered}
+              width={800}
+              height={400}
               className="w-full h-64 object-cover rounded-lg mb-8"
             />
           )}
@@ -125,7 +130,18 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
           <div className="max-w-4xl mx-auto mt-12">
             <DebugPanel 
               title="Page Debug" 
-              page={page}
+              page={page as {
+                id?: number;
+                title?: string | { rendered: string };
+                content?: string | { rendered: string };
+                slug?: string;
+                template?: string;
+                featured_image_url?: string;
+                _embedded?: Record<string, unknown>;
+                modules?: import('@/lib/types/moduleTypes').Module[];
+                show_content_with_modules?: boolean;
+                meta?: Record<string, unknown>;
+              }}
               additionalData={{
                 "Type": page.type || "unknown",
                 "Form Type": "Contact Form (WPCF7)",

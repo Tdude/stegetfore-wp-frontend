@@ -226,7 +226,8 @@ export interface HomepageData {
     buttons?: Array<{
       text: string;
       url: string;
-      style: "primary" | "secondary" | "outline";
+      style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default" | "destructive";
+      new_tab?: boolean;
     }>;
   };
   modules?: Module[];
@@ -257,7 +258,7 @@ export interface HomepageDataFull extends BaseContent {
     buttons?: Array<{
       text: string;
       url: string;
-      style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default";
+      style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default" | "destructive";
     }>;
   };
   featured_posts_title?: string;

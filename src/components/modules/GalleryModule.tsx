@@ -23,19 +23,6 @@ interface GalleryModuleProps {
 export default function GalleryModule({ module, className }: GalleryModuleProps) {
   const [openImage, setOpenImage] = useState<number | null>(null);
 
-  // Get layout classes
-  const getLayoutClasses = () => {
-    switch (module.layout) {
-      case 'carousel':
-        return 'carousel';
-      case 'masonry':
-        return 'masonry';
-      case 'grid':
-      default:
-        return 'grid';
-    }
-  };
-
   // Get column count classes for grid layout
   const getGridColumns = () => {
     switch (module.columns) {

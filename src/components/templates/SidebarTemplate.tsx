@@ -1,23 +1,19 @@
 // src/components/templates/SidebarTemplate.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { LocalPage } from '@/lib/types/contentTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import { useModules } from '@/hooks/useModules';
 
+// Removed unused imports useEffect and useState
+
 export default function SidebarTemplate({ page }: { page: LocalPage }) {
-  const [mounted, setMounted] = useState(false);
-  
   // Use the modules hook to check for header modules
   const { modulesBySection } = useModules({
     pageModules: Array.isArray(page.modules) ? page.modules : [],
   });
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   
   // Check if a Hero module is present
   const hasHeroModule = modulesBySection?.header?.some(module => module.type === 'hero');

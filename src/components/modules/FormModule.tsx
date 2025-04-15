@@ -37,7 +37,7 @@ export default function FormModule({ module, className }: FormModuleProps) {
   }, [module.form_id]);
 
   // Handle form submission
-  const handleSubmit = async (formData: Record<string, any>): Promise<void> => {
+  const handleSubmit = async (formData: Record<string, unknown>): Promise<void> => {
       try {
         const response = await submitForm(module.form_id, formData);
 

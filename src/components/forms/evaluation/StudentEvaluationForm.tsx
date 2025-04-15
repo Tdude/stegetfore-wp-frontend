@@ -26,9 +26,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const [isFormSaved, setIsFormSaved] = useState(false);
   const [showFullForm, setShowFullForm] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [currentSection, setCurrentSection] = useState<keyof FormData>('anknytning');
   const [fadeState, setFadeState] = useState<'visible' | 'fading-out' | 'fading-in'>('visible');
-  const [disableAutoAdvance, setDisableAutoAdvance] = useState(false);
   const [localStorageKey, setLocalStorageKey] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<number | null>(
     initialStudentId !== undefined 
@@ -136,7 +134,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     const questions: Array<{
       sectionId: keyof FormData;
       questionId: string;
-      question: any;
+      question: unknown;
     }> = [];
 
     Object.entries(questionsStructure).forEach(([sectionId, section]) => {
@@ -153,7 +151,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       
       // Process questions in subsections
       if (section.subsections) {
-        Object.entries(section.subsections).forEach(([subsectionId, subsection]) => {
+        Object.values(section.subsections).forEach(subsection => {
           if (subsection.questions) {
             Object.entries(subsection.questions).forEach(([questionId, question]) => {
               questions.push({
@@ -171,9 +169,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   }, [questionsStructure]);
 
   // Get current question based on index
-  const currentQuestion = useMemo(() => {
-    return allQuestions[currentQuestionIndex] || null;
-  }, [allQuestions, currentQuestionIndex]);
+  // Removed unused variable currentQuestion
 
   // Handle going to previous question
   const handlePrevQuestion = useCallback(() => {
@@ -282,7 +278,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     
     // Return the total progress divided by the total number of questions
     return totalQuestions > 0 ? progressSum / totalQuestions : 0;
-  }, [formData, questionsStructure, calculateProgress]);
+  }, [calculateProgress, questionsStructure]);
 
   // Toggle between full form and step-by-step views
   const toggleFullForm = useCallback(() => {
@@ -387,7 +383,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     }));
     
     // Auto-advance to next question after a short delay if not disabled
-    if (!disableAutoAdvance && currentQuestionIndex < allQuestions.length - 1) {
+    if (currentQuestionIndex < allQuestions.length - 1) {
       // Clear any existing timeout
       if (autoAdvanceTimeoutRef.current) {
         clearTimeout(autoAdvanceTimeoutRef.current);
@@ -398,7 +394,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         handleNextQuestion();
       }, 1000); // Wait 1 second before advancing
     }
-  }, [currentQuestionIndex, allQuestions.length, disableAutoAdvance, handleNextQuestion]);
+  }, [currentQuestionIndex, allQuestions.length, handleNextQuestion]);
 
   // Show loading state
   if (isLoading) {
@@ -418,7 +414,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           questionsStructure={questionsStructure}
           allQuestions={allQuestions}
           currentQuestionIndex={currentQuestionIndex}
-          currentSection={currentSection}
+          currentSection={allQuestions[currentQuestionIndex]?.sectionId}
           fadeState={fadeState}
           handlePrevQuestion={handlePrevQuestion}
           handleNextQuestion={handleNextQuestion}
@@ -439,7 +435,6 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           toggleFullForm={toggleFullForm}
           handleQuestionChange={handleQuestionChange}
           handleCommentChange={handleCommentChange}
-          calculateProgress={calculateSectionProgress}
           calculateSectionProgress={calculateSectionProgress}
           isSaving={isSaving}
           handleSubmit={handleSubmit}

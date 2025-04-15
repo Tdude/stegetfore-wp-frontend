@@ -16,8 +16,8 @@ export async function testConnection(): Promise<boolean> {
     });
     
     return response.ok;
-  } catch (error) {
-    console.error('Connection test failed:', error);
+  } catch {
+    console.error('Connection test failed:');
     return false;
   }
 }
@@ -25,7 +25,7 @@ export async function testConnection(): Promise<boolean> {
 /**
  * Shared function to make API calls to the WordPress backend
  * @param endpoint The API endpoint path (without the base URL)
- * @param options Additional fetch options
+ * @param options Additional fetch options (supports caching with `revalidate`)
  * @returns The JSON response from the API
  */
 export async function makeRequest(
@@ -34,7 +34,7 @@ export async function makeRequest(
     method?: string;
     body?: string | Record<string, unknown>; // Allow string or object for body
     headers?: Record<string, string>;
-    revalidate?: number; // Add revalidate option for Next.js cache control
+    revalidate?: number; // Add revalidate option for caching
   } = {}
 ) {
   const { method = "GET", body, headers = {}, revalidate } = options;
@@ -49,36 +49,28 @@ export async function makeRequest(
     requestHeaders["Content-Type"] = "application/json";
   }
 
-  // Make the request
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method,
-      headers: requestHeaders,
-      body: typeof body === 'object' ? JSON.stringify(body) : body, // Stringify only if object
-    });
+  // Prepare fetch options
+  const fetchOptions: RequestInit = {
+    method,
+    headers: requestHeaders,
+    body: typeof body === 'object' ? JSON.stringify(body) : body,
+  };
 
-    // Try to parse the response as JSON
-    try {
-      const data = await response.json();
-      return {
-        success: response.ok,
-        data,
-        status: response.status,
-      };
-    } catch (error) {
-      // If we can't parse as JSON, return the raw response
-      return {
-        success: response.ok,
-        data: null,
-        status: response.status,
-      };
+  // Handle Next.js caching via revalidate if present (only if running in supported env)
+  // This is a noop in browsers, but works in Next.js/Node
+  if (typeof revalidate === 'number' && revalidate > 0) {
+    fetchOptions.next = { revalidate };
+  }
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
     }
+    return await response.json();
   } catch (error) {
-    console.error("API request failed:", error);
-    // Return a standardized error response
+    console.error('API request failed:', error);
     return {
-      success: false,
-      data: null,
       status: 0,
       error: {
         message: "Failed to fetch data",
@@ -126,9 +118,9 @@ export async function fetchWithErrorHandling<T>(
     let data: T;
     try {
       data = await response.json();
-    } catch (error) {
+    } catch {
       // If JSON parsing fails, return null data
-      console.warn(`Failed to parse JSON from ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.warn(`Failed to parse JSON from ${url}: Unknown error`);
       data = null as unknown as T;
     }
     
@@ -138,7 +130,7 @@ export async function fetchWithErrorHandling<T>(
       // Map headers to a simple object
       headers: Object.fromEntries([...response.headers.entries()]),
     };
-  } catch (error) {
+  } catch {
     // Handle fetch errors gracefully without exposing the error
     return {
       data: null as unknown as T,

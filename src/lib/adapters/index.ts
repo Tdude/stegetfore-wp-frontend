@@ -16,9 +16,10 @@ export {
 export {
   adaptWordPressModule,
   adaptWordPressModules,
-  adaptWordPressHomepageData,
 } from "./moduleAdapter";
 
 export { adaptWordPressForm, formatFormDataForSubmission } from "./formAdapter";
 
 export { adaptWordPressSiteInfo, adaptWordPressMenuItems } from "./siteAdapter";
+
+export { adaptHomepageData as adaptWordPressHomepageData } from './moduleAdapter';

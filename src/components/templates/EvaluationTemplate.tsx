@@ -1,13 +1,17 @@
 // components/templates/EvaluationTemplate.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import StudentEvaluationForm from '@/components/forms/evaluation/StudentEvaluationForm';
 import DebugPanel from '@/components/debug/DebugPanel';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
 // Main EvaluationTemplate component
-const EvaluationTemplate: React.FC<{ page: any, evaluationId?: number, studentId?: number | string }> = ({ 
+const EvaluationTemplate: React.FC<{ 
+  page: unknown, 
+  evaluationId?: number, 
+  studentId?: number | string 
+}> = ({ 
   page, 
   evaluationId,
   studentId: propsStudentId

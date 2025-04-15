@@ -6,19 +6,16 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FormData, Question, Option } from '@/lib/types/formTypesEvaluation';
+import { Question, Option } from '@/lib/types/formTypesEvaluation';
 import { questionStageClasses, getOptionClasses } from './styles';
-import ProgressBar from './ProgressBar';
 
 interface QuestionCardProps {
   question: Question;
   questionId: string;
-  sectionId: keyof FormData;
   value: string;
   comment: string;
   onChange: (value: string) => void;
   onCommentChange: (value: string) => void;
-  calculateProgress: (sectionId: keyof FormData, questionId: string) => number;
   currentIndex: number;
   totalQuestions: number;
 }
@@ -30,12 +27,10 @@ interface QuestionCardProps {
 const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
   questionId,
-  sectionId,
   value,
   comment,
   onChange,
   onCommentChange,
-  calculateProgress,
   currentIndex,
   totalQuestions
 }) => {
@@ -71,8 +66,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     onChange(optionValue);
   };
   
-  const progress = calculateProgress(sectionId, questionId);
-
   // Group options by stage
   const optionsByStage = useMemo(() => {
     return Object.entries(
@@ -93,7 +86,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             Fråga {currentIndex + 1} av {totalQuestions}
           </div>
         </div>
-        {/*<ProgressBar value={progress} type="section" />*/}
       </CardHeader>
       
       <CardContent>

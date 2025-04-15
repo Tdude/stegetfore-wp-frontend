@@ -10,14 +10,14 @@ type UserInfo = {
   email: string;
   roles: string[];
   student_id?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userInfo: UserInfo | null;
-  login: (username: string, password: string) => Promise<{ success: boolean; data?: UserInfo; error?: any }>;
-  devLogin: () => Promise<{ success: boolean; data?: UserInfo; error?: any }>;
+  login: (username: string, password: string) => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
+  devLogin: () => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
   logout: () => void;
   loading: boolean;
 }
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     checkAuthStatus();
   }, []);
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; data?: UserInfo; error?: any }> => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; data?: UserInfo; error?: unknown }> => {
     try {
       const response = await authApi.login(username, password);
       
@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // Login failed
       return { 
         success: false, 
-        error: (response as any)?.error ? 'Login failed' : 'Invalid credentials' 
+        error: (response as { error?: unknown })?.error ? 'Login failed' : 'Invalid credentials' 
       };
     } catch (err) {
       console.error('Login error:', err);
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   // Quick developer login using .env.local credentials
-  const devLogin = async (): Promise<{ success: boolean; data?: UserInfo; error?: any }> => {
+  const devLogin = async (): Promise<{ success: boolean; data?: UserInfo; error?: unknown }> => {
     return await quickDevLogin(login);
   };
 

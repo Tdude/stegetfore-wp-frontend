@@ -2,7 +2,6 @@
 'use client';
 
 import React from 'react';
-import { SellingPointsModule as SellingPointsModuleType } from '@/lib/types/moduleTypes';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
 

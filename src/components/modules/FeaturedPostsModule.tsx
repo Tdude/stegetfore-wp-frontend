@@ -3,7 +3,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { FeaturedPostsModule as FeaturedPostsModuleType } from '@/lib/types/moduleTypes';
-import { LocalPost, Post } from '@/lib/types/contentTypes';
 import { badgeVariants } from "@/components/ui/badge";
 import Link from 'next/link';
 import NextImage from '@/components/NextImage';

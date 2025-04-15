@@ -31,7 +31,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
 }
 
 // Create a safer dynamic import function
-const safeImport = (modulePath: string, fallbackComponent: ReactNode = null) => {
+const safeImport = (modulePath: string) => {
   return lazy(() =>
     import(`./${modulePath}`)
       .catch((err: Error) => {
@@ -94,17 +94,16 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
     );
   }
 
-  const moduleType = module.type || 'unknown';
   const moduleId = module.id || 'no-id';
   const isFullWidth = module.fullWidth === true;
 
   // Log module details
-  console.log(`ModuleRenderer for ${moduleType} (ID: ${moduleId})`, module);
+  console.log(`ModuleRenderer for ${module.type} (ID: ${moduleId})`, module);
 
   // Add fullWidth class if needed
   const moduleClasses = cn(
     'module',
-    `module-${moduleType}`,
+    `module-${module.type}`,
     isFullWidth ? 'w-full' : '',
     className
   );
@@ -119,9 +118,6 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
     if (!module.type) {
       throw new Error('Module is missing required "type" property');
     }
-
-    // Output module type to data attribute for debugging
-    const moduleTypeAttr = `module-${module.type}`;
 
     // Render different components based on module type
     const renderModuleContent = () => {
@@ -197,14 +193,13 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
       <ErrorBoundary
         fallback={
           <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded m-2">
-            Error rendering module: {moduleType} (ID: {moduleId})
+            Error rendering module: {module.type} (ID: {moduleId})
           </div>
         }
       >
         <div
           className={moduleClasses}
           data-module-id={moduleId}
-          data-module-type={moduleType}
         >
           {renderModuleContent()}
         </div>

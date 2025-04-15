@@ -78,9 +78,9 @@ export const assessmentTemplatesApi = {
       return await fetchApi('/ham/v1/assessment-templates', {
         headers: getHeaders()
       });
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-      throw error;
+    } catch {
+      console.error('Error fetching templates:');
+      throw new Error('Error fetching templates');
     }
   },
 
@@ -92,9 +92,9 @@ export const assessmentTemplatesApi = {
       return await fetchApi(`/ham/v1/assessment-templates/${id}`, {
         headers: getHeaders()
       });
-    } catch (error) {
-      console.error(`Error fetching template ${id}:`, error);
-      throw error;
+    } catch {
+      console.error(`Error fetching template ${id}:`);
+      throw new Error(`Error fetching template ${id}`);
     }
   },
 
@@ -106,9 +106,9 @@ export const assessmentTemplatesApi = {
       return await fetchApi(`/ham/v1/assessment-templates/${id}/structure`, {
         headers: getHeaders()
       });
-    } catch (error) {
-      console.error(`Error fetching template structure ${id}:`, error);
-      throw error;
+    } catch {
+      console.error(`Error fetching template structure ${id}:`);
+      throw new Error(`Error fetching template structure ${id}`);
     }
   }
 };
@@ -130,8 +130,8 @@ export const evaluationApi = {
       
       console.log('API connection test result:', response.ok);
       return response.ok;
-    } catch (error) {
-      console.error('API connection test failed:', error);
+    } catch {
+      console.error('API connection test failed:');
       return false;
     }
   },
@@ -166,9 +166,9 @@ export const evaluationApi = {
       
       console.log('API response:', response);
       return response;
-    } catch (error) {
-      console.error('Error saving evaluation:', error);
-      throw error;
+    } catch {
+      console.error('Error saving evaluation:');
+      throw new Error('Error saving evaluation');
     }
   },
 
@@ -180,9 +180,9 @@ export const evaluationApi = {
       return await fetchApi(`/ham/v1/evaluation/get/${id}`, {
         headers: getHeaders()
       });
-    } catch (error) {
-      console.error(`Error fetching evaluation ${id}:`, error);
-      throw error;
+    } catch {
+      console.error(`Error fetching evaluation ${id}:`);
+      throw new Error(`Error fetching evaluation ${id}`);
     }
   },
 
@@ -194,9 +194,9 @@ export const evaluationApi = {
       return await fetchApi(`/ham/v1/evaluation/list/${studentId}`, {
         headers: getHeaders()
       });
-    } catch (error) {
-      console.error(`Error listing evaluations for student ${studentId}:`, error);
-      throw error;
+    } catch {
+      console.error(`Error listing evaluations for student ${studentId}:`);
+      throw new Error(`Error listing evaluations for student ${studentId}`);
     }
   },
 
@@ -217,7 +217,7 @@ export const evaluationApi = {
         console.log(`Trying endpoint: ${API_URL}${endpointUsed}`);
         data = await fetchApi(endpointUsed);
         console.log('Data received from standard endpoint:', data);
-      } catch (error) {
+      } catch {
         console.warn('Failed to fetch with standard endpoint, trying WP REST format');
         
         // If that fails, try the WordPress REST API format
@@ -233,8 +233,8 @@ export const evaluationApi = {
         try {
           data = await fetchApi('/public/v1/assessment/template');
           console.log('Data from assessment template endpoint:', data);
-        } catch (templateError) {
-          console.warn('Failed to fetch from assessment template endpoint:', templateError);
+        } catch {
+          console.warn('Failed to fetch from assessment template endpoint:');
         }
       }
       
@@ -319,8 +319,8 @@ export const evaluationApi = {
       });
       
       return structure;
-    } catch (error) {
-      console.error('Error fetching questions structure:', error);
+    } catch {
+      console.error('Error fetching questions structure:');
       return getDefaultQuestionsStructure();
     }
   },
@@ -369,8 +369,8 @@ export const authApi = {
       }
       
       return data;
-    } catch (error) {
-      console.error('Error during login:', error);
+    } catch {
+      console.error('Error during login:');
       return { error: true, message: 'Login failed' };
     }
   },
@@ -399,8 +399,8 @@ export const authApi = {
       });
       
       return await response.json();
-    } catch (error) {
-      console.error('Error getting current user:', error);
+    } catch {
+      console.error('Error getting current user:');
       return null;
     }
   },
@@ -426,8 +426,8 @@ export const authApi = {
       
       const data = await response.json();
       return data.valid === true;
-    } catch (error) {
-      console.error('Error validating token:', error);
+    } catch {
+      console.error('Error validating token:');
       clearTokenInternal();
       return false;
     }

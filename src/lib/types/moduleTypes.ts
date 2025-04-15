@@ -32,6 +32,7 @@ export interface BaseModule {
   originalType?: string; // For debugging purposes
   categories?: string | string[];
   placements?: string[] | string;
+  [key: string]: unknown;
 }
 
 /**
@@ -51,6 +52,12 @@ export interface HeroModule extends BaseModule {
   backgroundColor?: string;
   height?: "small" | "medium" | "large" | string; // Updated to match API
   alignment?: "left" | "center" | "right"; // Matches API
+  buttons?: Array<{
+    text: string;
+    url: string;
+    style: "primary" | "secondary" | "outline" | "link" | "ghost" | "default" | "destructive";
+    new_tab?: boolean;
+  }>;
 }
 
 /**

@@ -1,7 +1,7 @@
 // src/components/modules/TabsModule.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TabsModule } from "@/lib/types/";
 import { cn } from '@/lib/utils';
