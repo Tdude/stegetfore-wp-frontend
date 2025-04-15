@@ -58,7 +58,6 @@ export function adaptWordPressModule(wpModule: unknown): Module | null {
   console.log(`Processing module of type: ${moduleType} (ID: ${mod.id})`);
 
   // Map from snake_case module types to our internal module adapter functions
-  // This standardizes the naming conventions coming from WordPress
   const typeMapping: Record<string, string> = {
     // snake_case variants
     'hero': 'hero',
@@ -87,8 +86,7 @@ export function adaptWordPressModule(wpModule: unknown): Module | null {
     'video_module': 'video',
     'chart': 'chart',
     'chart_module': 'chart',
-
-    // Also support camelCase variants for backwards compatibility
+    // camelCase variants for backwards compatibility
     'heroModule': 'hero',
     'ctaModule': 'cta',
     'sellingPointsModule': 'selling-points',
@@ -115,7 +113,6 @@ export function adaptWordPressModule(wpModule: unknown): Module | null {
 
   console.log(`Mapped module type ${moduleType} → ${normalizedType}`);
 
-  // Switch on the normalized type
   try {
     switch (normalizedType) {
       case 'hero':
@@ -145,17 +142,15 @@ export function adaptWordPressModule(wpModule: unknown): Module | null {
       case 'chart':
         return adaptChartModule(mod);
       default:
-        // Fallback to base module for unknown types
         console.warn(`No specific adapter for module type: ${normalizedType}, using base adapter`);
         return adaptBaseModule(mod);
     }
-  } catch {
-    console.error(`Error adapting module of type ${normalizedType}`);
-    // Try to fall back to base module in case of errors
+  } catch (e) {
+    console.error(`Error adapting module of type ${normalizedType}:`, e);
     try {
       return adaptBaseModule(mod);
-    } catch {
-      console.error('Even base module adapter failed');
+    } catch (baseErr) {
+      console.error('Even base module adapter failed:', baseErr);
       return null;
     }
   }
