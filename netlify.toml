@@ -1,11 +1,17 @@
 [build]
-  command = "npm run build"
+  command = "CI=false npm run build"
   publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "20"
   NPM_FLAGS = "--no-audit --no-fund"
+  NEXT_PUBLIC_WORDPRESS_URL = "https://cms.stegetfore.nu/"
+  NEXT_PUBLIC_API_URL = "https://cms.stegetfore.nu/wp-json"
+  NEXT_PUBLIC_THEME_SLUG = "steget"
+  NEXT_PUBLIC_USE_MODULAR_TEMPLATES = "true"
+  REVALIDATION_TOKEN = "#h411edudane-DA_50M_3N_gube_kan_MÅ!"
+  HOMEPAGE_ID = "2"
 
 # Production context: all deploys from the Production branch set in your site's
 # deploy contexts will inherit these settings.
