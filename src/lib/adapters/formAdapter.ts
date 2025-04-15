@@ -6,7 +6,7 @@ import { WPCF7Form, WPCF7Field } from "@/lib/types";
  * @param wpForm WordPress form data
  * @returns WPCF7Form object formatted for the application
  */
-export function adaptWordPressForm(wpForm: any): WPCF7Form {
+export function adaptWordPressForm(wpForm: unknown): WPCF7Form {
   if (!wpForm) {
     return {
       id: "",
@@ -46,7 +46,7 @@ export function adaptWordPressForm(wpForm: any): WPCF7Form {
     id: wpForm.id || "",
     title: wpForm.title || "",
     fields: Array.isArray(wpForm.fields)
-      ? wpForm.fields.map((field: any) => adaptWordPressFormField(field))
+      ? wpForm.fields.map((field: unknown) => adaptWordPressFormField(field))
       : [],
     additional_settings: wpForm.additional_settings || "",
     locale: wpForm.locale,
@@ -59,7 +59,7 @@ export function adaptWordPressForm(wpForm: any): WPCF7Form {
  * @param wpField WordPress form field data
  * @returns WPCF7Field object formatted for the application
  */
-function adaptWordPressFormField(wpField: any): WPCF7Field {
+function adaptWordPressFormField(wpField: unknown): WPCF7Field {
   return {
     id: wpField.id || "",
     type: wpField.type || "",
@@ -91,7 +91,7 @@ function adaptWordPressFormField(wpField: any): WPCF7Field {
  * @returns Formatted form data ready for API submission
  */
 export function formatFormDataForSubmission(
-  formData: Record<string, any>
+  formData: Record<string, unknown>
 ): Record<string, string | File> {
   const formattedData: Record<string, string | File> = {};
 

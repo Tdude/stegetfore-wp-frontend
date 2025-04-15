@@ -107,7 +107,6 @@ export default function BlogIndexTemplate({ page, posts, categories }: { page: P
                 {/* Main featured post - takes 2/3 width but same height as others */}
                 <div className="lg:col-span-2 lg:row-span-1 h-full flex">
                   <Postcard post={safetyPosts[0]} variant="featured" className="w-full" />
-                  <div>KUKEN BALLEN</div>
                 </div>
                 
                 {/* Secondary posts column - two cards, each same height as the featured post */}

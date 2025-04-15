@@ -116,12 +116,25 @@ export interface Page extends BaseContent {
   chartData?: {
     segments: number[];
   } | null;
+  segments?: number[];
   evaluationId?: string;
   studentId?: string | number;
   meta?: {
     student_id?: string | number;
+    hero?: {
+      title?: string;
+      intro?: string;
+      image?: string | string[];
+      buttons?: Array<{
+        text: string;
+        url: string;
+        style: "primary" | "secondary" | "outline";
+      }>;
+    };
     [key: string]: unknown;
   };
+  student_id?: string | number;
+  type?: string;
 }
 
 /**

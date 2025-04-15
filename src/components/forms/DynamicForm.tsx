@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { validateFormData, createInitialFormValues, getFieldErrorMessage } from '@/services';
+import { validateFormData, createInitialFormValues } from '@/services';
 import { formatFormDataForSubmission } from '@/lib/adapters';
 import { submitForm } from '@/lib/api';
 import { WPCF7Field, WPCF7Form } from '@/lib/types/wpTypes';
@@ -39,7 +39,7 @@ export default function DynamicForm({
   fieldClassName = '',
 }: DynamicFormProps) {
   // Initialize form state
-  const [formData, setFormData] = useState<Record<string, any>>(() => {
+  const [formData, setFormData] = useState<Record<string, string | number | boolean | null>>(() => {
     return initialValues || createInitialFormValues(form);
   });
 

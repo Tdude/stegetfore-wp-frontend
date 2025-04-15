@@ -1,5 +1,5 @@
 // src/app/page.tsx
-// @ts-nocheck - This file requires flexibility with data structures from WordPress
+// Removed @ts-nocheck directive to enforce proper type checking
 import { Suspense } from 'react';
 import { fetchPageById } from '@/lib/api';
 import { notFound } from 'next/navigation';
@@ -17,8 +17,7 @@ export default async function HomePage() {
 
     // Create the homepage data structure from the page data
     const homepageData: Record<string, unknown> = {
-      // Access properties safely, handling potential property absence
-      hero: page.meta?.hero || {},
+      hero: page.meta && typeof page.meta === 'object' && page.meta.hero ? page.meta.hero : {},
       modules: Array.isArray(page.modules) ? page.modules : []
     };
 

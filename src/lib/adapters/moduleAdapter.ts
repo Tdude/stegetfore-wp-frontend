@@ -14,26 +14,39 @@ import {
   TabsModule,
   VideoModule,
   ChartModule,
-  BaseModule
+  BaseModule,
+  AccordionFaqItem
 } from "@/lib/types/moduleTypes";
 import { HomepageData, Post } from "@/lib/types/contentTypes";
 import { adaptWordPressPosts } from "./postAdapter";
+
+// Type guard for WordPress module objects
+function isWPModule(obj: unknown): obj is Record<string, unknown> {
+  return typeof obj === 'object' && obj !== null;
+}
 
 /**
  * Adapts a WordPress module to the application Module format
  * @param wpModule WordPress module data
  * @returns Module object formatted for the application
  */
-export function adaptWordPressModule(wpModule: any): Module | null {
-  if (!wpModule) return null;
+export function adaptWordPressModule(wpModule: unknown): Module | null {
+  if (!isWPModule(wpModule)) return null;
 
   // Determine module type from WordPress snake_case fields
   // The API could use: type, template, acf_fc_layout, etc.
-  const moduleType = wpModule.type || wpModule.template || wpModule.acf_fc_layout;
-  
+  let moduleType: string | undefined = undefined;
+  if (typeof wpModule.type === 'string') {
+    moduleType = wpModule.type;
+  } else if (typeof wpModule.template === 'string') {
+    moduleType = wpModule.template;
+  } else if (typeof wpModule.acf_fc_layout === 'string') {
+    moduleType = wpModule.acf_fc_layout;
+  }
+
   if (!moduleType) {
     // Return a basic module if type can't be determined but we have enough data
-    if (wpModule.id && (wpModule.title || wpModule.title?.rendered)) {
+    if (typeof wpModule.id !== 'undefined' && (typeof wpModule.title === 'string' || (wpModule.title && typeof wpModule.title.rendered === 'string'))) {
       console.log(`Using base adapter for module with ID: ${wpModule.id}`);
       return adaptBaseModule(wpModule);
     }
@@ -74,7 +87,7 @@ export function adaptWordPressModule(wpModule: any): Module | null {
     'video_module': 'video',
     'chart': 'chart',
     'chart_module': 'chart',
-    
+
     // Also support camelCase variants for backwards compatibility
     'heroModule': 'hero',
     'ctaModule': 'cta',
@@ -93,7 +106,7 @@ export function adaptWordPressModule(wpModule: any): Module | null {
 
   // Get the normalized type
   const normalizedType = typeMapping[moduleType] || moduleType;
-  
+
   // If we can't map the type, log it and try to adapt as a base module
   if (!typeMapping[moduleType]) {
     console.warn(`Unknown module type: ${moduleType}, will try as base module`);
@@ -153,21 +166,43 @@ export function adaptWordPressModule(wpModule: any): Module | null {
  * @param wpModule WordPress hero module data
  * @returns HeroModule object
  */
-function adaptHeroModule(wpModule: any): HeroModule {
+function adaptHeroModule(wpModule: unknown): HeroModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "hero",
+      title: "",
+      intro: "",
+      image: "",
+      video_url: "",
+      buttons: [],
+      overlay_opacity: 0.3,
+      text_color: "",
+      height: "",
+      alignment: "center",
+      order: 0,
+      settings: {},
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "hero",
     title: wpModule.title || "",
     intro: wpModule.intro || "",
     image: wpModule.image || "",
-    video_url: wpModule.video_url,
+    video_url: typeof wpModule.video_url === "string" ? wpModule.video_url : "",
     buttons: wpModule.buttons || [],
     overlay_opacity: wpModule.overlay_opacity || 0.3,
     text_color: wpModule.text_color,
     height: wpModule.height,
-    alignment: wpModule.alignment || "center",
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    alignment: typeof wpModule.alignment === "string" && ["left", "right", "center"].includes(wpModule.alignment)
+      ? (wpModule.alignment as "left" | "right" | "center")
+      : "center",
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -176,36 +211,50 @@ function adaptHeroModule(wpModule: any): HeroModule {
  * @param wpModule WordPress CTA module data
  * @returns CTAModule object
  */
-function adaptCTAModule(wpModule: any): CTAModule {
-  // Extract button data with snake_case fields prioritized
+function adaptCTAModule(wpModule: unknown): CTAModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "cta",
+      title: "",
+      description: "",
+      buttonText: "",
+      buttonUrl: "",
+      backgroundColor: "",
+      textColor: "",
+      alignment: "center",
+      image: "",
+      order: 0,
+      settings: {},
+    };
+  }
   let buttonText = "";
   let buttonUrl = "";
-  
-  // First check snake_case fields
   if (wpModule.button_text && wpModule.button_url) {
     buttonText = wpModule.button_text;
     buttonUrl = wpModule.button_url;
-  } 
-  // Then check buttons array (secondary priority)
-  else if (wpModule.buttons && Array.isArray(wpModule.buttons) && wpModule.buttons.length > 0) {
+  } else if (wpModule.buttons && Array.isArray(wpModule.buttons) && wpModule.buttons.length > 0) {
     buttonText = wpModule.buttons[0].text || "";
     buttonUrl = wpModule.buttons[0].url || "";
   }
-
   return {
     id: wpModule.id || 0,
-    type: "cta", // Normalize to expected type regardless of WordPress template field
+    type: "cta",
     title: wpModule.title || "",
     description: wpModule.content || wpModule.description || "",
     buttonText: buttonText,
     buttonUrl: buttonUrl,
-    // Always prioritize snake_case properties from WordPress API
     backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
     textColor: wpModule.text_color || wpModule.textColor || "",
-    alignment: wpModule.layout || "center", // Use layout from API as it's the primary field
+    alignment: typeof wpModule.layout === "string" && ["left", "right", "center"].includes(wpModule.layout)
+      ? (wpModule.layout as "left" | "right" | "center")
+      : "center",
     image: wpModule.featured_image || wpModule.image || "",
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -214,32 +263,55 @@ function adaptCTAModule(wpModule: any): CTAModule {
  * @param wpModule WordPress selling points module data
  * @returns SellingPointsModule object
  */
-function adaptSellingPointsModule(wpModule: any): SellingPointsModule {
+function adaptSellingPointsModule(wpModule: unknown): SellingPointsModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "selling-points",
+      title: "",
+      points: [],
+      columns: 3,
+      layout: "grid",
+      backgroundColor: "",
+      fullWidth: false,
+      order: 0,
+      settings: {},
+    };
+  }
   // Check if points array exists and has the correct structure
-  const points = Array.isArray(wpModule.points) 
-    ? wpModule.points.map((point: any) => ({
-        id: point.id || 0,
-        title: point.title || "",
-        content: point.content || point.description || "",
-        description: point.description || point.content || "",
-        icon: point.icon || ""
-      }))
+  const points = Array.isArray(wpModule.points)
+    ? wpModule.points.map((point: unknown) => {
+        const p = point as SellingPointsModule["points"][number];
+        return {
+          id: p?.id || 0,
+          title: p?.title || "",
+          content: p?.content || p?.description || "",
+          description: p?.description || p?.content || "",
+          icon: p?.icon || ""
+        };
+      })
     : [];
-    
+
   return {
     id: wpModule.id || 0,
     type: "selling-points",
     title: wpModule.title || "",
-    points: points,
-    columns: wpModule.columns || 3,
-    // Handle layout from API, which can affect display in the frontend
-    layout: wpModule.layout || "grid",
-    // Handle backgroundColor directly as it's provided by the API
-    backgroundColor: wpModule.backgroundColor || "",
-    // Handle fullWidth if present in the API
-    fullWidth: wpModule.fullWidth || false,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    points,
+    columns:
+      wpModule.columns === 1 || wpModule.columns === 2 || wpModule.columns === 3 || wpModule.columns === 4
+        ? wpModule.columns
+        : 3,
+    layout:
+      wpModule.layout === "grid" || wpModule.layout === "list" || wpModule.layout === "carousel"
+        ? wpModule.layout
+        : "grid",
+    backgroundColor: typeof wpModule.backgroundColor === "string" ? wpModule.backgroundColor : "",
+    fullWidth: typeof wpModule.fullWidth === "boolean" ? wpModule.fullWidth : false,
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -248,16 +320,33 @@ function adaptSellingPointsModule(wpModule: any): SellingPointsModule {
  * @param wpModule WordPress testimonials module data
  * @returns TestimonialsModule object
  */
-function adaptTestimonialsModule(wpModule: any): TestimonialsModule {
+function adaptTestimonialsModule(wpModule: unknown): TestimonialsModule {
+  if (!isWPModule(wpModule)) {
+    // fallback for type safety
+    return {
+      id: 0,
+      type: "testimonials",
+      title: "",
+      testimonials: [],
+      display_style: "carousel",
+      display_count: 3,
+      backgroundColor: "",
+      order: 0,
+      settings: {},
+    };
+  }
   // Extract testimonials array with consistent snake_case fields
   const testimonials = Array.isArray(wpModule.testimonials)
-    ? wpModule.testimonials.map((testimonial: any) => ({
-        id: testimonial.id || 0,
-        content: testimonial.content || "",
-        author_name: testimonial.author_name || "",
-        author_position: testimonial.author_position || "",
-        author_image: testimonial.author_image || "",
-      }))
+    ? wpModule.testimonials.map((testimonial: unknown) => {
+        const t = testimonial as TestimonialsModule["testimonials"][number];
+        return {
+          id: t?.id || 0,
+          content: t?.content || "",
+          author_name: t?.author_name || "",
+          author_position: t?.author_position || "",
+          author_image: t?.author_image || "",
+        };
+      })
     : [];
 
   return {
@@ -265,13 +354,17 @@ function adaptTestimonialsModule(wpModule: any): TestimonialsModule {
     type: "testimonials",
     title: wpModule.title || "",
     testimonials,
-    // Consistently use snake_case fields from the API
     display_style: wpModule.display_style || "carousel",
-    display_count: wpModule.display_count || 3,
-    // Add support for background_color consistent with other modules
+    display_count:
+      wpModule.display_count === 1 || wpModule.display_count === 2 || wpModule.display_count === 3 || wpModule.display_count === 4
+        ? wpModule.display_count
+        : 3,
     backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -280,7 +373,23 @@ function adaptTestimonialsModule(wpModule: any): TestimonialsModule {
  * @param wpModule WordPress featured posts module data
  * @returns FeaturedPostsModule object
  */
-function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
+function adaptFeaturedPostsModule(wpModule: unknown): FeaturedPostsModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "featured-posts",
+      title: "",
+      posts: [],
+      display_style: "grid",
+      columns: 3,
+      show_excerpt: true,
+      show_categories: true,
+      show_read_more: true,
+      categories: [],
+      order: 0,
+      settings: {},
+    };
+  }
   // Map posts with consistent field handling
   const adaptedPosts = Array.isArray(wpModule.posts)
     ? adaptWordPressPosts(wpModule.posts)
@@ -300,15 +409,20 @@ function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
     type: "featured-posts",
     title: wpModule.title || "",
     posts: adaptedPosts,
-    // Consistently prioritize snake_case fields from WordPress
     display_style: wpModule.display_style || wpModule.displayStyle || "grid",
-    columns: wpModule.columns || 3,
+    columns:
+      wpModule.columns === 1 || wpModule.columns === 2 || wpModule.columns === 3 || wpModule.columns === 4
+        ? wpModule.columns
+        : 3,
     show_excerpt: wpModule.show_excerpt !== false,
     show_categories: wpModule.show_categories !== false,
     show_read_more: wpModule.show_read_more !== false,
     categories: wpModule.categories?.map(String) || [],
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -317,27 +431,48 @@ function adaptFeaturedPostsModule(wpModule: any): FeaturedPostsModule {
  * @param wpModule WordPress stats module data
  * @returns StatsModule object
  */
-function adaptStatsModule(wpModule: any): StatsModule {
+function adaptStatsModule(wpModule: unknown): StatsModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "stats",
+      title: "",
+      subtitle: "",
+      stats: [],
+      backgroundColor: "",
+      layout: "row",
+      columns: 4,
+      order: 0,
+      settings: {},
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "stats",
     title: wpModule.title || "",
     subtitle: wpModule.subtitle || "",
     stats: Array.isArray(wpModule.stats)
-      ? wpModule.stats.map((stat: any) => ({
-          id: stat.id || 0,
-          value: stat.value || "",
-          label: stat.label || "",
-          icon: stat.icon || ""
-        }))
+      ? wpModule.stats.map((stat: unknown) => {
+          const s = stat as StatsModule["stats"][number];
+          return {
+            id: s?.id || 0,
+            value: s?.value || "",
+            label: s?.label || "",
+            icon: s?.icon || ""
+          };
+        })
       : [],
-    // Prioritize snake_case fields over camelCase, but support both
     backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    // The API provides layout as one of: "row" or "grid"
     layout: wpModule.layout || "row",
-    columns: wpModule.columns || 4,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    columns:
+      wpModule.columns === 2 || wpModule.columns === 3 || wpModule.columns === 4
+        ? wpModule.columns
+        : 4,
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -346,30 +481,41 @@ function adaptStatsModule(wpModule: any): StatsModule {
  * @param wpModule WordPress gallery module data
  * @returns GalleryModule object
  */
-function adaptGalleryModule(wpModule: any): GalleryModule {
-  // Process gallery items with standardized field handling
+function adaptGalleryModule(wpModule: unknown): GalleryModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "gallery",
+      title: "",
+      items: [],
+      layout: "grid",
+      columns: 3,
+      enable_lightbox: true,
+    };
+  }
   const items = Array.isArray(wpModule.items)
-    ? wpModule.items.map((item: any) => ({
-        id: item.id || 0,
-        image: item.image || "",
-        title: item.title || "",
-        description: item.description || "",
-      }))
+    ? wpModule.items.map((item: unknown) => {
+        const i = item as GalleryModule["items"][number];
+        return {
+          id: i?.id || 0,
+          image: i?.image || "",
+          title: i?.title || "",
+          description: i?.description || "",
+        };
+      })
     : [];
 
   return {
     id: wpModule.id || 0,
     type: "gallery",
-    title: wpModule.title || "",
-    items: items,
-    // Prioritize API field names but match our interface properties
-    layout: wpModule.layout || "grid",
-    columns: wpModule.columns || 3,
-    enable_lightbox: wpModule.enable_lightbox !== false,
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    fullWidth: wpModule.fullWidth || false,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    title: typeof wpModule.title === "string" ? wpModule.title : "",
+    items,
+    layout:
+      wpModule.layout === "grid" || wpModule.layout === "carousel" || wpModule.layout === "masonry"
+        ? wpModule.layout
+        : "grid",
+    columns: wpModule.columns === 2 || wpModule.columns === 3 || wpModule.columns === 4 ? wpModule.columns : 3,
+    enable_lightbox: typeof wpModule.enable_lightbox === "boolean" ? wpModule.enable_lightbox : true,
   };
 }
 
@@ -378,18 +524,42 @@ function adaptGalleryModule(wpModule: any): GalleryModule {
  * @param wpModule WordPress text module data
  * @returns Text module object
  */
-function adaptTextModule(wpModule: any): TextModule {
+function adaptTextModule(wpModule: unknown): TextModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "text",
+      title: "",
+      content: "",
+      alignment: "left",
+      text_size: "medium",
+      enable_columns: false,
+      columns_count: 2,
+      order: 0,
+      settings: {},
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "text",
     title: wpModule.title || "",
     content: wpModule.content || "",
-    alignment: wpModule.alignment || "left",
-    text_size: wpModule.text_size || "medium",
-    enable_columns: wpModule.enable_columns || false,
-    columns_count: wpModule.columns_count || 2,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    alignment: wpModule.alignment === "left" || wpModule.alignment === "center" || wpModule.alignment === "right"
+      ? wpModule.alignment
+      : "left",
+    text_size: wpModule.text_size === "small" || wpModule.text_size === "medium" || wpModule.text_size === "large"
+      ? wpModule.text_size
+      : "medium",
+    enable_columns: typeof wpModule.enable_columns === "boolean" ? wpModule.enable_columns : false,
+    columns_count:
+      wpModule.columns_count === 2 || wpModule.columns_count === 3
+        ? wpModule.columns_count
+        : 2,
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -398,25 +568,35 @@ function adaptTextModule(wpModule: any): TextModule {
  * @param wpModule WordPress form module data
  * @returns Form module object
  */
-function adaptFormModule(wpModule: any): FormModule {
+function adaptFormModule(wpModule: unknown): FormModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "form",
+      title: "",
+      form_id: 0,
+      description: "",
+      success_message: "",
+      error_message: "",
+      redirect_url: "",
+      order: 0,
+      settings: {},
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "form",
     title: wpModule.title || "",
-    // Consistently use snake_case fields from the API
-    form_id: wpModule.form_id || 0,
+    form_id: wpModule.form_id || wpModule.formId || 0,
     description: wpModule.description || "",
-    success_message: wpModule.success_message || "",
-    error_message: wpModule.error_message || "",
+    success_message: wpModule.success_message || wpModule.successMessage || "",
+    error_message: wpModule.error_message || wpModule.errorMessage || "",
     redirect_url: wpModule.redirect_url || "",
-    // Add support for background color consistent with other modules
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    // Add support for full width option consistent with other modules
-    fullWidth: wpModule.full_width || wpModule.fullWidth || false,
-    // Add support for layout consistent with other modules
-    layout: wpModule.layout || "standard",
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -425,33 +605,48 @@ function adaptFormModule(wpModule: any): FormModule {
  * @param wpModule WordPress accordion or FAQ module data
  * @returns AccordionFaqModule object
  */
-function adaptAccordionFaqModule(wpModule: any): AccordionFaqModule {
-  // Determine if it's an accordion or FAQ based on the type
-  const moduleType = wpModule.type === "faq" ? "faq" : "accordion";
-  
-  // Map items correctly based on the API structure
-  const items = Array.isArray(wpModule.items)
-    ? wpModule.items.map((item: any) => ({
-        id: item.id || 0,
-        // Map snake_case fields first, then fallback to alternatives
-        question: item.question || item.title || "",
-        answer: item.answer || item.content || "",
-        icon: item.icon || ""
-      }))
-    : [];
-    
+function adaptAccordionFaqModule(wpModule: unknown): AccordionFaqModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "accordion",
+      items: [],
+      allow_multiple_open: false,
+      default_open_index: 0,
+      backgroundColor: "",
+      icon_position: "left",
+    };
+  }
   return {
     id: wpModule.id || 0,
-    type: moduleType,
-    title: wpModule.title || "",
-    items: items,
-    allow_multiple_open: wpModule.allow_multiple_open || false,
-    default_open_index: wpModule.default_open_index,
-    // Prioritize snake_case fields from API, and match our interface property names
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    icon_position: wpModule.icon_position || wpModule.iconPosition || "left",
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    type:
+      wpModule.type === "accordion" || wpModule.type === "faq"
+        ? wpModule.type
+        : "accordion",
+    items: Array.isArray(wpModule.items)
+      ? wpModule.items.map((item: unknown) => {
+          const a = item as AccordionFaqItem;
+          return {
+            id: a?.id ?? 0,
+            question: a?.question || "",
+            answer: a?.answer || "",
+            icon: a?.icon || undefined,
+          };
+        })
+      : [],
+    allow_multiple_open:
+      typeof wpModule.allow_multiple_open === "boolean"
+        ? wpModule.allow_multiple_open
+        : false,
+    default_open_index:
+      typeof wpModule.default_open_index === "number" && !isNaN(wpModule.default_open_index)
+        ? wpModule.default_open_index
+        : 0,
+    backgroundColor: typeof wpModule.backgroundColor === "string" ? wpModule.backgroundColor : "",
+    icon_position:
+      wpModule.icon_position === "left" || wpModule.icon_position === "right"
+        ? wpModule.icon_position
+        : "left",
   };
 }
 
@@ -460,32 +655,38 @@ function adaptAccordionFaqModule(wpModule: any): AccordionFaqModule {
  * @param wpModule WordPress tabs module data
  * @returns TabsModule object
  */
-function adaptTabsModule(wpModule: any): TabsModule {
-  // Process tab items with standardized field handling
-  const tabs = Array.isArray(wpModule.tabs)
-    ? wpModule.tabs.map((tab: any) => ({
-        id: tab.id || 0,
-        title: tab.title || "",
-        content: tab.content || "",
-        icon: tab.icon || "",
-      }))
-    : [];
-
+function adaptTabsModule(wpModule: unknown): TabsModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "tabs",
+      title: "",
+      tabs: [],
+      order: 0,
+      index: 0,
+      settings: {},
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "tabs",
     title: wpModule.title || "",
-    tabs,
-    // Consistently use snake_case fields from the API
-    orientation: wpModule.orientation || "horizontal",
-    default_tab_index: wpModule.default_tab_index || 0,
-    // Add support for background color
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    // Add support for full width option
-    fullWidth: wpModule.full_width || wpModule.fullWidth || false,
-    index: wpModule.index || 0,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    tabs: Array.isArray(wpModule.tabs)
+      ? wpModule.tabs.map((tab: unknown) => {
+          const t = tab as TabsModule["tabs"][number];
+          return {
+            id: t?.id || 0,
+            title: t?.title || "",
+            content: t?.content || "",
+          };
+        })
+      : [],
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    index: typeof wpModule.index === "number" ? wpModule.index : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -494,26 +695,39 @@ function adaptTabsModule(wpModule: any): TabsModule {
  * @param wpModule WordPress video module data
  * @returns Video module object
  */
-function adaptVideoModule(wpModule: any): VideoModule {
+function adaptVideoModule(wpModule: unknown): VideoModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "video",
+      title: "",
+      video_url: "",
+      video_type: "youtube",
+      poster_image: undefined,
+      autoplay: false,
+      loop: false,
+      muted: false,
+      controls: true,
+      allow_fullscreen: true,
+    };
+  }
   return {
     id: wpModule.id || 0,
     type: "video",
     title: wpModule.title || "",
-    // Consistently use snake_case fields from the API
-    video_url: wpModule.video_url || "",
-    video_type: wpModule.video_type || "youtube",
-    poster_image: wpModule.poster_image || "",
-    autoplay: wpModule.autoplay || false,
-    loop: wpModule.loop || false,
-    muted: wpModule.muted || false,
-    controls: wpModule.controls !== false,
-    allow_fullscreen: wpModule.allow_fullscreen !== false,
-    // Add support for background color consistent with other modules
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    // Add support for full width option consistent with other modules
-    fullWidth: wpModule.full_width || wpModule.fullWidth || false,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    video_url: typeof wpModule.video_url === "string" ? wpModule.video_url : "",
+    video_type:
+      wpModule.video_type === "youtube" || wpModule.video_type === "vimeo" || wpModule.video_type === "local"
+        ? wpModule.video_type
+        : typeof wpModule.video_type === "string"
+        ? (wpModule.video_type as "youtube" | "vimeo" | "local")
+        : "youtube",
+    poster_image: typeof wpModule.poster_image === "string" ? wpModule.poster_image : undefined,
+    autoplay: typeof wpModule.autoplay === "boolean" ? wpModule.autoplay : false,
+    loop: typeof wpModule.loop === "boolean" ? wpModule.loop : false,
+    muted: typeof wpModule.muted === "boolean" ? wpModule.muted : false,
+    controls: typeof wpModule.controls === "boolean" ? wpModule.controls : true,
+    allow_fullscreen: typeof wpModule.allow_fullscreen === "boolean" ? wpModule.allow_fullscreen : true,
   };
 }
 
@@ -522,26 +736,53 @@ function adaptVideoModule(wpModule: any): VideoModule {
  * @param wpModule WordPress chart module data
  * @returns Chart module object
  */
-function adaptChartModule(wpModule: any): ChartModule {
-  // Standardize field handling to prioritize snake_case fields from the API
-  // This ensures consistency with other modules and allows for camelCase fallbacks
+function adaptChartModule(wpModule: unknown): ChartModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "chart",
+      title: "",
+      chart_type: "bar",
+      data: { labels: [], datasets: [] },
+      options: {},
+      order: 0,
+      settings: {},
+    };
+  }
+  // Ensure data has labels and datasets of correct type
+  let chartData: { labels: string[]; datasets: { label: string; data: number[]; backgroundColor?: string | string[]; borderColor?: string }[] } = { labels: [], datasets: [] };
+  if (
+    wpModule.data &&
+    typeof wpModule.data === "object" &&
+    Array.isArray((wpModule.data as any).labels) &&
+    Array.isArray((wpModule.data as any).datasets)
+  ) {
+    chartData = {
+      labels: (wpModule.data as { labels: string[] }).labels,
+      datasets: (wpModule.data as { datasets: { label: string; data: number[]; backgroundColor?: string | string[]; borderColor?: string }[] }).datasets,
+    };
+  }
+  const allowedChartTypes = ["bar", "line", "pie", "doughnut", "radar"];
   return {
     id: wpModule.id || 0,
     type: "chart",
     title: wpModule.title || "",
-    // Consistently use snake_case fields from the API
-    chart_type: wpModule.chart_type || "bar",
-    data: wpModule.data || {
-      labels: [],
-      datasets: [],
-    },
-    options: wpModule.options || {},
-    // Add support for background color consistent with other modules
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
-    // Add support for full width option consistent with other modules
-    fullWidth: wpModule.full_width || wpModule.fullWidth || false,
-    order: wpModule.order || 0,
-    settings: wpModule.settings || {},
+    chart_type:
+      typeof wpModule.chart_type === "string" && allowedChartTypes.includes(wpModule.chart_type)
+        ? wpModule.chart_type as ChartModule["chart_type"]
+        : typeof wpModule.chartType === "string" && allowedChartTypes.includes(wpModule.chartType)
+        ? wpModule.chartType as ChartModule["chart_type"]
+        : "bar",
+    data: chartData,
+    options:
+      wpModule.options && typeof wpModule.options === "object" && !Array.isArray(wpModule.options)
+        ? (wpModule.options as Record<string, unknown>)
+        : {},
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -551,35 +792,40 @@ function adaptChartModule(wpModule: any): ChartModule {
  * @param wpModule WordPress module data
  * @returns BaseModule object
  */
-function adaptBaseModule(wpModule: any): BaseModule {
-  console.log(`adaptBaseModule called for module ID: ${wpModule.id}, type: ${wpModule.type || 'unknown'}`);
-  
+function adaptBaseModule(wpModule: unknown): BaseModule {
+  if (!isWPModule(wpModule)) {
+    return {
+      id: 0,
+      type: "base",
+      title: "",
+      order: 0,
+      settings: {},
+    };
+  }
   // Handle different possible sources for title and content
-  const title = wpModule.title?.rendered || wpModule.title || '';
-  const content = wpModule.content?.rendered || wpModule.content || '';
-  
-  // Extract module type from the module data for debugging
-  const originalType = wpModule.type || wpModule.template || wpModule.acf_fc_layout || 'unknown';
-  
-  // Create a base module with all the common properties
-  const baseModule: BaseModule = {
-    id: wpModule.id || 0,
-    type: 'base',
+  let title = '';
+  if (typeof wpModule.title === 'string') {
+    title = wpModule.title;
+  } else if (wpModule.title && typeof wpModule.title === 'object' && typeof (wpModule.title as any).rendered === 'string') {
+    title = (wpModule.title as { rendered: string }).rendered;
+  }
+  let content = '';
+  if (typeof wpModule.content === 'string') {
+    content = wpModule.content;
+  } else if (wpModule.content && typeof wpModule.content === 'object' && typeof (wpModule.content as any).rendered === 'string') {
+    content = (wpModule.content as { rendered: string }).rendered;
+  }
+  return {
+    id: typeof wpModule.id === 'number' ? wpModule.id : 0,
+    type: typeof wpModule.type === 'string' ? wpModule.type : 'base',
     title,
     content,
-    // Support both snake_case and camelCase properties
-    layout: wpModule.layout || 'center',
-    fullWidth: wpModule.full_width || wpModule.fullWidth || false,
-    backgroundColor: wpModule.background_color || wpModule.backgroundColor || '',
-    // Add order property for correct positioning
-    order: wpModule.order || 0,
-    // Include original type for debugging
-    originalType
+    order: typeof wpModule.order === 'number' ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
   };
-  
-  console.log(`Successfully adapted base module: ${JSON.stringify(baseModule)}`);
-  
-  return baseModule;
 }
 
 /**
@@ -587,7 +833,7 @@ function adaptBaseModule(wpModule: any): BaseModule {
  * @param wpHomepageData WordPress homepage data
  * @returns HomepageData object formatted for the application
  */
-export function adaptWordPressHomepageData(wpHomepageData: any): HomepageData {
+export function adaptWordPressHomepageData(wpHomepageData: unknown): HomepageData {
   if (!wpHomepageData) {
     return {
       id: 0,
@@ -646,7 +892,7 @@ export function adaptWordPressHomepageData(wpHomepageData: any): HomepageData {
  * @param wpModules Array of WordPress modules
  * @returns Array of Module objects
  */
-export function adaptWordPressModules(wpModules: any[]): Module[] {
+export function adaptWordPressModules(wpModules: unknown[]): Module[] {
   if (!Array.isArray(wpModules)) {
     console.warn('adaptWordPressModules received non-array:', wpModules);
     return [];
@@ -682,4 +928,57 @@ export function adaptWordPressModules(wpModules: any[]): Module[] {
   console.log(`Successfully adapted ${modules.length} of ${wpModules.length} modules`);
   
   return modules;
+}
+
+/**
+ * Adapts a WordPress testimonials module
+ * @param wpModule WordPress testimonials module data
+ * @returns TestimonialsModule object
+ */
+function adaptTestimonialsModule(wpModule: unknown): TestimonialsModule {
+  if (!isWPModule(wpModule)) {
+    // fallback for type safety
+    return {
+      id: 0,
+      type: "testimonials",
+      title: "",
+      testimonials: [],
+      display_style: "carousel",
+      display_count: 1,
+      backgroundColor: "",
+      order: 0,
+      settings: {},
+    };
+  }
+  // Extract testimonials array with consistent snake_case fields
+  const testimonials = Array.isArray(wpModule.testimonials)
+    ? wpModule.testimonials.map((testimonial: unknown) => {
+        const t = testimonial as TestimonialsModule["testimonials"][number];
+        return {
+          id: t?.id || 0,
+          content: t?.content || "",
+          author_name: t?.author_name || "",
+          author_position: t?.author_position || "",
+          author_image: t?.author_image || "",
+        };
+      })
+    : [];
+
+  return {
+    id: wpModule.id || 0,
+    type: "testimonials",
+    title: typeof wpModule.title === "string" ? wpModule.title : "",
+    testimonials,
+    display_style:
+      wpModule.display_style === "carousel" || wpModule.display_style === "grid" || wpModule.display_style === "list"
+        ? wpModule.display_style
+        : "carousel",
+    display_count: typeof wpModule.display_count === "number" ? wpModule.display_count : 1,
+    backgroundColor: wpModule.background_color || wpModule.backgroundColor || "",
+    order: typeof wpModule.order === "number" ? wpModule.order : 0,
+    settings:
+      wpModule.settings && typeof wpModule.settings === "object" && !Array.isArray(wpModule.settings)
+        ? (wpModule.settings as Record<string, unknown>)
+        : {},
+  };
 }

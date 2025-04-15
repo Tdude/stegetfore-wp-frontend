@@ -1,35 +1,95 @@
 // src/lib/adapters/pageAdapter.ts
-import { Page, LocalPage } from "@/lib/types";
+import { Page } from "@/lib/types";
+import { LocalPage } from "@/lib/types/contentTypes";
 // Import Module type directly from moduleTypes to avoid conflicts
 import { Module } from "@/lib/types/moduleTypes";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 import { adaptWordPressModules } from "./moduleAdapter";
 
 /**
+ * Type guard to check if wpPage is a WordPress page-like object
+ */
+function isWPPage(obj: unknown): obj is {
+  id: number;
+  slug: string;
+  title?: { rendered?: string };
+  content?: { rendered?: string };
+  excerpt?: { rendered?: string };
+  template?: string;
+  _embedded?: unknown;
+  featured_image_url?: string;
+  modules?: unknown;
+  acf?: unknown;
+  type?: string;
+} {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj && typeof (obj as { id: unknown }).id === 'number' &&
+    'slug' in obj && typeof (obj as { slug: unknown }).slug === 'string'
+  );
+}
+
+// Type guard for WPEmbedded
+// (Move this to /types if you use it elsewhere)
+type WPEmbedded = {
+  "wp:featuredmedia"?: {
+    source_url: string;
+    alt_text?: string;
+    media_details?: {
+      width: number;
+      height: number;
+      sizes?: Record<string, { source_url: string; width: number; height: number; }>;
+    };
+  }[];
+};
+
+function isWPEmbedded(obj: unknown): obj is WPEmbedded {
+  if (!obj || typeof obj !== "object") return false;
+  if ("wp:featuredmedia" in obj) {
+    return Array.isArray((obj as any)["wp:featuredmedia"]);
+  }
+  return true;
+}
+
+/**
  * Adapts a WordPress page to the application Page format
  * @param wpPage WordPress page data
  * @returns Page object formatted for the application
  */
-export function adaptWordPressPage(wpPage: any): Page {
+export function adaptWordPressPage(wpPage: unknown): Page {
+  // Type guard to ensure wpPage is a WordPress page-like object
+  if (!isWPPage(wpPage)) {
+    // Fallback to empty/default values if the structure is not as expected
+    return {
+      id: 0,
+      slug: '',
+      title: { rendered: '' },
+      content: { rendered: '' },
+      excerpt: undefined,
+      template: 'default',
+      _embedded: undefined,
+      featured_image_url: undefined,
+    };
+  }
+
   // Extract and ensure modules is an array if present
   const modules = extractModulesFromWordPressPage(wpPage);
-                  
+
   return {
     id: wpPage.id,
     slug: wpPage.slug,
     title: {
-      rendered: wpPage.title?.rendered || "",
+      rendered: wpPage.title?.rendered || '',
     },
     content: {
-      rendered: wpPage.content?.rendered || "",
+      rendered: wpPage.content?.rendered || '',
     },
-    excerpt: wpPage.excerpt ? {
-      rendered: wpPage.excerpt.rendered || "",
-    } : undefined,
-    template: wpPage.template || "default",
-    modules: modules,
-    _embedded: wpPage._embedded,
-    featured_media: wpPage.featured_media || 0,
+    excerpt: wpPage.excerpt
+      ? { rendered: wpPage.excerpt.rendered || '' }
+      : undefined,
+    template: wpPage.template || 'default',
+    _embedded: isWPEmbedded(wpPage._embedded) ? wpPage._embedded : undefined,
     featured_image_url: extractFeaturedImageUrl(wpPage),
   };
 }
@@ -39,15 +99,16 @@ export function adaptWordPressPage(wpPage: any): Page {
  * @param wpPage WordPress page response
  * @returns LocalPage object formatted for the application
  */
-export function adaptWordPressPageToLocalPage(wpPage: any): LocalPage {
-  if (!wpPage) {
-    console.error('Cannot adapt null or undefined WordPress page');
+export function adaptWordPressPageToLocalPage(wpPage: unknown): LocalPage {
+  // Type guard to ensure wpPage is a WordPress page-like object
+  if (!isWPPage(wpPage)) {
+    console.error('Cannot adapt null, undefined, or invalid WordPress page');
     return {
       id: 0,
       slug: '',
       title: { rendered: '' },
       content: { rendered: '' },
-      modules: []
+      modules: [],
     };
   }
 
@@ -108,16 +169,27 @@ export function adaptWordPressPageToLocalPage(wpPage: any): LocalPage {
  * @param wpPage WordPress page data
  * @returns Featured image URL or undefined if not present
  */
-function extractFeaturedImageUrl(wpPage: any): string | undefined {
-  if (!wpPage.featured_media || 
-      !wpPage._embedded || 
-      !wpPage._embedded["wp:featuredmedia"] || 
-      !wpPage._embedded["wp:featuredmedia"][0]) {
-    return undefined;
-  }
+function extractFeaturedImageUrl(wpPage: unknown): string | undefined {
+  if (!isWPPage(wpPage)) return undefined;
+  // Check for featured_media property
+  const hasFeaturedMedia = typeof wpPage === 'object' && wpPage !== null && 'featured_media' in wpPage;
+  if (!hasFeaturedMedia || typeof (wpPage as { featured_media?: unknown }).featured_media !== 'number') return undefined;
 
-  const media = wpPage._embedded["wp:featuredmedia"][0];
-  return media.source_url || undefined;
+  // Check for _embedded property and wp:featuredmedia array
+  const embedded = wpPage._embedded;
+  if (
+    embedded &&
+    typeof embedded === 'object' &&
+    'wp:featuredmedia' in embedded &&
+    Array.isArray((embedded as Record<string, unknown>)["wp:featuredmedia"]) &&
+    (embedded as Record<string, unknown[]>)["wp:featuredmedia"].length > 0
+  ) {
+    const media = (embedded as Record<string, unknown[]>)["wp:featuredmedia"][0];
+    if (media && typeof media === 'object' && 'source_url' in media && typeof (media as { source_url?: unknown }).source_url === 'string') {
+      return (media as { source_url: string }).source_url;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -127,24 +199,35 @@ function extractFeaturedImageUrl(wpPage: any): string | undefined {
  * @param wpPage WordPress page data
  * @returns Array of modules
  */
-export function extractModulesFromWordPressPage(wpPage: any): any[] {
-  if (!wpPage) {
+export function extractModulesFromWordPressPage(wpPage: unknown): unknown[] {
+  if (!isWPPage(wpPage)) {
     console.error('Cannot extract modules from null or undefined WordPress page');
     return [];
   }
+  // Check for modules property
+  if ('modules' in wpPage && Array.isArray((wpPage as { modules?: unknown }).modules)) {
+    return (wpPage as { modules: unknown[] }).modules;
+  }
+  return [];
+}
 
-  // Debug log the raw wpPage object to see exactly what's coming from the API
-  console.log('Raw WordPress page object:', {
-    id: wpPage.id,
-    slug: wpPage.slug,
-    hasModulesProperty: wpPage.hasOwnProperty('modules'),
-    modulesType: wpPage.modules ? typeof wpPage.modules : 'undefined',
-    isModulesArray: Array.isArray(wpPage.modules),
-    moduleCount: Array.isArray(wpPage.modules) ? wpPage.modules.length : 0
-  });
-
-  // Direct access with fallback to empty array
-  return Array.isArray(wpPage.modules) ? wpPage.modules : [];
+/**
+ * Extracts chart data from a WordPress page
+ * @param wpPage WordPress page data
+ * @returns Chart data object or undefined
+ */
+function extractChartData(wpPage: unknown): unknown {
+  if (!isWPPage(wpPage)) return undefined;
+  // Check for acf property and chart_data inside it
+  if (
+    'acf' in wpPage &&
+    typeof (wpPage as { acf?: unknown }).acf === 'object' &&
+    (wpPage as { acf?: unknown }).acf !== null &&
+    'chart_data' in (wpPage as { acf: Record<string, unknown> }).acf
+  ) {
+    return (wpPage as { acf: { chart_data: unknown } }).acf.chart_data;
+  }
+  return {};
 }
 
 /**
@@ -154,14 +237,14 @@ export function extractModulesFromWordPressPage(wpPage: any): any[] {
  * @param path The path to the property, e.g., 'acf.modules' or '_embedded["wp:meta"].modules'
  * @returns The value at the path or undefined if the path doesn't exist
  */
-function getNestedProperty(obj: any, path: string): any {
+function getNestedProperty(obj: unknown, path: string): unknown {
   if (!obj || !path) return undefined;
   
   // Check if the path has brackets (complex path)
   if (path.includes('[')) {
     // Split the path at dots that are not inside brackets
     const parts = path.split(/\.(?![^\[]*\])/);
-    let current = obj;
+    let current: unknown = obj;
     
     for (const part of parts) {
       if (!current) return undefined;
@@ -173,7 +256,12 @@ function getNestedProperty(obj: any, path: string): any {
         const rest = part.substring(basePart.length);
         
         // First navigate to the base part
-        current = current[basePart];
+        if (typeof current === 'object' && current !== null) {
+          current = (current as Record<string, unknown>)[basePart];
+        } else {
+          return undefined;
+        }
+        
         if (!current) return undefined;
         
         // Then handle each bracket part
@@ -191,18 +279,30 @@ function getNestedProperty(obj: any, path: string): any {
           // Handle numeric indices vs string keys
           if (!isNaN(Number(cleanPart))) {
             // Use numeric index for arrays
-            const numericIndex = Number(cleanPart);
-            current = current[numericIndex];
+            if (Array.isArray(current)) {
+              current = current[Number(cleanPart)];
+            } else {
+              return undefined;
+            }
           } else {
             // Use string key for objects
-            current = current[cleanPart];
+            if (typeof current === 'object' && current !== null) {
+              current = (current as Record<string, unknown>)[cleanPart];
+            } else {
+              return undefined;
+            }
           }
           
           if (current === undefined || current === null) return undefined;
         }
       } else {
         // Simple property access
-        current = current[part];
+        if (typeof current === 'object' && current !== null) {
+          current = (current as Record<string, unknown>)[part];
+        } else {
+          return undefined;
+        }
+        
         if (current === undefined || current === null) return undefined;
       }
     }
@@ -211,7 +311,7 @@ function getNestedProperty(obj: any, path: string): any {
   }
   
   // Simple dot notation
-  return path.split('.').reduce((o, i) => (o === undefined || o === null ? o : o[i]), obj);
+  return path.split('.').reduce<unknown>((o, i) => (typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[i] : undefined), obj);
 }
 
 /**
@@ -219,21 +319,11 @@ function getNestedProperty(obj: any, path: string): any {
  * @param wpPages Array of WordPress page data
  * @returns Array of Page objects formatted for the application
  */
-export function adaptWordPressPages(wpPages: any[]): Page[] {
+export function adaptWordPressPages(wpPages: unknown[]): Page[] {
   if (!Array.isArray(wpPages)) {
     console.warn("adaptWordPressPages: expected array but got", typeof wpPages);
     return [];
   }
   
   return wpPages.map(adaptWordPressPage);
-}
-
-/**
- * Extracts chart data from a WordPress page
- * @param wpPage WordPress page data
- * @returns Chart data object or undefined
- */
-function extractChartData(wpPage: any): any {
-  // Default empty chart data
-  return wpPage.acf?.chart_data || {};
 }

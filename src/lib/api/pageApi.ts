@@ -1,6 +1,7 @@
 // src/lib/api/pageApi.ts
 import { fetchApi } from "./baseApi";
-import { Page, LocalPage } from "@/lib/types";
+import { Page } from "@/lib/types";
+import { LocalPage } from "@/lib/types/contentTypes";
 
 /**
  * Fetch pages with optional pagination and filtering

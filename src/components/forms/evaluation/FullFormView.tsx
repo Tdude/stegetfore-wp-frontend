@@ -7,24 +7,21 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FormData, FormSection, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
-import { stageClasses, getOptionClasses } from '@/components/ui/evaluation/styles';
+import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
+import { getOptionClasses } from '@/components/ui/evaluation/styles';
 import ProgressHeader from '@/components/ui/evaluation/ProgressHeader';
-import ProgressBar, { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
+import DualSectionProgressBar from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
 
 interface FullFormViewProps {
   formData: FormData;
   questionsStructure: QuestionsStructure;
-  toggleFullForm: () => void;
   handleQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
-  calculateProgress: (sectionId: keyof FormData, questionId: string) => number;
   calculateSectionProgress: (sectionId: keyof FormData) => number;
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
-  handleResetForm?: () => void;
   isFormSaved: boolean;
 }
 
@@ -35,15 +32,12 @@ interface FullFormViewProps {
 const FullFormView: React.FC<FullFormViewProps> = ({
   formData,
   questionsStructure,
-  toggleFullForm,
   handleQuestionChange,
   handleCommentChange,
-  calculateProgress,
   calculateSectionProgress,
   isSaving,
   handleSubmit,
   evaluationId,
-  handleResetForm,
   isFormSaved
 }) => {
   // If the form is saved, show success message
@@ -92,9 +86,12 @@ const FullFormView: React.FC<FullFormViewProps> = ({
           <CardContent>
             <div className="space-y-8">
               {/* Add the dual section progress bars at the top of the form */}
+              {/* Defensive check for DualSectionProgressBar props */}
+              {/* If you see errors about anknytningProgress/ansvarProgress, ensure you're passing correct props to DualSectionProgressBar */}
+              {/* For now, add a type assertion or fallback values */}
               <DualSectionProgressBar 
-                anknytningProgress={calculateSectionProgress("anknytning")} 
-                ansvarProgress={calculateSectionProgress("ansvar")}
+                anknytningProgress={calculateSectionProgress("anknytning") || 0} 
+                ansvarProgress={calculateSectionProgress("ansvar") || 0}
               />
             
               {/* Progress header */}

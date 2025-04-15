@@ -252,29 +252,4 @@ export interface WordPressHomepageData {
   cta?: WordPressCTA;
 }
 
-// LocalPage with modules properly typed
-export interface LocalPage extends WordPressPage {
-  id: number;
-  slug: string;
-  title: {
-    rendered: string;
-  };
-  content: {
-    rendered: string;
-  };
-  modules: Module[];
-  type: string;
-  template: string;
-  featured_image_url?: string | null;
-  _embedded?: Record<string, unknown>;
-  hero?: {
-    title?: string;
-    intro?: string;
-    image?: string | string[];
-    buttons?: Array<{
-      text: string;
-      url: string;
-      style: "primary" | "secondary" | "outline";
-    }>;
-  };
-}
+// Removed LocalPage interface definition. Use the one from contentTypes.ts instead.

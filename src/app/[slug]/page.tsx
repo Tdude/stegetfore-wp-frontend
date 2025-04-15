@@ -4,11 +4,9 @@ import { fetchPage } from '@/lib/api/pageApi';
 import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
-import { LocalPage } from '@/lib/types/contentTypes';
+import type { LocalPage } from '@/lib/types/contentTypes';
 import type { Page } from '@/lib/types/contentTypes';
-import * as imageHelper from '@/lib/imageUtils';
 import type { Metadata } from 'next/types';
-import { Module } from '@/lib/types/moduleTypes';
 
 // Tell Next.js to dynamically render this page
 export const dynamic = 'force-dynamic';
@@ -29,49 +27,8 @@ async function getPageData(slug: string): Promise<LocalPage | null> {
     hasModules: page && 'modules' in page && Array.isArray(page.modules) && page.modules.length > 0
   });
   
-  // Normalize the page data to ensure it has the required structure
-  return normalizePageData(page);
-}
-
-/**
- * Normalizes page data to ensure it has all required properties for the PageTemplateSelector
- * This acts as a compatibility layer between the API data and UI components
- */
-function normalizePageData(page: Page | null): LocalPage | null {
-  if (!page) return null;
-  
-  // Create a normalized version of the page with required fields for LocalPage
-  const normalizedPage: LocalPage = {
-    id: typeof page.id === 'number' ? page.id : 0,
-    slug: typeof page.slug === 'string' ? page.slug : '',
-    title: {
-      rendered: typeof page.title === 'object' && page.title && 'rendered' in page.title 
-        ? String(page.title.rendered) 
-        : typeof page.title === 'string' 
-          ? page.title 
-          : ''
-    },
-    content: {
-      rendered: typeof page.content === 'object' && page.content && 'rendered' in page.content 
-        ? String(page.content.rendered) 
-        : typeof page.content === 'string' 
-          ? page.content 
-          : ''
-    },
-    // Ensure modules is an array, if not provided default to empty array
-    modules: page && 'modules' in page && Array.isArray(page.modules) ? page.modules : [],
-    template: typeof page.template === 'string' ? page.template : 'default',
-    date: typeof page.date === 'string' ? page.date : undefined,
-    modified: typeof page.modified === 'string' ? page.modified : undefined,
-    featured_image_url: typeof page.featured_image_url === 'string' 
-      ? page.featured_image_url 
-      : null,
-    meta: typeof page.meta === 'object' && page.meta 
-      ? page.meta
-      : {}
-  };
-  
-  return normalizedPage;
+  // No need to normalize again, fetchPage already returns LocalPage
+  return page;
 }
 
 // Individual page component
@@ -104,8 +61,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
 // Metadata generator
 export async function generateMetadata(
-  { params }: { params: { slug: string } }, 
-  parent: Record<string, unknown>
+  { params }: { params: { slug: string } }
 ): Promise<Metadata> {
   // Extract slug from params
   const slug = params.slug;
@@ -116,8 +72,8 @@ export async function generateMetadata(
   }
 
   // Clean HTML from title and content for metadata
-  const cleanTitle = imageHelper.stripHtml(page.title.rendered);
-  const cleanDescription = imageHelper.stripHtml(page.content.rendered).slice(0, 155) + '...';
+  const cleanTitle = page.title.rendered.replace(/<\/?[^>]+(>|$)/g, '');
+  const cleanDescription = page.content.rendered.replace(/<\/?[^>]+(>|$)/g, '').slice(0, 155) + '...';
 
   return {
     title: cleanTitle,

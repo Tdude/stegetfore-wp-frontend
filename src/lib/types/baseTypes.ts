@@ -7,17 +7,7 @@ import type { BaseContent, Post, Page, LocalPage } from './contentTypes';
 // Re-export for backward compatibility
 export type { BaseContent, Post, Page, LocalPage };
 
-// Node.js environment type definitions
-interface ProcessEnv {
-  NEXT_PUBLIC_API_URL: string;
-  NEXT_PUBLIC_WORDPRESS_URL: string;
-  NEXT_PUBLIC_THEME_SLUG: string;
-  NEXT_PUBLIC_USE_MODULAR_TEMPLATES: string;
-  NEXT_PUBLIC_DEBUG_MODE?: string; // For controlling debug features independent of NODE_ENV
-  REVALIDATION_TOKEN: string;
-  HOMEPAGE_ID: string;
-  NODE_ENV: "development" | "production" | "test";
-}
+// Removed unused 'ProcessEnv' interface to resolve lint error
 
 // Image container types for the OptimizedImage component
 export type ImageContainer =

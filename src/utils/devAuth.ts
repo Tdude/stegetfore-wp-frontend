@@ -39,7 +39,7 @@ export const getDevCredentials = () => {
  * Quick login function for development
  * @param loginFunction The login function from auth context
  */
-export const quickDevLogin = async (loginFunction: (username: string, password: string) => Promise<any>) => {
+export const quickDevLogin = async (loginFunction: (username: string, password: string) => Promise<unknown>) => {
   if (!isDevelopment) {
     console.warn('Quick login is only available in development environment');
     return { success: false };

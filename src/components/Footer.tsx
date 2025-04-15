@@ -22,7 +22,6 @@ export default function Footer({ siteInfo = {} as SiteInfo }) {
   // Get site info with fallbacks
   const siteName = siteInfo?.name || 'Tryggve';
   const logoUrl = siteInfo?.logo_url || '/logo-tryggve-inverted.svg';
-  const footerMenu = Array.isArray(siteInfo?.footerMenu) ? siteInfo.footerMenu : [];
   const year = new Date().getFullYear();
   
   return (

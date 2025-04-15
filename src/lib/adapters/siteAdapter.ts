@@ -6,7 +6,7 @@ import { SiteInfo, MenuItem } from "@/lib/types";
  * @param wpSiteInfo WordPress site info data
  * @returns SiteInfo object formatted for the application
  */
-export function adaptWordPressSiteInfo(wpSiteInfo: any): SiteInfo {
+export function adaptWordPressSiteInfo(wpSiteInfo: unknown): SiteInfo {
   if (!wpSiteInfo) return { name: "", description: "" };
 
   return {
@@ -26,10 +26,10 @@ export function adaptWordPressSiteInfo(wpSiteInfo: any): SiteInfo {
  * @param wpMenuItems WordPress menu items data
  * @returns Array of MenuItem objects formatted for the application
  */
-export function adaptWordPressMenuItems(wpMenuItems: any[]): MenuItem[] {
+export function adaptWordPressMenuItems(wpMenuItems: unknown[]): MenuItem[] {
   if (!Array.isArray(wpMenuItems)) return [];
 
-  const processMenuItem = (item: any): MenuItem => ({
+  const processMenuItem = (item: unknown): MenuItem => ({
     ID: item.ID || 0,
     id: item.id || item.ID || 0, // For compatibility
     title: item.title || "",

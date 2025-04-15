@@ -19,7 +19,7 @@ export async function fetchPageModulesById(pageId: number): Promise<Module[]> {
     // Check if the page has modules
     if (response && response.modules && Array.isArray(response.modules)) {
       // Return the modules array
-      return response.modules.map((module: any) => adaptWordPressModule(module));
+      return response.modules.map((module: unknown) => adaptWordPressModule(module));
     }
 
     // If no modules found, return empty array
@@ -69,7 +69,7 @@ export async function fetchModulesByCategory(category: string): Promise<Module[]
     }
 
     return modulesData
-      .map((module: any) => adaptWordPressModule(module))
+      .map((module: unknown) => adaptWordPressModule(module))
       .filter(Boolean) as Module[];
   } catch (error) {
     console.error(`Error fetching modules for category ${category}:`, error);

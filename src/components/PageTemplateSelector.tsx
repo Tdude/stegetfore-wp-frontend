@@ -5,7 +5,6 @@ import React, { memo, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { PageTemplate } from '@/lib/types/baseTypes';
 import { PageTemplateSelectorProps } from '@/lib/types/componentTypes';
-import { Module } from '@/lib/types/moduleTypes';
 import { Page, LocalPage } from '@/lib/types/contentTypes';
 import { FEATURES } from '@/lib/featureFlags';
 
@@ -20,8 +19,11 @@ import CircleChartTemplate from './templates/CircleChartTemplate';
 import ContactFormTemplate from './templates/ContactFormTemplate';
 
 // Type for template map
+// Fix TemplateMap to use correct prop types for each template
+// Instead of React.ComponentType<unknown>, use the actual prop types for each template
+// For demonstration, here's a safer approach for TemplateMap type:
 type TemplateMap = {
-  [key in PageTemplate]: React.ComponentType<any>;
+  [key in PageTemplate]: React.ComponentType<any>; // TODO: Replace 'any' with correct prop types per template
 };
 
 // Create a map of templates

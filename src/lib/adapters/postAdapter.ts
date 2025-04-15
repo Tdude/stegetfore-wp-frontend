@@ -7,7 +7,7 @@ import { getOptimalImageSize } from "@/lib/imageUtils";
  * @param wpPost WordPress post data
  * @returns Post object formatted for the application
  */
-export function adaptWordPressPost(wpPost: any): Post {
+export function adaptWordPressPost(wpPost: unknown): Post {
   // Extract featured image from _embedded if available
   const featuredImage = wpPost._embedded?.["wp:featuredmedia"]?.[0]?.source_url || null;
 
@@ -42,7 +42,7 @@ export function adaptWordPressPost(wpPost: any): Post {
  * @param wpPosts Array of WordPress post data
  * @returns Array of Post objects formatted for the application
  */
-export function adaptWordPressPosts(wpPosts: any[]): Post[] {
+export function adaptWordPressPosts(wpPosts: unknown[]): Post[] {
   if (!Array.isArray(wpPosts)) return [];
 
   return wpPosts.map((post) => adaptWordPressPost(post));

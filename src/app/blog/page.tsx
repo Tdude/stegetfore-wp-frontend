@@ -10,7 +10,7 @@ import { Post, Category } from '@/lib/types/contentTypes';
 import { PostSkeleton } from '@/components/PostSkeleton';
 import NextImage from '@/components/NextImage';
 import Link from 'next/link';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import DebugPanel from '@/components/debug/DebugPanel';
