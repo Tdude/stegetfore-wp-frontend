@@ -118,6 +118,25 @@ export const assessmentTemplatesApi = {
  */
 export const evaluationApi = {
   /**
+   * Test the evaluation API endpoint
+   */
+  testEndpoint: async () => {
+    try {
+      // Try to ping the base API to see if it's responding
+      const response = await fetch(`${API_URL}/wp/v2/types`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      
+      console.log('API connection test result:', response.ok);
+      return response.ok;
+    } catch (error) {
+      console.error('API connection test failed:', error);
+      return false;
+    }
+  },
+
+  /**
    * Save an evaluation
    */
   saveEvaluation: async (studentId: number, formData: Record<string, unknown>) => {

@@ -2,6 +2,7 @@
 "use client"
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
@@ -15,6 +16,7 @@ interface HeaderProps {
 
 export default function Header({ siteInfo, menuItems }: HeaderProps) {
   const { name } = siteInfo || {};
+  const logoUrl = siteInfo?.logo_url || '/logo-tryggve.svg'; // fallback logo
   const items = menuItems || [];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
@@ -44,7 +46,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
         <div className="h-full flex items-center">
           <Link
             href={href}
-            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent hover:border-primary"
+            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent hover:border-yellow-500"
             {...linkProps}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -87,7 +89,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
               href="/"
               className="text-xl font-bold text-gray-800 hover:text-black"
             >
-              {name || 'Home'}
+              <Image src={logoUrl} alt={name || 'Home'} width={120} height={60} />
             </Link>
           </div>
 
@@ -114,7 +116,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
           <div className="hidden lg:flex items-center h-16">
             <div className="flex items-center space-x-2">
               <Link href="/start" className="hidden lg:inline-block">
-                <button className="px-4 py-1.5 bg-primary text-white rounded hover:bg-primary/90">
+                <button className="px-4 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                   Börja nu
                 </button>
               </Link>
@@ -178,7 +180,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
 
                 <li className="mt-4 mb-2">
                   <Link href="/start">
-                    <button className="w-full px-4 py-1.5 bg-primary text-white rounded hover:bg-primary/90">
+                    <button className="w-full px-4 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                       Börja nu
                     </button>
                   </Link>

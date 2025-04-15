@@ -100,10 +100,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         <RadioGroup value={value} onValueChange={handleOptionSelect}>
           {optionsByStage.map(([stage, stageOptions]) => (
             <div key={`${questionId}-${stage}`} className={questionStageClasses[stage as keyof typeof questionStageClasses]}>
-              {stageOptions.map((option) => (
+              {stageOptions.map((option, index) => (
                 <div 
                   key={`${questionId}-${option.value}`} 
-                  className={getOptionClasses(selectedOption === option.value)}
+                  className={`${getOptionClasses(selectedOption === option.value)} ${index > 0 ? '-mt-[2px]' : ''}`}
                   onClick={() => handleOptionSelect(option.value)}
                 >
                   <RadioGroupItem value={option.value} id={`${questionId}-${option.value}`} />

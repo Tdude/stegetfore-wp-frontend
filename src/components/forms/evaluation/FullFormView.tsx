@@ -25,6 +25,7 @@ interface FullFormViewProps {
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
   handleResetForm?: () => void;
+  isFormSaved: boolean;
 }
 
 /**
@@ -42,8 +43,43 @@ const FullFormView: React.FC<FullFormViewProps> = ({
   isSaving,
   handleSubmit,
   evaluationId,
-  handleResetForm
+  handleResetForm,
+  isFormSaved
 }) => {
+  // If the form is saved, show success message
+  if (isFormSaved) {
+    return (
+      <div className="container max-w-3xl mx-auto p-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-md">
+          <div className="text-green-600 text-4xl mb-4">✓</div>
+          <h3 className="text-xl font-semibold mb-3">Utvärderingen har sparats!</h3>
+          <p className="text-gray-600 mb-6">
+            Tack för att du slutförde utvärderingen. Den har sparats i systemet.
+            {evaluationId && <span className="block mt-2 text-sm">Evaluation ID: {evaluationId}</span>}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={() => window.location.href = '/'}
+              variant="default"
+              className="bg-primary hover:bg-primary/90"
+            >
+              Tillbaka till start
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10"
+            >
+              Ny utvärdering
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-3xl mx-auto p-4">
       <form onSubmit={handleSubmit}>

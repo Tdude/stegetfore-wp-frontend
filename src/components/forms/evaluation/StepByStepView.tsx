@@ -30,6 +30,7 @@ interface StepByStepViewProps {
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
+  isFormSaved: boolean;
 }
 
 /**
@@ -52,38 +53,49 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   calculateSectionProgress,
   isSaving,
   handleSubmit,
-  evaluationId
+  evaluationId,
+  isFormSaved
 }) => {
   const questionContainerRef = useRef<HTMLDivElement>(null);
   
   // Current question data
-  const currentQuestion = allQuestions[currentQuestionIndex] || null;
+  const currentQuestion = allQuestions[currentQuestionIndex];
   
-  // If no current question, show a message
-  if (!currentQuestion) {
+  // If there's no current question (e.g., no questions loaded yet), show loading state
+  if (!currentQuestion && !isFormSaved) {
+    return <div className="flex items-center justify-center p-10">Laddar frågor...</div>;
+  }
+
+  // If the form is saved, show success message
+  if (isFormSaved) {
     return (
-      <div className="py-8">
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                No questions are currently available for this evaluation. Please try refreshing the page or contact support if this issue persists.
-              </p>
-            </div>
+      <div className="w-full max-w-lg mx-auto mt-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-md">
+          <div className="text-green-600 text-4xl mb-4">✓</div>
+          <h3 className="text-xl font-semibold mb-3">Utvärderingen har sparats!</h3>
+          <p className="text-gray-600 mb-6">
+            Tack för att du slutförde utvärderingen. Den har sparats i systemet.
+            {evaluationId && <span className="block mt-2 text-sm">Evaluation ID: {evaluationId}</span>}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={() => window.location.href = '/'}
+              variant="default"
+              className="bg-primary hover:bg-primary/90"
+            >
+              Tillbaka till start
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10"
+            >
+              Ny utvärdering
+            </Button>
           </div>
         </div>
-        <button
-          type="button"
-          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={toggleFullForm}
-        >
-          Switch to Full Form View
-        </button>
       </div>
     );
   }

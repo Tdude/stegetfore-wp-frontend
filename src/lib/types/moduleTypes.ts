@@ -140,6 +140,7 @@ export interface FeaturedPostsModule extends BaseModule {
   show_author?: boolean;
   show_read_more?: boolean;
   posts: unknown[];
+  layout_style?: 'traditional' | 'magazine';
 }
 
 /**

@@ -17,14 +17,14 @@ export const headerStageClasses = {
 
 // CSS classes for different stages in question card
 export const questionStageClasses = {
-  "1": "mb-6",
-  "2": "mb-6",
-  "3": "mb-6"
+  "1": "mb-4",
+  "2": "mb-4",
+  "3": "mb-4"
 };
 
 // Get option classes based on selection state
 export const getOptionClasses = (isSelected: boolean): string => {
-  return `flex items-center border-2 space-x-4 p-3 rounded-md cursor-pointer transition-all duration-300 relative ${
+  return `flex items-center border-2 space-x-4 p-3 rounded-md cursor-pointer transition-all duration-300 relative mb-0 ${
     isSelected
       ? 'bg-primary/10 border-2 border-primary/20 shadow-md' 
       : 'hover:bg-gray-50 border border-transparent'

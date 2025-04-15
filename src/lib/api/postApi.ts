@@ -54,7 +54,7 @@ export async function fetchPosts(
     });
 
     // Map the response to match our Post interface
-    return adaptWordPressPosts(posts);
+    return adaptWordPressPosts(posts.data);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return [];
@@ -108,7 +108,7 @@ export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
       }
     );
 
-    return adaptWordPressPosts(posts);
+    return adaptWordPressPosts(posts.data);
   } catch (error) {
     console.error("Error in fetchPostsByIds:", error);
     return [];
@@ -130,9 +130,42 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
       }
     );
 
-    return adaptWordPressPosts(posts);
+    return adaptWordPressPosts(posts.data);
   } catch (error) {
     console.error("Error fetching featured posts:", error);
     return [];
+  }
+}
+
+/**
+ * Fetch blog settings from the WordPress API
+ * @returns Blog settings including layout style
+ */
+export async function fetchBlogSettings() {
+  try {
+    const response = await fetchApi(`steget/v1/blog-settings`, {
+      revalidate: 3600 // Cache for 1 hour
+    });
+    
+    // Extract the actual data from the response
+    const data = response.data || {};
+    
+    return {
+      layoutStyle: data.layout_style || 'traditional',
+      postsPerPage: data.posts_per_page || 10,
+      showAuthor: data.show_author ?? true,
+      showDate: data.show_date ?? true,
+      showExcerpt: data.show_excerpt ?? true
+    };
+  } catch (error) {
+    console.error('Error fetching blog settings:', error);
+    // Return default settings if there's an error
+    return {
+      layoutStyle: 'traditional',
+      postsPerPage: 10,
+      showAuthor: true,
+      showDate: true,
+      showExcerpt: true
+    };
   }
 }

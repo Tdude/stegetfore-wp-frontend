@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import ShareArticle from '@/components/ui/ShareArticle';
 // Using type-only import to avoid conflicts
 import type { Post } from '@/lib/types/contentTypes';
 
@@ -47,6 +48,12 @@ async function Post({ slug }: { slug: string }) {
         <div
           className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
           dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+        />
+
+        {/* Share Article Component */}
+        <ShareArticle 
+          title={post.title.rendered.replace(/<[^>]*>/g, '')}
+          description={post.excerpt?.rendered?.replace(/<[^>]*>/g, '') || ''}
         />
 
         <div className="mt-8 mb-8">

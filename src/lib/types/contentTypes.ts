@@ -47,6 +47,18 @@ export interface BaseContent {
 }
 
 /**
+ * Category type
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  count?: number;
+  description?: string;
+  parent?: number;
+}
+
+/**
  * Post content type
  */
 export interface Post extends BaseContent {
@@ -67,7 +79,7 @@ export interface Post extends BaseContent {
     };
   } | string | null;
   link?: string;
-  categories?: number[] | string[];
+  categories?: number[] | Category[] | string[];
   tags?: number[];
   author?: number;
   comment_status?: "open" | "closed";

@@ -23,6 +23,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFormSaved, setIsFormSaved] = useState(false);
   const [showFullForm, setShowFullForm] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentSection, setCurrentSection] = useState<keyof FormData>('anknytning');
@@ -315,6 +316,8 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       // Trigger confetti celebration
       launchConfetti();
       
+      setIsFormSaved(true);
+      
       // Check for evaluation ID safely in the response structure
       // The API response might have the ID in data.id, or it might be on response.data.evaluation_id
       const responseData = response?.data || {};
@@ -427,6 +430,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           isSaving={isSaving}
           handleSubmit={handleSubmit}
           evaluationId={evaluationId}
+          isFormSaved={isFormSaved}
         />
       ) : (
         <FullFormView
@@ -440,6 +444,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           isSaving={isSaving}
           handleSubmit={handleSubmit}
           evaluationId={evaluationId}
+          isFormSaved={isFormSaved}
         />
       )}
     </div>
