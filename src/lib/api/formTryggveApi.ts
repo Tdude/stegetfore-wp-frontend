@@ -2,6 +2,7 @@
 
 import { QuestionsStructure } from '../types/formTypesEvaluation';
 import { API_URL, fetchApi } from './baseApi';
+import { shouldSendAuthHeader } from '../utils/shouldSendAuthHeader';
 
 // Define interface for the evaluation API response data
 interface EvaluationAPIResponse {
@@ -62,7 +63,7 @@ export const clearToken = clearTokenInternal;
 const getHeaders = () => {
   return {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    ...(token && shouldSendAuthHeader(token) ? { 'Authorization': `Bearer ${token}` } : {})
   };
 };
 
@@ -174,8 +175,8 @@ export const evaluationApi = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
       
-      // Only add Authorization from the headers if it exists
-      if (allHeaders.Authorization) {
+      // Only add Authorization from the headers if it exists and should be sent
+      if (allHeaders.Authorization && shouldSendAuthHeader(token)) {
         headers['Authorization'] = allHeaders.Authorization;
       }
       
