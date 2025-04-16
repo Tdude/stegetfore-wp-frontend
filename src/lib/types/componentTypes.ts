@@ -32,13 +32,6 @@ export interface PageTemplateSelectorProps {
 }
 
 /**
- * Props for the HomepageTemplate component
- */
-export interface HomepageTemplateProps extends PageTemplateProps {
-  homepage?: Record<string, unknown>; 
-}
-
-/**
  * Props for the CircleChartTemplate component
  */
 export interface CircleChartTemplateProps {

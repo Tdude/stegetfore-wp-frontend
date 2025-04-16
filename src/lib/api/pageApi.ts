@@ -160,13 +160,9 @@ export async function fetchPageById(
       revalidate: 0, // No caching
     });
     
-    // Handle API response standardized format
-    if (!response.success || !response.data) {
-      console.warn(`No page found for ID: ${id}`);
-      return null;
-    }
-    
-    const page = response.data;
+    // Direct response handling (WordPress API returns the page object directly)
+    // The page could be null/undefined, or it could be an error object
+    const page = response;
     
     if (!page || !page.id) {
       console.warn(`No page found for ID: ${id}`);

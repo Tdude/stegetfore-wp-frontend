@@ -1,5 +1,4 @@
 // src/app/page.tsx
-// Removed @ts-nocheck directive to enforce proper type checking
 import { Suspense } from 'react';
 import { fetchPageById } from '@/lib/api';
 import { notFound } from 'next/navigation';
@@ -8,7 +7,7 @@ import PageTemplateSelector from '@/components/PageTemplateSelector';
 export default async function HomePage() {
   try {
     // Fetch the homepage by ID 2
-    const page = await fetchPageById(2, true);
+    const page = await fetchPageById(2);
     
     if (!page) {
       console.error("Homepage not found");
