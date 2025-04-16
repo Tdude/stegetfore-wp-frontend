@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '@/lib/api/formTryggveApi';
-import { quickDevLogin } from '@/utils/devAuth';
+import { quickDevLogin } from '@/lib/utils/devAuth';
 
 type UserInfo = {
   id: number;
