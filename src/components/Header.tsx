@@ -81,7 +81,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
 
   return (
     <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 py-2">
         <nav className="flex justify-between items-stretch">
           {/* Logo */}
           <div className="h-16 flex items-center">
