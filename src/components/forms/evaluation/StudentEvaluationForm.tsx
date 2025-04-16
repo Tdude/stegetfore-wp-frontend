@@ -293,6 +293,21 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         return;
       }
       
+      // Add form validation - don't submit empty forms
+      const anknytningAnswered = Object.keys(formData.anknytning?.questions || {}).length > 0;
+      const ansvarAnswered = Object.keys(formData.ansvar?.questions || {}).length > 0;
+      
+      console.log('Form submission - Questions answered:', {
+        anknytning: anknytningAnswered ? Object.keys(formData.anknytning?.questions || {}).length : 0,
+        ansvar: ansvarAnswered ? Object.keys(formData.ansvar?.questions || {}).length : 0,
+        formData: formData
+      });
+      
+      if (!anknytningAnswered && !ansvarAnswered) {
+        toast.error('Du behöver besvara minst en fråga innan du kan skicka in formuläret');
+        return;
+      }
+      
       setIsSaving(true);
       
       // Cast formData to Record<string, unknown> to satisfy TypeScript
@@ -300,6 +315,18 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         studentId,
         formData as unknown as Record<string, unknown>
       );
+      
+      // Log the complete response for debugging
+      console.log('Save evaluation complete response:', JSON.stringify(response, null, 2));
+      
+      // Check if the response indicates success
+      if (!response || response.success === false) {
+        const errorMessage = response?.error?.message || 'Ett fel uppstod vid sparande';
+        console.error('API returned error:', response?.error);
+        toast.error(errorMessage);
+        setIsSaving(false);
+        return;
+      }
       
       // Clear the local storage draft if we have a key
       if (localStorageKey) {

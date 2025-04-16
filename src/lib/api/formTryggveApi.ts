@@ -155,12 +155,21 @@ export const evaluationApi = {
       
       console.log('Request body:', body);
       
-      // CORS FIX: Use direct fetch instead of fetchApi to customize CORS settings
-      const apiUrl = `${API_URL}/wp-json/ham/v1/evaluation/save`;
+      // IMPORTANT: Make sure we're using the correct API URL
+      // Avoid double "/wp-json" paths which can happen if API_URL already includes it
+      let baseApiUrl = API_URL;
+      if (baseApiUrl.endsWith('/wp-json')) {
+        baseApiUrl = baseApiUrl.substring(0, baseApiUrl.length - 8); // Remove trailing /wp-json
+      }
+      
+      const apiUrl = `${baseApiUrl}/wp-json/ham/v1/evaluation/save`;
       console.log('Sending request to:', apiUrl);
+      console.log('API_URL value:', API_URL);
       
       // Use the existing getHeaders function to get authorization headers
       const allHeaders = getHeaders();
+      console.log('Authorization headers:', allHeaders);
+      
       const headers: Record<string, string> = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
@@ -170,24 +179,77 @@ export const evaluationApi = {
         headers['Authorization'] = allHeaders.Authorization;
       }
       
+      console.log('Final request headers:', headers);
+      
+      // Make the API request
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers,
         body: body,
-        credentials: 'include', // Include cookies if needed
         mode: 'cors', // Explicit CORS mode
+      });
+      
+      // Log response status and headers
+      console.log('Response status:', response.status, response.statusText);
+      console.log('Response headers:', {
+        'content-type': response.headers.get('content-type'),
+        'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+        'access-control-allow-credentials': response.headers.get('access-control-allow-credentials'),
+        'access-control-allow-headers': response.headers.get('access-control-allow-headers')
       });
       
       if (!response.ok) {
         console.error('Server responded with error:', response.status, response.statusText);
-        throw new Error(`Server error: ${response.status}`);
+        try {
+          // Try to parse error response body
+          const errorBody = await response.text();
+          console.error('Error response body:', errorBody);
+          
+          // If it's JSON, parse it
+          try {
+            const errorJson = JSON.parse(errorBody);
+            return { 
+              success: false, 
+              error: { 
+                message: errorJson.message || 'Server returned an error', 
+                details: errorJson 
+              },
+              status: response.status
+            };
+          } catch {
+            // Not JSON, return as text
+            return { 
+              success: false, 
+              error: { message: `Server error: ${errorBody || response.statusText}` },
+              status: response.status
+            };
+          }
+        } catch {
+          console.error('Failed to parse error response:');
+          throw new Error(`Server error: ${response.status}`);
+        }
       }
       
-      const data = await response.json();
-      console.log('API response:', data);
-      return data;
-    } catch (error) {
-      console.error('Error saving evaluation:', error);
+      // Try to parse the response
+      try {
+        const data = await response.json();
+        console.log('API success response:', data);
+        return {
+          success: true,
+          data
+        };
+      } catch {
+        console.error('Failed to parse success response as JSON:');
+        // Try to get the text instead
+        const text = await response.text();
+        console.log('Response as text:', text);
+        return {
+          success: true,
+          data: { raw_response: text }
+        };
+      }
+    } catch {
+      console.error('Error saving evaluation:');
       // Return an error object rather than throwing
       return { 
         success: false, 

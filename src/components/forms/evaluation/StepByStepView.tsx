@@ -4,14 +4,13 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, List } from 'lucide-react';
-import { FormData, QuestionsStructure, Question } from '@/lib/types/formTypesEvaluation';
+import { FormData, Question } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
 import { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
 
 interface StepByStepViewProps {
   formData: FormData;
-  questionsStructure: QuestionsStructure;
   allQuestions: Array<{
     sectionId: keyof FormData;
     questionId: string;
@@ -39,7 +38,6 @@ interface StepByStepViewProps {
  */
 const StepByStepView: React.FC<StepByStepViewProps> = ({
   formData,
-  questionsStructure,
   allQuestions,
   currentQuestionIndex,
   currentSection,
@@ -75,7 +73,9 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
           <h3 className="text-xl font-semibold mb-3">Utvärderingen har sparats!</h3>
           <p className="text-gray-600 mb-6">
             Tack för att du slutförde utvärderingen. Den har sparats i systemet.
-            {evaluationId && <span className="block mt-2 text-sm">Evaluation ID: {evaluationId}</span>}
+            {evaluationId && typeof evaluationId === 'number' && !isNaN(evaluationId) && 
+              <span className="block mt-2 text-sm">Utvärderingen har ID: {evaluationId}</span>
+            }
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -173,7 +173,22 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
           {currentQuestionIndex === allQuestions.length - 1 && (
             <Button
               type="submit"
-              onClick={handleSubmit}
+              onClick={(e) => {
+                e.preventDefault();
+                // Make sure at least one question is answered
+                const hasAnsweredQuestions = 
+                  Object.keys(formData.anknytning?.questions || {}).length > 0 || 
+                  Object.keys(formData.ansvar?.questions || {}).length > 0;
+                
+                if (!hasAnsweredQuestions) {
+                  // Alert user if no questions are answered
+                  alert('Du måste besvara minst en fråga innan du kan skicka in formuläret.');
+                  return;
+                }
+                
+                // Proceed with submission if questions are answered
+                handleSubmit(e);
+              }}
               disabled={isSaving}
               className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
             >

@@ -54,6 +54,7 @@ export async function makeRequest(
     method,
     headers: requestHeaders,
     body: typeof body === 'object' ? JSON.stringify(body) : body,
+    mode: 'cors', // Add explicit CORS mode
   };
 
   // Handle Next.js caching via revalidate if present (only if running in supported env)

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
 import { getOptionClasses } from '@/components/ui/evaluation/styles';
 import ProgressHeader from '@/components/ui/evaluation/ProgressHeader';
-import DualSectionProgressBar from '@/components/ui/evaluation/ProgressBar';
+import { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
 
 interface FullFormViewProps {
@@ -203,7 +203,22 @@ const FullFormView: React.FC<FullFormViewProps> = ({
               <div className="flex justify-between items-center mt-8">
                 <Button 
                   type="submit" 
-                  onClick={handleSubmit}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Make sure at least one question is answered
+                    const hasAnsweredQuestions = 
+                      Object.keys(formData.anknytning?.questions || {}).length > 0 || 
+                      Object.keys(formData.ansvar?.questions || {}).length > 0;
+                    
+                    if (!hasAnsweredQuestions) {
+                      // Alert user if no questions are answered
+                      alert('Du måste besvara minst en fråga innan du kan skicka in formuläret.');
+                      return;
+                    }
+                    
+                    // Proceed with submission if questions are answered
+                    handleSubmit(e);
+                  }}
                   disabled={isSaving}
                   className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
                 >
