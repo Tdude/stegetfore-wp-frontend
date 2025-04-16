@@ -42,7 +42,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           setSuccess(false);
         }, 1500);
       } else {
-        setError('Inloggningen misslyckades. Kontrollera dina uppgifter.');
+        setError(result.error || 'Inloggningen misslyckades. Kontrollera dina uppgifter.');
       }
     } catch (error) {
       // Log error and show detailed message if available
@@ -69,7 +69,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           setSuccess(false);
         }, 1500);
       } else {
-        setError('Dev-inloggning misslyckades. Kontrollera .env.local filen.');
+        setError(result.error || 'Dev-inloggning misslyckades. Kontrollera .env.local filen.');
       }
     } catch (error) {
       // Log error details for debugging

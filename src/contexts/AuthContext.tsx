@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '@/lib/api/formTryggveApi';
 import { quickDevLogin } from '@/lib/utils/devAuth';
+import { setAuthToken, getAuthToken, removeAuthToken } from '@/lib/utils/authToken';
+import { setUserInfo as persistUserInfo, getUserInfo as retrieveUserInfo, removeUserInfo } from '@/lib/utils/userInfo';
 
 type UserInfo = {
   id: number;
@@ -33,14 +35,16 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // First check if token exists in localStorage
-        const token = localStorage.getItem('auth_token');
+        const token = getAuthToken();
         if (!token) {
+          // Try to restore user info from storage for display (optional, not trusted until validated)
+          const storedUser = retrieveUserInfo<UserInfo>();
+          if (storedUser) setUserInfo(storedUser);
           setLoading(false);
           return;
         }
         
-        // Set token from localStorage
+        // Set token from utility
         authApi.setToken(token);
         
         // Validate token
@@ -50,14 +54,17 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           const userData = await authApi.getCurrentUser();
           if (userData) {
             setUserInfo(userData);
+            persistUserInfo(userData);
             setIsAuthenticated(true);
           } else {
             // Clear invalid token
-            localStorage.removeItem('auth_token');
+            removeAuthToken();
+            removeUserInfo();
           }
         } else {
           // Clear invalid token
-          localStorage.removeItem('auth_token');
+          removeAuthToken();
+          removeUserInfo();
         }
       } catch (err) {
         console.error('Auth check error:', err);
@@ -71,26 +78,26 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const login = async (username: string, password: string): Promise<{ success: boolean; data?: UserInfo; error?: unknown }> => {
     try {
-      const response = await authApi.login(username, password);
-      
-      // Check if login was successful (token present)
-      if (response && 'token' in response) {
-        // Store token in localStorage for persistence
-        localStorage.setItem('auth_token', response.token);
-        
-        // Get user info
-        const userData = await authApi.getCurrentUser();
-        if (userData) {
-          setUserInfo(userData);
-          setIsAuthenticated(true);
-          return { success: true, data: userData };
-        }
+      // Call the WordPress REST API directly
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ham/v1/auth/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        setAuthToken(data.token);
+        setUserInfo(data.user_data || null);
+        persistUserInfo(data.user_data || null);
+        setIsAuthenticated(true);
+        return { success: true, data: data.user_data };
       }
-      
       // Login failed
-      return { 
-        success: false, 
-        error: (response as { error?: unknown })?.error ? 'Login failed' : 'Invalid credentials' 
+      return {
+        success: false,
+        error: data.message || 'Invalid credentials',
       };
     } catch (err) {
       console.error('Login error:', err);
@@ -104,7 +111,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const logout = (): void => {
-    localStorage.removeItem('auth_token');
+    removeAuthToken();
+    removeUserInfo();
     authApi.clearToken();
     setIsAuthenticated(false);
     setUserInfo(null);
