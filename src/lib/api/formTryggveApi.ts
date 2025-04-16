@@ -155,20 +155,44 @@ export const evaluationApi = {
       
       console.log('Request body:', body);
       
-      const response = await fetchApi('/ham/v1/evaluation/save', {
+      // CORS FIX: Use direct fetch instead of fetchApi to customize CORS settings
+      const apiUrl = `${API_URL}/wp-json/ham/v1/evaluation/save`;
+      console.log('Sending request to:', apiUrl);
+      
+      // Use the existing getHeaders function to get authorization headers
+      const allHeaders = getHeaders();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      
+      // Only add Authorization from the headers if it exists
+      if (allHeaders.Authorization) {
+        headers['Authorization'] = allHeaders.Authorization;
+      }
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: body // Pass the pre-encoded string directly
+        headers,
+        body: body,
+        credentials: 'include', // Include cookies if needed
+        mode: 'cors', // Explicit CORS mode
       });
       
-      console.log('API response:', response);
-      return response;
-    } catch {
-      console.error('Error saving evaluation:');
-      throw new Error('Error saving evaluation');
+      if (!response.ok) {
+        console.error('Server responded with error:', response.status, response.statusText);
+        throw new Error(`Server error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error saving evaluation:', error);
+      // Return an error object rather than throwing
+      return { 
+        success: false, 
+        error: { message: 'Failed to save evaluation. Please try again.' } 
+      };
     }
   },
 
@@ -238,14 +262,40 @@ export const evaluationApi = {
         }
       }
       
+      // Log the complete data structure - this helps diagnose exactly where the questions are located
+      console.log('Complete API response structure:', JSON.stringify(data, null, 2));
+      
       // If still no data, use default structure
       if (!data) {
         console.warn('No data received from any endpoint, using default structure');
         return getDefaultQuestionsStructure();
       }
       
-      // Log the complete data structure - this helps diagnose exactly where the questions are located
-      console.log('Complete API response structure:', JSON.stringify(data, null, 2));
+      // CRITICAL FIX: Determine where the question data is located in the response
+      // The API might return data directly or nested in a 'data' property
+      const apiData = ('data' in data && data.data) ? data.data : data;
+      
+      // Type assertion to handle any API response format
+      const typedApiData = apiData as {
+        anknytning?: {
+          title?: string;
+          questions?: Record<string, unknown>;
+        };
+        ansvar?: {
+          title?: string;
+          questions?: Record<string, unknown>;
+        };
+        questions_structure?: {
+          anknytning?: {
+            title?: string;
+            questions?: Record<string, unknown>;
+          };
+          ansvar?: {
+            title?: string;
+            questions?: Record<string, unknown>;
+          };
+        };
+      };
       
       // IMPROVED ERROR HANDLING: Check each level of the structure and provide defaults
       // rather than requiring a complete structure
@@ -253,11 +303,11 @@ export const evaluationApi = {
       // Setup the final structure object with defaults for missing parts
       const structure = {
         anknytning: {
-          title: data.data?.anknytning?.title || 'Anknytningstecken',
+          title: typedApiData.anknytning?.title || 'Anknytningstecken',
           questions: {}
         },
         ansvar: {
-          title: data.data?.ansvar?.title || 'Ansvarstecken',
+          title: typedApiData.ansvar?.title || 'Ansvarstecken',
           questions: {}
         }
       };
@@ -272,17 +322,17 @@ export const evaluationApi = {
       };
       
       // Handle anknytning section
-      if (data.data && hasValidQuestions(data.data.anknytning)) {
+      if (hasValidQuestions(typedApiData.anknytning)) {
         console.log('Using API data for anknytning questions');
         // TypeScript safe assignment with non-null assertion
-        if (data.data.anknytning?.questions) {
-          structure.anknytning.questions = data.data.anknytning.questions as Record<string, unknown>;
+        if (typedApiData.anknytning?.questions) {
+          structure.anknytning.questions = typedApiData.anknytning.questions as Record<string, unknown>;
         }
-      } else if (data.data?.questions_structure && hasValidQuestions(data.data.questions_structure.anknytning)) {
+      } else if (typedApiData.questions_structure && hasValidQuestions(typedApiData.questions_structure.anknytning)) {
         console.log('Using questions_structure for anknytning questions');
         // TypeScript safe assignment with non-null assertion
-        if (data.data.questions_structure.anknytning?.questions) {
-          structure.anknytning.questions = data.data.questions_structure.anknytning.questions as Record<string, unknown>;
+        if (typedApiData.questions_structure.anknytning?.questions) {
+          structure.anknytning.questions = typedApiData.questions_structure.anknytning.questions as Record<string, unknown>;
         }
       } else {
         console.log('Using default questions for anknytning section');
@@ -290,17 +340,17 @@ export const evaluationApi = {
       }
       
       // Handle ansvar section
-      if (data.data && hasValidQuestions(data.data.ansvar)) {
+      if (hasValidQuestions(typedApiData.ansvar)) {
         console.log('Using API data for ansvar questions');
         // TypeScript safe assignment with non-null assertion
-        if (data.data.ansvar?.questions) {
-          structure.ansvar.questions = data.data.ansvar.questions as Record<string, unknown>;
+        if (typedApiData.ansvar?.questions) {
+          structure.ansvar.questions = typedApiData.ansvar.questions as Record<string, unknown>;
         }
-      } else if (data.data?.questions_structure && hasValidQuestions(data.data.questions_structure.ansvar)) {
+      } else if (typedApiData.questions_structure && hasValidQuestions(typedApiData.questions_structure.ansvar)) {
         console.log('Using questions_structure for ansvar questions');
         // TypeScript safe assignment with non-null assertion
-        if (data.data.questions_structure.ansvar?.questions) {
-          structure.ansvar.questions = data.data.questions_structure.ansvar.questions as Record<string, unknown>;
+        if (typedApiData.questions_structure.ansvar?.questions) {
+          structure.ansvar.questions = typedApiData.questions_structure.ansvar.questions as Record<string, unknown>;
         }
       } else {
         console.log('Using default questions for ansvar section');
