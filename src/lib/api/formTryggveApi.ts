@@ -58,7 +58,22 @@ export const setToken = setTokenInternal;
 export const clearToken = clearTokenInternal;
 
 /**
- * Get authorization headers with JWT token
+ * HOWTO: Authorization Header Pattern for Custom WP API Calls
+ *
+ * - Always use the shouldSendAuthHeader(token) utility to determine if the Authorization header should be sent.
+ * - This prevents CORS issues in development and avoids sending dev tokens to the backend.
+ *
+ * Example usage:
+ *   import { shouldSendAuthHeader } from '../utils/shouldSendAuthHeader';
+ *   const headers = {
+ *     'Content-Type': 'application/json',
+ *     ...(token && shouldSendAuthHeader(token) ? { 'Authorization': `Bearer ${token}` } : {})
+ *   };
+ *
+ * - In development: The header is omitted unless a real token is present.
+ * - In production:  The header is sent only if a real token is available.
+ *
+ * This pattern should be used for all custom form APIs and any future endpoints that may or may not require authentication.
  */
 const getHeaders = () => {
   return {
