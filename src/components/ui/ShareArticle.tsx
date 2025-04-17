@@ -21,21 +21,25 @@ export default function ShareArticle({
   className = ''
 }: ShareArticleProps) {
   const pathname = usePathname();
-  
-  // Use provided URL or construct from current pathname
-  const url = canonicalUrl || (typeof window !== 'undefined' ? `${window.location.origin}${pathname}` : '');
-  
+  const [shareUrl, setShareUrl] = React.useState(canonicalUrl);
+
+  React.useEffect(() => {
+    if (!canonicalUrl && typeof window !== 'undefined') {
+      setShareUrl(`${window.location.origin}${pathname}`);
+    }
+  }, [canonicalUrl, pathname]);
+
   // Encode components for sharing
-  const encodedUrl = encodeURIComponent(url);
+  const encodedUrl = encodeURIComponent(shareUrl || '');
   const encodedTitle = encodeURIComponent(title);
   const encodedDescription = encodeURIComponent(description);
-  
+
   // Share URLs for different platforms
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const twitterShareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
   const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const emailShareUrl = `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`;
-  
+
   return (
     <div className={`border-t border-gray-200 pt-6 mt-8 ${className}`}>
       <div className="flex flex-col sm:flex-row items-center">
@@ -132,7 +136,7 @@ export default function ShareArticle({
           {/* Copy link */}
           <button 
             onClick={() => {
-              navigator.clipboard.writeText(url);
+              navigator.clipboard.writeText(shareUrl || '');
               alert('Link copied to clipboard!');
             }}
             aria-label="Copy Link"
