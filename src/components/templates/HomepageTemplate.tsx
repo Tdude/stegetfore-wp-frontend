@@ -20,7 +20,7 @@ export default function HomepageTemplate({ page }: PageTemplateProps) {
           <section className="max-w-7xl px-4 py-12 mx-auto">
             <div
               className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: typeof page.content === 'string' ? page.content : page.content?.rendered || '' }}
             />
           </section>
         )}
