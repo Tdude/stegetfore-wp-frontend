@@ -16,7 +16,7 @@ interface HeaderProps {
 
 export default function Header({ siteInfo, menuItems }: HeaderProps) {
   const { name } = siteInfo || {};
-  const logoUrl = siteInfo?.logo_url || '/logo-tryggve.svg'; // fallback logo
+  const logoUrl = siteInfo?.logo_url || '/Maja-logo-Tryggve-text.svg'; // fallback logo
   const items = menuItems || [];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
