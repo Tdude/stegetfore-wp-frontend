@@ -7,6 +7,8 @@ import PageTemplateSelector from '@/components/PageTemplateSelector';
 import type { LocalPage } from '@/lib/types/contentTypes';
 import type { Page } from '@/lib/types/contentTypes';
 import type { Metadata } from 'next/types';
+import DebugPanel from '@/components/debug/DebugPanel';
+import { buildPageDebugData } from '@/lib/debug/buildPageDebugData';
 
 // Tell Next.js to dynamically render this page
 export const dynamic = 'force-dynamic';
@@ -41,8 +43,16 @@ async function PageContent({ slug }: { slug: string }) {
     notFound();
   }
 
-  // Return the appropriate template with page data
-  return <PageTemplateSelector page={page} />;
+  // Build debug data
+  const debugData = buildPageDebugData(page);
+
+  // Return the appropriate template with page data and DebugPanel
+  return (
+    <>
+      <PageTemplateSelector page={page} />
+      <DebugPanel debugData={debugData} page={page} />
+    </>
+  );
 }
 
 // Main page component

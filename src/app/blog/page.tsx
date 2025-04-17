@@ -15,6 +15,7 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import DebugPanel from '@/components/debug/DebugPanel';
 import { calculateReadingTime } from '@/lib/utils/readingTime';
+import { buildBlogDebugData } from '@/lib/debug/buildBlogDebugData';
 
 // Define interfaces for blog page types
 interface CategoryDisplay {
@@ -149,6 +150,9 @@ async function BlogContent() {
   const { posts, categories } = await fetchPostsWithCategories();
   const safetyPosts = Array.isArray(posts) ? posts : [];
 
+  // Build debug data for the blog index
+  const debugData = buildBlogDebugData(safetyPosts, Object.values(categories));
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">I fokus</h1>
@@ -210,17 +214,8 @@ async function BlogContent() {
         </div>
       )}
 
-      {/* Debug panel at the bottom */}
-      <div className="mt-12">
-        <DebugPanel 
-          title="Page Debug" 
-          additionalData={{
-            "Posts Count": safetyPosts?.length || 0,
-            "Categories": categories ? Object.keys(categories).length : 0,
-            "Page Type": "Blog Index"
-          }}
-        />
-      </div>
+      {/* DebugPanel for blog index */}
+      <DebugPanel debugData={debugData} additionalData={{ posts: safetyPosts, categories }} />
     </div>
   );
 }

@@ -1,8 +1,11 @@
+// src/components/debug/DebugPanel.tsx
 'use client';
 
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+
+import { usePathname } from 'next/navigation';
 
 // Define a more specific type for page data
 interface PageData {
@@ -26,14 +29,30 @@ interface ModuleData {
 
 interface DebugPanelProps {
   title?: string;
-  // Replaced any with PageData
   page?: PageData;
-  // Replaced any with unknown for better type safety
   additionalData?: Record<string, unknown>;
-  // For backward compatibility, can still provide fully prepared debug data
   debugData?: Record<string, unknown>;
-  // Optional custom renderer for specific data types
   customRenderer?: (data: Record<string, unknown>) => React.ReactNode;
+}
+
+function prettyJSON(obj: unknown) {
+  return JSON.stringify(obj, null, 2);
+}
+
+/**
+ * Floating Dev Info Button
+ */
+function DevInfoButton({ onClick, isOpen }: { onClick: () => void; isOpen: boolean }) {
+  return (
+    <button
+      aria-label={isOpen ? 'Close debug panel' : 'Open debug panel'}
+      onClick={onClick}
+      className="fixed bottom-6 right-6 z-[10001] px-6 py-2 rounded min-w-[80px] h-10 font-semibold flex items-center justify-center bg-secondary text-secondary-foreground shadow-md transition-colors hover:bg-secondary/80 border border-yellow-500 bg-yellow-50"
+      type="button"
+    >
+      {isOpen ? 'Close' : 'Debug'}
+    </button>
+  );
 }
 
 /**
@@ -47,161 +66,214 @@ export default function DebugPanel({
   debugData: providedDebugData,
   customRenderer
 }: DebugPanelProps) {
+  // Always call hooks at the top level
   const [isOpen, setIsOpen] = React.useState(false);
-  const debugEnabled = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
+  const [endpoints, setEndpoints] = React.useState<string[]>([]);
+  const [loadingEndpoints, setLoadingEndpoints] = React.useState(false);
+  const [endpointError, setEndpointError] = React.useState<string | null>(null);
+  const [fallbackEndpoints, setFallbackEndpoints] = React.useState<string[]>([]);
+  const pathname = usePathname();
+
+  // Only check NEXT_PUBLIC_DEBUG_MODE on the client
+  const [debugEnabled, setDebugEnabled] = React.useState(false);
+  React.useEffect(() => {
+    setDebugEnabled(process.env.NEXT_PUBLIC_DEBUG_MODE === 'true');
+  }, []);
+
+  // Helper: Recursively scan for endpoint-like URLs in an object
+  function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<string> {
+    if (!obj || typeof obj !== 'object') return found;
+    if (Array.isArray(obj)) {
+      obj.forEach(item => extractApiEndpoints(item, found));
+      return found;
+    }
+    Object.entries(obj).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.startsWith('/wp-json/')) {
+        found.add(value);
+      } else if (typeof value === 'object' && value !== null) {
+        extractApiEndpoints(value, found);
+      }
+    });
+    return found;
+  }
+
+  // Only attempt endpoint discovery once per route (not per open or data change)
+  React.useEffect(() => {
+    setEndpoints([]);
+    setFallbackEndpoints([]);
+    setEndpointError(null);
+    setLoadingEndpoints(true);
+    fetch('/wp-json')
+      .then(res => {
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Response was not JSON. Received: ' + contentType);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.routes) {
+          setEndpoints(Object.keys(data.routes));
+        } else {
+          setEndpointError('No routes found in /wp-json response.');
+        }
+      })
+      .catch(() => {
+        // Fallback: extract from latest props (safe, since this only runs once per route)
+        const found = new Set<string>();
+        extractApiEndpoints(page, found);
+        extractApiEndpoints(additionalData, found);
+        extractApiEndpoints(providedDebugData, found);
+        setFallbackEndpoints(Array.from(found));
+      })
+      .finally(() => setLoadingEndpoints(false));
+    // Only rerun if route changes
+  }, [pathname]);
+
+  // Ref: panel container
+  const panelRef = React.useRef<HTMLDivElement>(null);
+
+  // Add Escape key to close
+  React.useEffect(() => {
+    if (!isOpen) return;
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [isOpen]);
 
   if (!debugEnabled) return null;
 
-  // If debug data is directly provided, use that
-  // Otherwise, generate it from the page object
-  const debugData = providedDebugData || (page ? prepareDebugData(page, additionalData) : { 'Error': 'No page data provided', ...additionalData });
-
-  return (
-    <div className="debug-panel mt-12 mb-4 border-t-2 border-gray-200 pt-4">
-      {/* Debug toggle button */}
-      <div className="container mx-auto px-4">
-        <Button 
-          onClick={() => setIsOpen(!isOpen)} 
-          variant="outline"
-          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300"
-        >
-          {isOpen ? "Close" : "Debug"}
-        </Button>
-      </div>
-
-      {/* Debug panel */}
-      {isOpen && (
-        <div className="container mx-auto mt-4 px-4">
-          <Alert className="bg-white border mb-4">
-            <AlertTitle className="text-xl font-bold">
-              {title}
-              {page?.template && (
-                <span className="ml-2 text-sm bg-slate-100 px-2 py-1 rounded">
-                  {formatTemplateName(page.template)}
-                </span>
-              )}
-            </AlertTitle>
-            <AlertDescription>
-              <div className="space-y-4">
-                {/* Custom renderer takes precedence */}
-                {customRenderer ? (
-                  customRenderer(debugData)
-                ) : (
-                  <div className="space-y-2 text-sm">
-                    {/* Default renderer for key-value pairs */}
-                    {Object.entries(debugData).map(([key, value]) => (
-                      <div key={key}>
-                        <strong>{key}:</strong>{' '}
-                        {typeof value === 'object' 
-                          ? <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded mt-1">
-                              {JSON.stringify(value, null, 2)}
-                            </pre>
-                          : String(value)
-                        }
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <div className="mt-4 flex justify-end">
-                <Button onClick={() => setIsOpen(false)} variant="outline">Close</Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Formats a template name from the WP template path
- */
-function formatTemplateName(templatePath: string): string {
-  if (!templatePath) return 'Default';
-  
-  // Extract just the filename without extension
-  const match = templatePath.match(/templates\/([^.]+)\.php$/);
-  if (match && match[1]) {
-    // Convert kebab-case to Title Case
-    return match[1]
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ') + ' Template';
-  }
-  
-  return templatePath;
-}
-
-/**
- * Prepares standard debug data from a page object
- */
-function prepareDebugData(page: PageData, additionalData: Record<string, unknown> = {}): Record<string, unknown> {
-  if (!page) {
-    return {
-      'Error': 'No page data provided',
-      ...additionalData
-    };
-  }
-
-  // Extract basic page data with defensive checks
-  const pageId = page.id || 'Unknown';
-  const template = page.template ? formatTemplateName(page.template) : 'Default';
-  
-  // Fix type errors with proper type guards
-  const title = typeof page.title === 'object' && page.title?.rendered 
-    ? page.title.rendered 
-    : (typeof page.title === 'string' ? page.title : 'Unknown');
-    
-  const hasContent = Boolean(
-    typeof page.content === 'object' && page.content?.rendered 
-    || typeof page.content === 'string' && page.content
-  );
-  
-  const contentLength = (
-    typeof page.content === 'object' && page.content?.rendered 
-      ? page.content.rendered 
-      : (typeof page.content === 'string' ? page.content : '')
-  ).length;
-  
-  const hasFeaturedImage = Boolean(page.featured_image_url || (page._embedded && page._embedded['wp:featuredmedia']));
-  const modulesCount = Array.isArray(page.modules) ? page.modules.length : 0;
-  const slug = page.slug || 'Unknown';
-  
-  // Create module type count
-  let moduleTypes: Record<string, number> = {};
-  if (Array.isArray(page.modules)) {
-    moduleTypes = page.modules.reduce((acc: Record<string, number>, module: ModuleData) => {
-      if (module.type) {
-        acc[module.type] = (acc[module.type] || 0) + 1;
-      }
-      return acc;
-    }, {});
-  }
-
-  // Try to extract meta information with defensive coding
-  const meta = page.meta || {};
-  const contentPosition = meta.content_position || 'before';
-  const showContentWithModules = typeof page.show_content_with_modules === 'boolean' 
-    ? page.show_content_with_modules 
-    : true;
-
-  // Build a standardized debug data object
-  const debugData = {
-    'Page ID': pageId,
-    'Template': template,
-    'Title': title,
-    'Has Content': hasContent,
-    'Content Length': contentLength,
-    'Featured Image': hasFeaturedImage ? 'Yes' : 'None',
-    'Modules Count': modulesCount,
-    'Show Content With Modules': showContentWithModules ? 'Yes' : 'No',
-    'Content Position': contentPosition,
-    'Module Types': Object.keys(moduleTypes).length > 0 ? moduleTypes : 'None',
-    'Slug': slug,
-    ...additionalData
+  const debugData = providedDebugData || {
+    page,
+    additionalData,
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_DEBUG_MODE: process.env.NEXT_PUBLIC_DEBUG_MODE,
+    },
+    route: pathname,
   };
 
-  return debugData;
+  return (
+    <>
+      {/* Only render DevInfoButton when debug panel is closed */}
+      {!isOpen && (
+        <DevInfoButton onClick={() => setIsOpen(true)} isOpen={false} />
+      )}
+      {isOpen && (
+        <div
+          ref={panelRef}
+          style={{
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            width: 'min(90vw, 480px)',
+            height: '100vh',
+            background: '#fff',
+            color: '#222',
+            zIndex: 10000,
+            boxShadow: '-2px 0 16px rgba(0,0,0,0.15)',
+            overflowY: 'auto',
+            padding: 0,
+            fontFamily: 'monospace',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #eee' }}>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>{title}</div>
+            <Button variant="outline" size="sm" onClick={() => setIsOpen(false)} style={{ marginLeft: 8 }}>Close</Button>
+          </div>
+          <div style={{ padding: '1rem' }}>
+            {/* Page/Post Info */}
+            {page && (
+              <section style={{ marginBottom: 24 }}>
+                <h3 style={{ margin: 0 }}>Page/Post Info</h3>
+                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                  {prettyJSON(page)}
+                </pre>
+              </section>
+            )}
+            {/* Modules */}
+            {page?.modules && page.modules.length > 0 && (
+              <section style={{ marginBottom: 24 }}>
+                <h3 style={{ margin: 0 }}>Modules</h3>
+                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                  {prettyJSON(page.modules)}
+                </pre>
+              </section>
+            )}
+            {/* Meta */}
+            {page?.meta && (
+              <section style={{ marginBottom: 24 }}>
+                <h3 style={{ margin: 0 }}>Meta</h3>
+                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                  {prettyJSON(page.meta)}
+                </pre>
+              </section>
+            )}
+            {/* Additional Debug Data */}
+            {Object.keys(additionalData).length > 0 && (
+              <section style={{ marginBottom: 24 }}>
+                <h3 style={{ margin: 0 }}>Additional Debug Data</h3>
+                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                  {prettyJSON(additionalData)}
+                </pre>
+              </section>
+            )}
+            {/* Environment */}
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ margin: 0 }}>Environment</h3>
+              <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                {prettyJSON(debugData.env)}
+              </pre>
+            </section>
+            {/* Route */}
+            {debugData.route && (
+              <section style={{ marginBottom: 24 }}>
+                <h3 style={{ margin: 0 }}>Route</h3>
+                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
+                  {debugData.route}
+                </pre>
+              </section>
+            )}
+            {/* Endpoints - context aware */}
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ margin: 0 }}>Available Endpoints</h3>
+              {loadingEndpoints && <div>Loading endpoints...</div>}
+              {endpoints.length > 0 && (
+                <pre className="bg-gray-100 p-2 rounded text-xs max-h-60 overflow-y-auto">
+                  {endpoints.join('\n')}
+                </pre>
+              )}
+              {endpoints.length === 0 && fallbackEndpoints.length > 0 && (
+                <pre className="bg-gray-100 p-2 rounded text-xs max-h-60 overflow-y-auto">
+                  {fallbackEndpoints.join('\n')}
+                </pre>
+              )}
+              {endpoints.length === 0 && fallbackEndpoints.length === 0 && !loadingEndpoints && (
+                <div className="text-xs text-gray-500">No endpoints could be discovered, but this page is rendering data successfully.</div>
+              )}
+            </section>
+            {/* Copy to Clipboard */}
+            <Button
+              variant="default"
+              size="sm"
+              className="mt-2"
+              onClick={() => {
+                navigator.clipboard.writeText(prettyJSON(debugData));
+              }}
+            >
+              Copy All Debug Info
+            </Button>
+            {/* Custom Renderer */}
+            {customRenderer && (
+              <section style={{ marginTop: 24 }}>{customRenderer(debugData) as React.ReactNode}</section>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
