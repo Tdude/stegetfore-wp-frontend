@@ -14,6 +14,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import DebugPanel from '@/components/debug/DebugPanel';
+import { calculateReadingTime } from '@/lib/utils/readingTime';
 
 // Define interfaces for blog page types
 interface CategoryDisplay {
@@ -56,7 +57,11 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
   const isWide = variant === 'wide';
   const isCompact = variant === 'compact';
   const excerptLimit = isWide ? 300 : 150;
-  
+
+  // Reading time based on content length
+  const readingTime =
+    post.content?.rendered ? `${calculateReadingTime(post.content.rendered)} min läsning` : null;
+
   const cardContent = (
     <>
       {/* Image */}
@@ -75,18 +80,23 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
       {/* Content */}
       <div className={`p-6 ${isWide ? 'md:w-1/2' : ''} flex flex-col h-full`}>
         <div className="flex-grow">
-          {/* Categories */}
+
+          {/* Categories with reading time badge for test */}
           {post.categories && categories && (
             <div className="flex flex-wrap gap-2 mb-2">
-              {(post.categories || []).slice(0, 2).map((categoryId) => {
+              {(post.categories || []).slice(0, 2).map((categoryId, idx) => {
                 const catId = typeof categoryId === 'number' ? categoryId : 
                   (typeof categoryId === 'object' && categoryId !== null && 'id' in categoryId) 
                     ? (categoryId as Category).id 
                     : 0;
-                    
+                
                 return categories[catId] && (
                   <Badge key={`cat-${catId}`} variant="secondary">
                     {categories[catId]?.name || 'Category'}
+                    {/* Add reading time to the first badge for test */}
+                    {idx === 0 && readingTime && (
+                      <span className="ml-2 text-xs text-muted-foreground">{readingTime}</span>
+                    )}
                   </Badge>
                 );
               })}
