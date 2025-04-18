@@ -1,6 +1,18 @@
 // src/components/debug/DebugPanel.tsx
 'use client';
 
+/**
+ * DEBUG LOG NOTICE:
+ * The DebugPanel fetches /wp-json to discover available API endpoints for debugging.
+ * To prevent side effects, this fetch is always done using the native window.fetch API,
+ * and is isolated from any global data loaders, react-query, SWR, or custom fetch wrappers.
+ * This ensures that no part of the app treats /wp-json as a page slug or triggers unwanted loaders.
+ *
+ * If you change how endpoint discovery works, ensure this isolation is preserved.
+ */
+
+export const DEBUG_PANEL_ENABLED = true;
+
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -39,6 +51,33 @@ function prettyJSON(obj: unknown) {
   return JSON.stringify(obj, null, 2);
 }
 
+// Move extractApiEndpoints OUTSIDE the component to avoid re-creation on every render
+function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<string> {
+  if (!obj || typeof obj !== 'object') return found;
+  if (Array.isArray(obj)) {
+    obj.forEach(item => extractApiEndpoints(item, found));
+    return found;
+  }
+  Object.entries(obj).forEach(([, value]) => {
+    if (typeof value === 'string' && value.startsWith('/wp-json/')) {
+      found.add(value);
+    } else if (typeof value === 'object' && value !== null) {
+      extractApiEndpoints(value, found);
+    }
+  });
+  return found;
+}
+
+// Helper to get API root from env
+function getApiRoot() {
+  if (typeof window !== 'undefined') {
+    // On the client, use window env if available
+    // @ts-ignore
+    return window.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
+}
+
 /**
  * Floating Dev Info Button
  */
@@ -66,44 +105,31 @@ export default function DebugPanel({
   debugData: providedDebugData,
   customRenderer
 }: DebugPanelProps) {
-  // Always call hooks at the top level
+  // --- All hooks must be called at the top level, unconditionally ---
   const [isOpen, setIsOpen] = React.useState(false);
   const [endpoints, setEndpoints] = React.useState<string[]>([]);
   const [loadingEndpoints, setLoadingEndpoints] = React.useState(false);
   const [endpointError, setEndpointError] = React.useState<string | null>(null);
   const [fallbackEndpoints, setFallbackEndpoints] = React.useState<string[]>([]);
   const pathname = usePathname();
-
-  // Only check NEXT_PUBLIC_DEBUG_MODE on the client
   const [debugEnabled, setDebugEnabled] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     setDebugEnabled(process.env.NEXT_PUBLIC_DEBUG_MODE === 'true');
+    setMounted(true);
   }, []);
-
-  // Helper: Recursively scan for endpoint-like URLs in an object
-  function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<string> {
-    if (!obj || typeof obj !== 'object') return found;
-    if (Array.isArray(obj)) {
-      obj.forEach(item => extractApiEndpoints(item, found));
-      return found;
-    }
-    Object.entries(obj).forEach(([key, value]) => {
-      if (typeof value === 'string' && value.startsWith('/wp-json/')) {
-        found.add(value);
-      } else if (typeof value === 'object' && value !== null) {
-        extractApiEndpoints(value, found);
-      }
-    });
-    return found;
-  }
 
   // Only attempt endpoint discovery once per route (not per open or data change)
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
     setEndpoints([]);
     setFallbackEndpoints([]);
     setEndpointError(null);
     setLoadingEndpoints(true);
-    fetch('/wp-json')
+    const apiRoot = getApiRoot();
+    window.fetch(apiRoot)
       .then(res => {
         const contentType = res.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
@@ -118,20 +144,17 @@ export default function DebugPanel({
           setEndpointError('No routes found in /wp-json response.');
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        setEndpointError('Failed to fetch /wp-json: ' + (error?.message || error));
         // Fallback: extract from latest props (safe, since this only runs once per route)
         const found = new Set<string>();
         extractApiEndpoints(page, found);
         extractApiEndpoints(additionalData, found);
         extractApiEndpoints(providedDebugData, found);
-        setFallbackEndpoints(Array.from(found));
+        setFallbackEndpoints(Array.from(found).filter(ep => ep !== '/wp-json'));
       })
       .finally(() => setLoadingEndpoints(false));
-    // Only rerun if route changes
   }, [pathname]);
-
-  // Ref: panel container
-  const panelRef = React.useRef<HTMLDivElement>(null);
 
   // Add Escape key to close
   React.useEffect(() => {
@@ -145,131 +168,78 @@ export default function DebugPanel({
     return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen]);
 
-  if (!debugEnabled) return null;
+  // --- Only render UI after all hooks ---
+  if (!DEBUG_PANEL_ENABLED || !debugEnabled || !mounted) return null;
 
   const debugData = providedDebugData || {
     page,
-    additionalData,
-    env: {
-      NODE_ENV: process.env.NODE_ENV,
-      NEXT_PUBLIC_DEBUG_MODE: process.env.NEXT_PUBLIC_DEBUG_MODE,
-    },
-    route: pathname,
+    additionalData
   };
 
+  // Collapsible list component
+  function CollapsibleList({ title, items }: { title: string; items: string[] }) {
+    const [open, setOpen] = React.useState(false);
+    if (!items || items.length === 0) return null;
+    return (
+      <div className="mb-2">
+        <button
+          className="w-full text-left font-semibold text-sm bg-yellow-100 border border-yellow-400 rounded px-2 py-1 mb-1 hover:bg-yellow-200 transition-colors"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+        >
+          {open ? '▼' : '▶'} {title}
+        </button>
+        {open && (
+          <ul className="max-h-40 overflow-y-auto bg-white border border-yellow-100 rounded p-2 text-xs">
+            {items.map((ep) => (
+              <li key={ep} className="break-all py-0.5">{ep}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
+  // Show endpoint error if present
+  // Use Alert UI to display error and fallback endpoints
   return (
     <>
-      {/* Only render DevInfoButton when debug panel is closed */}
-      {!isOpen && (
-        <DevInfoButton onClick={() => setIsOpen(true)} isOpen={false} />
-      )}
+      <DevInfoButton onClick={() => setIsOpen((v) => !v)} isOpen={isOpen} />
       {isOpen && (
-        <div
-          ref={panelRef}
-          style={{
-            position: 'fixed',
-            top: 0,
-            right: 0,
-            width: 'min(90vw, 480px)',
-            height: '100vh',
-            background: '#fff',
-            color: '#222',
-            zIndex: 10000,
-            boxShadow: '-2px 0 16px rgba(0,0,0,0.15)',
-            overflowY: 'auto',
-            padding: 0,
-            fontFamily: 'monospace',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #eee' }}>
-            <div style={{ fontWeight: 700, fontSize: 20 }}>{title}</div>
-            <Button variant="outline" size="sm" onClick={() => setIsOpen(false)} style={{ marginLeft: 8 }}>Close</Button>
-          </div>
-          <div style={{ padding: '1rem' }}>
-            {/* Page/Post Info */}
-            {page && (
-              <section style={{ marginBottom: 24 }}>
-                <h3 style={{ margin: 0 }}>Page/Post Info</h3>
-                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                  {prettyJSON(page)}
-                </pre>
-              </section>
+        <div ref={panelRef} className="fixed inset-0 z-[10000] flex items-end justify-end pointer-events-none">
+          <div className="m-6 w-full max-w-2xl bg-white border border-yellow-500 rounded shadow-lg pointer-events-auto p-6 relative overflow-y-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold">{title}</h2>
+              <Button onClick={() => setIsOpen(false)} size="sm" variant="outline">Close</Button>
+            </div>
+            {endpointError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTitle>API Endpoint Discovery Error</AlertTitle>
+                <AlertDescription>
+                  {endpointError}
+                </AlertDescription>
+              </Alert>
             )}
-            {/* Modules */}
-            {page?.modules && page.modules.length > 0 && (
-              <section style={{ marginBottom: 24 }}>
-                <h3 style={{ margin: 0 }}>Modules</h3>
-                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                  {prettyJSON(page.modules)}
-                </pre>
-              </section>
-            )}
-            {/* Meta */}
-            {page?.meta && (
-              <section style={{ marginBottom: 24 }}>
-                <h3 style={{ margin: 0 }}>Meta</h3>
-                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                  {prettyJSON(page.meta)}
-                </pre>
-              </section>
-            )}
-            {/* Additional Debug Data */}
-            {Object.keys(additionalData).length > 0 && (
-              <section style={{ marginBottom: 24 }}>
-                <h3 style={{ margin: 0 }}>Additional Debug Data</h3>
-                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                  {prettyJSON(additionalData)}
-                </pre>
-              </section>
-            )}
-            {/* Environment */}
-            <section style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: 0 }}>Environment</h3>
-              <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                {prettyJSON(debugData.env)}
-              </pre>
-            </section>
-            {/* Route */}
-            {debugData.route && (
-              <section style={{ marginBottom: 24 }}>
-                <h3 style={{ margin: 0 }}>Route</h3>
-                <pre style={{ background: '#f6f8fa', padding: 8, borderRadius: 4, fontSize: 12 }}>
-                  {debugData.route}
-                </pre>
-              </section>
-            )}
-            {/* Endpoints - context aware */}
-            <section style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: 0 }}>Available Endpoints</h3>
-              {loadingEndpoints && <div>Loading endpoints...</div>}
-              {endpoints.length > 0 && (
-                <pre className="bg-gray-100 p-2 rounded text-xs max-h-60 overflow-y-auto">
-                  {endpoints.join('\n')}
-                </pre>
+            <div className="overflow-x-auto max-h-[50vh] text-xs bg-gray-50 p-2 rounded mb-2">
+              {customRenderer ? customRenderer(debugData) : (
+                <pre>{prettyJSON(debugData)}</pre>
               )}
-              {endpoints.length === 0 && fallbackEndpoints.length > 0 && (
-                <pre className="bg-gray-100 p-2 rounded text-xs max-h-60 overflow-y-auto">
-                  {fallbackEndpoints.join('\n')}
-                </pre>
+              {loadingEndpoints && (
+                <div className="mt-2 text-yellow-700 text-xs">
+                  <strong>Loading endpoints...</strong>
+                </div>
               )}
-              {endpoints.length === 0 && fallbackEndpoints.length === 0 && !loadingEndpoints && (
-                <div className="text-xs text-gray-500">No endpoints could be discovered, but this page is rendering data successfully.</div>
-              )}
-            </section>
-            {/* Copy to Clipboard */}
-            <Button
-              variant="default"
-              size="sm"
-              className="mt-2"
-              onClick={() => {
-                navigator.clipboard.writeText(prettyJSON(debugData));
-              }}
-            >
-              Copy All Debug Info
-            </Button>
-            {/* Custom Renderer */}
-            {customRenderer && (
-              <section style={{ marginTop: 24 }}>{customRenderer(debugData) as React.ReactNode}</section>
+            </div>
+            {/* Collapsible lists for endpoints */}
+            <CollapsibleList
+              title="Discovered API Endpoints"
+              items={endpoints}
+            />
+            {endpointError && fallbackEndpoints.length > 0 && (
+              <CollapsibleList
+                title="Endpoints found in data"
+                items={fallbackEndpoints}
+              />
             )}
           </div>
         </div>

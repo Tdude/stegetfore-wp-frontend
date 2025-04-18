@@ -1,6 +1,7 @@
 import { API_URL } from '../api/baseApi';
+import { DebugLogData, Post, User } from '../types/debugLogTypes';
 
-interface PostDebugData {
+interface PostDebugData extends DebugLogData {
   'Page Type': string;
   'Post ID': number | undefined;
   'Title': string | undefined;
@@ -14,7 +15,7 @@ interface PostDebugData {
   [key: string]: unknown;
 }
 
-export function buildPostDebugData(post: any, user?: any): PostDebugData {
+export function buildPostDebugData(post: Post, user?: User): PostDebugData {
   return {
     'Page Type': 'Single Post',
     'Post ID': post?.id,
@@ -31,5 +32,11 @@ export function buildPostDebugData(post: any, user?: any): PostDebugData {
       NEXT_PUBLIC_DEBUG_MODE: process.env.NEXT_PUBLIC_DEBUG_MODE,
     },
     'Is Authenticated': !!user,
+    'id': post?.id,
+    'data': post,
+    'timestamp': Date.now(),
+    'type': 'page',
+    'level': 'info',
+    'message': 'Page Debug Data'
   };
 }

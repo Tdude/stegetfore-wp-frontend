@@ -9,6 +9,7 @@ const devCredentials = {
   password: process.env.NEXT_PUBLIC_DEV_PASSWORD,
 };
 
+
 // Check if we're in development mode
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -24,6 +25,7 @@ export const getDevCredentials = () => {
 
   if (!devCredentials.username || !devCredentials.password) {
     console.warn('Missing development credentials in .env.local file');
+    console.log('Dev credentials:', devCredentials);
     return null;
   }
 

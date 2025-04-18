@@ -1,6 +1,7 @@
 import { API_URL } from '../api/baseApi';
+import { DebugLogData, BlogPost, BlogCategory, BlogUser } from '../types/debugLogTypes';
 
-interface BlogDebugData {
+interface BlogDebugData extends DebugLogData {
   'Page Type': string;
   'Posts Count': number;
   'Categories Count': number;
@@ -10,7 +11,7 @@ interface BlogDebugData {
   [key: string]: unknown;
 }
 
-export function buildBlogDebugData(posts: any[], categories: any[], user?: any): BlogDebugData {
+export function buildBlogDebugData(posts: BlogPost[], categories: BlogCategory[], user?: BlogUser): BlogDebugData {
   return {
     'Page Type': 'Blog Index',
     'Posts Count': posts.length,

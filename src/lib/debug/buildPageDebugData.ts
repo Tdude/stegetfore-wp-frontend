@@ -1,6 +1,7 @@
-import { API_URL } from '../api/baseApi';
+import { API_URL } from '../api/baseApi'; 
+import { DebugLogData, Page, User } from '../types/debugLogTypes';
 
-interface PageDebugData {
+interface PageDebugData extends DebugLogData {
   'Page Type': string;
   'Page ID': number | undefined;
   'Title': string | undefined;
@@ -15,7 +16,7 @@ interface PageDebugData {
   [key: string]: unknown;
 }
 
-export function buildPageDebugData(page: any, user?: any): PageDebugData {
+export function buildPageDebugData(page: Page, user?: User): PageDebugData {
   return {
     'Page Type': 'Page',
     'Page ID': page?.id,

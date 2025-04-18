@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { fetchPageById } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 export default async function HomePage() {
   try {
@@ -21,17 +22,20 @@ export default async function HomePage() {
     };
 
     return (
-      <Suspense fallback={<div className="h-screen bg-muted/30 animate-pulse"></div>}>
-        {/* 
-          This component expects a LocalPage type, but we're passing a Page from fetchPageById.
-          This is intentional as they have compatible structures for our purposes.
-        */}
-        <PageTemplateSelector
-          page={page}
-          isHomePage={true}
-          homepageData={homepageData}
-        />
-      </Suspense>
+      <>
+        <Suspense fallback={<div className="h-screen bg-muted/30 animate-pulse"></div>}>
+          {/* 
+            This component expects a LocalPage type, but we're passing a Page from fetchPageById.
+            This is intentional as they have compatible structures for our purposes.
+          */}
+          <PageTemplateSelector
+            page={page}
+            isHomePage={true}
+            homepageData={homepageData}
+          />
+        </Suspense>
+        <DebugPanel page={page} additionalData={homepageData} title="Debug: Startpage" />
+      </>
     );
   } catch (error) {
     console.error("Error rendering homepage:", error);
