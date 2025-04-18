@@ -21,7 +21,7 @@ interface SiteInfo {
 export default function Footer({ siteInfo = {} as SiteInfo }) {
   // Get site info with fallbacks
   const siteName = siteInfo?.name || 'Tryggve';
-  const logoUrl = siteInfo?.logo_url || '/logo-tryggve-inverted.svg';
+  const logoUrl = siteInfo?.logo_url || '/Maja-logo-tryggve-text-inverted.svg';
   const year = new Date().getFullYear();
   
   return (
