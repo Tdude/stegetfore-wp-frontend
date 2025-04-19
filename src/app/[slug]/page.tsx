@@ -9,6 +9,7 @@ import type { Page } from '@/lib/types/contentTypes';
 import type { Metadata } from 'next/types';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { buildPageDebugData } from '@/lib/debug/buildPageDebugData';
+import RequireAuth from '@/lib/utils/RequireAuth';
 
 // Tell Next.js to dynamically render this page
 export const dynamic = 'force-dynamic';
@@ -46,12 +47,22 @@ async function PageContent({ slug }: { slug: string }) {
   // Build debug data
   const debugData = buildPageDebugData(page);
 
+  // Only require auth if status is draft or private
+  const requiresAuth = page.status === 'draft' || page.status === 'private';
+
   // Return the appropriate template with page data and DebugPanel
   return (
-    <>
-      <PageTemplateSelector page={page} />
-      <DebugPanel debugData={debugData} page={page} />
-    </>
+    requiresAuth ? (
+      <RequireAuth>
+        <PageTemplateSelector page={page} />
+        <DebugPanel debugData={debugData} page={page} />
+      </RequireAuth>
+    ) : (
+      <>
+        <PageTemplateSelector page={page} />
+        <DebugPanel debugData={debugData} page={page} />
+      </>
+    )
   );
 }
 

@@ -1,4 +1,4 @@
-// src/components/modules/FeaturedPostsModule.tsx - Updated version
+// src/components/modules/FeaturedPostsModule.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';

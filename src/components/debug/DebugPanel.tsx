@@ -72,7 +72,7 @@ function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<strin
 function getApiRoot() {
   if (typeof window !== 'undefined') {
     // On the client, use window env if available
-    // @ts-ignore
+    // @ts-expect-error - window is not defined in server-side rendering
     return window.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';

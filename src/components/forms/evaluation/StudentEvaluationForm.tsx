@@ -9,6 +9,7 @@ import LoadingDots from '@/components/ui/LoadingDots';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 import confetti from 'canvas-confetti';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Student Evaluation Form component
@@ -18,7 +19,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   studentId: initialStudentId, 
   evaluationId 
 }) => {
-  // State for form data and UI
+  // State for form data and UI (always call hooks at the top, before any return)
   const [formData, setFormData] = useState<FormData>(initialFormState);
   const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -64,9 +65,11 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
+
+  // Auth check
+  const { isAuthenticated, loading } = useAuth();
 
   // Fetch current user info if no studentId is provided
   useEffect(() => {
@@ -422,6 +425,14 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       }, 1000); // Wait 1 second before advancing
     }
   }, [currentQuestionIndex, allQuestions.length, handleNextQuestion]);
+
+  if (loading) {
+    return <div className="text-center py-12">Laddar...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <div className="text-center py-12">Du måste vara inloggad för att se innehållet på denna sida.</div>;
+  }
 
   // Show loading state
   if (isLoading) {

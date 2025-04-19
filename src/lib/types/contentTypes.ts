@@ -44,6 +44,7 @@ export interface BaseContent {
     content_position: 'before' | 'after';
   };
   show_content_with_modules?: boolean; // Legacy field, kept for backward compatibility
+  status?: string; // WP status: publish, draft, private, etc.
 }
 
 /**
