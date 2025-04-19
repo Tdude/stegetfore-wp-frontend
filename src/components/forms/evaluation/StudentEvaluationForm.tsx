@@ -10,6 +10,7 @@ import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
+import LoginButton from '@/components/auth/LoginButton';
 
 /**
  * Student Evaluation Form component
@@ -427,11 +428,29 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   }, [currentQuestionIndex, allQuestions.length, handleNextQuestion]);
 
   if (loading) {
-    return <div className="text-center py-12">Laddar...</div>;
+    return  <LoadingDots text="Laddar" />;
   }
 
   if (!isAuthenticated) {
-    return <div className="text-center py-12">Du måste vara inloggad för att se innehållet på denna sida.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="rounded-xl bg-muted/30 border border-muted-foreground/10 shadow-md px-6 py-8 max-w-lg w-full text-center">
+          <span role="img" aria-label="Padlock" className="text-4xl mb-2">🔒</span>
+          <div className="mt-3 font-semibold text-lg text-foreground">
+            Du måste vara inloggad för att se det här innehållet.
+          </div>
+          <div className="m-2 text-muted-foreground text-base">
+            <LoginButton
+              onClick={() => typeof window !== 'undefined' && window.dispatchEvent(new CustomEvent('open-login-modal'))}
+              className="my-8 mx-auto"
+            />
+            {" Kontakta "}
+            <a href="mailto:admin@stegetfore.se" className="font-bold hover:text-primary/80">administratören</a>
+            {" om du behöver hjälp."}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Show loading state

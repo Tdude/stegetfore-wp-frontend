@@ -3,11 +3,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
+import LoginButton from '@/components/auth/LoginButton';
 
 interface HeaderProps {
   siteInfo: SiteInfo;
@@ -79,6 +80,17 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
     );
   };
 
+  // Listen for open-login-modal event globally
+  useEffect(() => {
+    function handleOpenLoginModal() {
+      setLoginModalOpen(true);
+    }
+    window.addEventListener('open-login-modal', handleOpenLoginModal);
+    return () => {
+      window.removeEventListener('open-login-modal', handleOpenLoginModal);
+    };
+  }, []);
+
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-2">
@@ -130,13 +142,10 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
                   <span className="text-sm">Logga ut</span>
                 </button>
               ) : (
-                <button 
+                <LoginButton
                   onClick={() => setLoginModalOpen(true)}
-                  className="hidden lg:flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50"
-                >
-                  <LogIn className="h-4 w-4 mr-1" />
-                  <span className="text-sm">Logga in</span>
-                </button>
+                  className="hidden lg:flex"
+                />
               )}
             </div>
           </div>

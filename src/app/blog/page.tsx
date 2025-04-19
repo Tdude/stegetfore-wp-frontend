@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import DebugPanel from '@/components/debug/DebugPanel';
 import { calculateReadingTime } from '@/lib/utils/readingTime';
 import { buildBlogDebugData } from '@/lib/debug/buildBlogDebugData';
-import RequireAuth from '../RequireAuth';
 
 // Define interfaces for blog page types
 interface CategoryDisplay {
@@ -224,9 +223,7 @@ async function BlogContent() {
 export default function BlogPage() {
   return (
     <Suspense fallback={<PostSkeleton />}>
-      <RequireAuth>
-        <BlogContent />
-      </RequireAuth>
+      <BlogContent />
     </Suspense>
   );
 }

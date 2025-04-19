@@ -15,9 +15,9 @@ export const DEBUG_PANEL_ENABLED = true;
 
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 
 import { usePathname } from 'next/navigation';
+import LoadingDots from '../ui/LoadingDots';
 
 // Define a more specific type for page data
 interface PageData {
@@ -52,7 +52,7 @@ function prettyJSON(obj: unknown) {
 }
 
 // Move extractApiEndpoints OUTSIDE the component to avoid re-creation on every render
-function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<string> {
+function extractApiEndpoints(obj: Record<string, unknown>, found = new Set<string>()): Set<string> {
   if (!obj || typeof obj !== 'object') return found;
   if (Array.isArray(obj)) {
     obj.forEach(item => extractApiEndpoints(item, found));
@@ -62,31 +62,22 @@ function extractApiEndpoints(obj: unknown, found = new Set<string>()): Set<strin
     if (typeof value === 'string' && value.startsWith('/wp-json/')) {
       found.add(value);
     } else if (typeof value === 'object' && value !== null) {
-      extractApiEndpoints(value, found);
+      extractApiEndpoints(value as Record<string, unknown>, found);
     }
   });
   return found;
 }
 
-// Helper to get API root from env
-function getApiRoot() {
-  if (typeof window !== 'undefined') {
-    // On the client, use window env if available
-    // @ts-expect-error - window is not defined in server-side rendering
-    return window.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
-}
-
 /**
  * Floating Dev Info Button
+ * Always visible, toggles panel open/close, label changes with isOpen
  */
 function DevInfoButton({ onClick, isOpen }: { onClick: () => void; isOpen: boolean }) {
   return (
     <button
       aria-label={isOpen ? 'Close debug panel' : 'Open debug panel'}
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-[10001] px-6 py-2 rounded min-w-[80px] h-10 font-semibold flex items-center justify-center bg-secondary text-secondary-foreground shadow-md transition-colors hover:bg-secondary/80 border border-yellow-500 bg-yellow-50"
+      className="fixed bottom-6 right-6 z-[10001] px-6 py-2 rounded min-w-[80px] h-10 w-12 font-semibold flex items-center justify-center bg-secondary text-secondary-foreground shadow-md transition-colors border border-yellow-500 bg-yellow-50"
       type="button"
     >
       {isOpen ? 'Close' : 'Debug'}
@@ -124,37 +115,23 @@ export default function DebugPanel({
   // Only attempt endpoint discovery once per route (not per open or data change)
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    setEndpoints([]);
-    setFallbackEndpoints([]);
-    setEndpointError(null);
     setLoadingEndpoints(true);
-    const apiRoot = getApiRoot();
-    window.fetch(apiRoot)
-      .then(res => {
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Response was not JSON. Received: ' + contentType);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.routes) {
-          setEndpoints(Object.keys(data.routes));
-        } else {
-          setEndpointError('No routes found in /wp-json response.');
-        }
-      })
-      .catch((error) => {
-        setEndpointError('Failed to fetch /wp-json: ' + (error?.message || error));
-        // Fallback: extract from latest props (safe, since this only runs once per route)
-        const found = new Set<string>();
-        extractApiEndpoints(page, found);
-        extractApiEndpoints(additionalData, found);
-        extractApiEndpoints(providedDebugData, found);
-        setFallbackEndpoints(Array.from(found).filter(ep => ep !== '/wp-json'));
-      })
-      .finally(() => setLoadingEndpoints(false));
-  }, [pathname]);
+    setEndpointError(null);
+    try {
+      const allData = {
+        ...providedDebugData,
+        ...additionalData,
+        ...(page ? { page: page as unknown as Record<string, unknown> } : {})
+      };
+      const found = extractApiEndpoints(allData);
+      setEndpoints(Array.from(found));
+      setFallbackEndpoints(Array.from(found));
+    } catch {
+      setEndpointError('Could not extract API endpoints');
+    } finally {
+      setLoadingEndpoints(false);
+    }
+  }, [pathname, providedDebugData, additionalData, page]);
 
   // Add Escape key to close
   React.useEffect(() => {
@@ -175,6 +152,116 @@ export default function DebugPanel({
     page,
     additionalData
   };
+
+  // Helper to render key-value pairs in a responsive grid (mimic your clean panel)
+  function renderDebugGrid(data: Record<string, unknown>) {
+    if (!data || typeof data !== 'object') return null;
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 mb-2">
+        {Object.entries(data).map(([key, value]) => (
+          <div key={key} className="flex flex-col mb-1">
+            <span className="font-semibold text-yellow-800">{key}:</span>
+            <span className="text-yellow-700 break-all">
+              {typeof value === 'object' && value !== null ? (
+                <pre className="bg-gray-50 rounded p-1 overflow-x-auto max-w-xs max-h-32">{prettyJSON(value)}</pre>
+              ) : (
+                String(value)
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Helper: extract quick-view API fields from debugData
+  const QUICK_VIEW_KEYS = [
+    'Current Path', 'Page ID', 'Post ID', 'Title', 'Slug', 'Type', 'Page Type', 'Date', 'Has Content', 'Content Length', 'Featured Image', 'Has Featured Image', 'Modules Count', 'Module Types', 'Categories', 'Categories Count'
+  ];
+
+  function getQuickViewFields(data: Record<string, unknown>) {
+    if (!data) return [];
+    // Try to support both buildPageDebugData and buildPostDebugData shapes
+    return [
+      { label: 'Current Path', value: pathname },
+      { label: 'Page ID', value: data['Page ID'] ?? data['id'] },
+      { label: 'Post ID', value: data['Post ID'] },
+      { label: 'Title', value: data['Title'] ?? data['title'] },
+      { label: 'Slug', value: data['Slug'] ?? data['slug'] },
+      { label: 'Type', value: data['Page Type'] ?? data['type'] },
+      { label: 'Date', value: data['Date'] ?? data['date'] },
+      { label: 'Has Content', value: data['Has Content'] !== undefined ? String(data['Has Content']) : undefined },
+      { label: 'Content Length', value: data['Content Length'] },
+      { label: 'Featured Image', value: data['Featured Image'] },
+      { label: 'Has Featured Image', value: data['Has Featured Image'] },
+      { label: 'Modules Count', value: Array.isArray(data['modules']) ? data['modules'].length : undefined },
+      { label: 'Module Types', value: Array.isArray(data['modules']) ? safeJoin(data['modules'].map((m: Record<string, unknown>) => m.type)) : undefined },
+      { label: 'Categories', value: data['Categories'] ?? data['categories'] ?? data['Categories Count'] },
+    ].filter(f => f.value !== undefined && f.value !== '');
+  }
+
+  // Remove quick view keys from debug grid
+  function getGridFields(data: Record<string, unknown>) {
+    if (!data) return {};
+    const quickLabels = new Set(QUICK_VIEW_KEYS.concat(['id', 'modules', 'categories', 'title', 'slug', 'type', 'pageType', 'date']));
+    // Remove quick view keys and their alternate spellings
+    return Object.fromEntries(Object.entries(data).filter(([key]) => !quickLabels.has(key)));
+  }
+
+  // Helper to safely format values for display in QuickView
+  function formatQuickValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'object') {
+      // Special case: WP REST API fields like { rendered: string }
+      if ('rendered' in (value as Record<string, unknown>) && typeof (value as Record<string, unknown>).rendered === 'string') {
+        return (value as Record<string, unknown>).rendered;
+      }
+      if (Array.isArray(value)) {
+        return safeJoin(value);
+      }
+      // Fallback: JSON for other objects
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return '[Object]';
+      }
+    }
+    return String(value);
+  }
+
+  // Helper to safely join arrays of unknown
+  function safeJoin(arr: unknown[]): string {
+    return arr.map(String).join(', ');
+  }
+
+  // Quick view component
+  function QuickView({ data }: { data: Record<string, unknown> }) {
+    const fields = getQuickViewFields(data);
+    if (!fields.length) return null;
+    return (
+      <div className="mb-4 p-3 bg-yellow-100 rounded border border-yellow-300">
+        {fields.map(f => (
+          <div key={f.label} className="flex flex-row gap-2 text-sm mb-1">
+            <span className="font-semibold text-yellow-900 w-40">{f.label}:</span>
+            <span className="text-yellow-800 break-all">{formatQuickValue(f.value)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Collapsible Raw Debug Data section
+  function RawDebugData({ data }: { data: unknown }) {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <details className="mt-4" open={open} onToggle={e => setOpen(e.currentTarget.open)}>
+        <summary className="cursor-pointer text-yellow-800 hover:text-yellow-900 font-semibold">View Raw Debug Data</summary>
+        <pre className="mt-2 p-2 bg-gray-800 text-white text-xs overflow-auto rounded h-60">
+          {prettyJSON(data)}
+        </pre>
+      </details>
+    );
+  }
 
   // Collapsible list component
   function CollapsibleList({ title, items }: { title: string; items: string[] }) {
@@ -205,45 +292,50 @@ export default function DebugPanel({
   return (
     <>
       <DevInfoButton onClick={() => setIsOpen((v) => !v)} isOpen={isOpen} />
-      {isOpen && (
-        <div ref={panelRef} className="fixed inset-0 z-[10000] flex items-end justify-end pointer-events-none">
-          <div className="m-6 w-full max-w-2xl bg-white border border-yellow-500 rounded shadow-lg pointer-events-auto p-6 relative overflow-y-auto">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold">{title}</h2>
-              <Button onClick={() => setIsOpen(false)} size="sm" variant="outline">Close</Button>
-            </div>
-            {endpointError && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertTitle>API Endpoint Discovery Error</AlertTitle>
-                <AlertDescription>
-                  {endpointError}
-                </AlertDescription>
-              </Alert>
-            )}
-            <div className="overflow-x-auto max-h-[50vh] text-xs bg-gray-50 p-2 rounded mb-2">
-              {customRenderer ? customRenderer(debugData) : (
-                <pre>{prettyJSON(debugData)}</pre>
-              )}
-              {loadingEndpoints && (
-                <div className="mt-2 text-yellow-700 text-xs">
-                  <strong>Loading endpoints...</strong>
-                </div>
-              )}
-            </div>
-            {/* Collapsible lists for endpoints */}
-            <CollapsibleList
-              title="Discovered API Endpoints"
-              items={endpoints}
-            />
-            {endpointError && fallbackEndpoints.length > 0 && (
-              <CollapsibleList
-                title="Endpoints found in data"
-                items={fallbackEndpoints}
-              />
-            )}
+      <div ref={panelRef} className="fixed inset-0 z-[10000] flex items-end justify-end pointer-events-none">
+        <div className={`m-6 w-full max-w-2xl bg-white border border-yellow-500 rounded shadow-lg pointer-events-auto p-6 relative overflow-y-auto ${isOpen ? 'block' : 'hidden'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-bold">{title}</h2>
           </div>
+          {endpointError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>API Endpoint Discovery Error</AlertTitle>
+              <AlertDescription>
+                {endpointError}
+              </AlertDescription>
+            </Alert>
+          )}
+          {/* Quick view summary of API fields */}
+          <QuickView data={debugData} />
+          {/* Render debug grid for remaining fields only */}
+          <div className="overflow-x-auto max-h-[50vh] text-xs bg-gray-50 p-2 rounded mb-2">
+            {customRenderer ? customRenderer(debugData) : (
+              debugData && typeof debugData === 'object' && Object.keys(getGridFields(debugData)).length > 0 ? (
+                renderDebugGrid(getGridFields(debugData))
+              ) : (
+                <pre>{prettyJSON(debugData)}</pre>
+              )
+            )}
+            {loadingEndpoints && (
+              <div className="mt-2 text-yellow-700 text-xs">
+                <LoadingDots text="Loading endpoints" dotsClassName="text-yellow-700" />
+              </div>
+            )}
+            <RawDebugData data={debugData} />
+          </div>
+          {/* Collapsible lists for endpoints */}
+          <CollapsibleList
+            title="Discovered API Endpoints"
+            items={endpoints}
+          />
+          {endpointError && fallbackEndpoints.length > 0 && (
+            <CollapsibleList
+              title="Endpoints found in data"
+              items={fallbackEndpoints}
+            />
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 }
