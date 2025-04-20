@@ -63,23 +63,7 @@ const nextConfig = {
   },
 
   // ===== Webpack Overrides =====
-  webpack: (config, { dev, isServer }) => {
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
 
-    // Remove console.* in production
-    if (!dev && !isServer) {
-      config.optimization.minimizer.forEach((plugin) => {
-        if (plugin.constructor.name === 'TerserPlugin') {
-          plugin.options.terserOptions.compress = {
-            ...plugin.options.terserOptions.compress,
-            drop_console: true,
-          };
-        }
-      });
-    }
-
-    return config;
-  },
 
   // ===== Next.js 15+ Specific =====
   experimental: {
