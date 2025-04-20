@@ -2,49 +2,37 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // ===== Core Config =====
   compress: true,
-  productionBrowserSourceMaps: false, // Optional: reduces bundle size
-  terserOptions: {
-    compress: {
-      // Removes ALL console.* in prod
-      //drop_console: process.env.NODE_ENV === 'production',
-      // OR selectively remove some
-      pure_funcs: ['console.log', 'console.warn'],
-    },
-  },
+  productionBrowserSourceMaps: false,
+
+  // ===== TypeScript =====
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if this project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // ⚠️ Only for temporary use!
   },
+
+  // ===== Image Optimization =====
   images: {
-    domains: [
-      "stegetfore.nu",
-      "www.stegetfore.nu",
-      "secure.gravatar.com", // For WordPress avatars
-      "localhost",
-    ],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "**.stegetfore.nu",
-        pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "**.wp.com", // For WordPress.com hosted images
-        pathname: "/**",
+        hostname: "**.wp.com",
       },
     ],
+    minimumCacheTTL: 3600, // 1 hour cache
   },
+
+  // ===== Routing =====
   async rewrites() {
     return [
       {
         source: "/api/:path*",
         destination: `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-json/:path*`,
       },
-      // Handle posts URLs internally without redirecting
       {
         source: "/:slug",
         destination: "/posts/:slug",
@@ -58,23 +46,44 @@ const nextConfig = {
       },
     ];
   },
+
   async redirects() {
     return [
       {
         source: "/pages/:slug",
         destination: "/:slug",
-        permanent: true, // 308 redirect
+        permanent: true,
       },
       {
         source: "/page/:slug",
         destination: "/:slug",
-        permanent: true, // 308 redirect
+        permanent: true,
       },
     ];
   },
-  webpack: (config) => {
+
+  // ===== Webpack Overrides =====
+  webpack: (config, { dev, isServer }) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+
+    // Remove console.* in production
+    if (!dev && !isServer) {
+      config.optimization.minimizer.forEach((plugin) => {
+        if (plugin.constructor.name === 'TerserPlugin') {
+          plugin.options.terserOptions.compress = {
+            ...plugin.options.terserOptions.compress,
+            drop_console: true,
+          };
+        }
+      });
+    }
+
     return config;
+  },
+
+  // ===== Next.js 15+ Specific =====
+  experimental: {
+    optimizeCss: true, // CSS minification (enabled by default in 15+)
   },
 };
 
