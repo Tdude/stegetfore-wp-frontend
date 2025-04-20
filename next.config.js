@@ -2,6 +2,16 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true,
+  productionBrowserSourceMaps: false, // Optional: reduces bundle size
+  terserOptions: {
+    compress: {
+      // Removes ALL console.* in prod
+      //drop_console: process.env.NODE_ENV === 'production',
+      // OR selectively remove some
+      pure_funcs: ['console.log', 'console.warn'],
+    },
+  },
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if this project has type errors.
