@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import DebugPanel from '@/components/debug/DebugPanel';
 import { calculateReadingTime } from '@/lib/utils/readingTime';
 import { buildBlogDebugData } from '@/lib/debug/buildBlogDebugData';
+import { decode } from 'he'; // Import the decode function
 
 // Define interfaces for blog page types
 interface CategoryDisplay {
@@ -109,18 +110,27 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
             <span dangerouslySetInnerHTML={{ __html: post.title?.rendered || '' }} />
           </CardTitle>
           
-          {/* Excerpt */}
-          {!isCompact && (
-            <div 
-              className={`text-muted-foreground ${isWide ? 'line-clamp-5' : 'line-clamp-3'} mb-4`}
-              dangerouslySetInnerHTML={{ 
-                __html: post.content?.rendered 
-                  ? post.content.rendered.substring(0, excerptLimit) + 
-                    (post.content.rendered.length > excerptLimit ? '...' : '') 
-                  : '' 
-              }}
-            />
-          )}
+          {/* Excerpt - Render as plain text to avoid hydration issues */}
+          {!isCompact && (() => {
+            if (!post?.content?.rendered) return null;
+            try {
+              // Strip HTML tags using RegExp constructor for robustness
+              const htmlTagRegex = new RegExp('<\\/?[^>]+(>|$)', 'g');
+              const text = post.content.rendered.replace(htmlTagRegex, '');
+              // Decode HTML entities
+              const decodedText = decode(text);
+              // Truncate plain text
+              const truncatedText = decodedText.substring(0, excerptLimit) + (decodedText.length > excerptLimit ? '...' : '');
+              return (
+                <div className={`text-muted-foreground ${isWide ? 'line-clamp-5' : 'line-clamp-3'} mb-4`}>
+                  {truncatedText} 
+                </div>
+              );
+            } catch (error) {
+              console.error('Error processing excerpt text:', error);
+              return null; // Don't render excerpt if error
+            }
+          })()}
         </div>
         
         {/* Read more button */}
@@ -137,10 +147,11 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
   );
   
   return (
-    <Card className="h-full overflow-hidden">
-      <div className={isWide ? 'md:flex' : ''}>
-        {cardContent}
-      </div>
+    <Card className={cn(
+      "h-full overflow-hidden",
+      isWide ? 'md:flex' : ''
+    )}>
+      {cardContent}
     </Card>
   );
 }
