@@ -107,12 +107,18 @@ export default function DebugPanel({
   const [mounted, setMounted] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
+  // Prepare stable dependencies for the endpoint discovery effect
+  const stringifiedProvidedDebugData = JSON.stringify(providedDebugData);
+  const stringifiedAdditionalData = JSON.stringify(additionalData);
+  const stringifiedPage = JSON.stringify(page);
+
   React.useEffect(() => {
     setDebugEnabled(process.env.NEXT_PUBLIC_DEBUG_MODE === 'true');
     setMounted(true);
   }, []);
 
-  // Only attempt endpoint discovery once per route (not per open or data change)
+  // Silence exhaustive-deps warning: we intentionally use stringified dependencies for efficiency and correctness
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     setLoadingEndpoints(true);
@@ -133,11 +139,10 @@ export default function DebugPanel({
     }
   }, [
     pathname, 
-    // Use JSON.stringify to depend on content, not reference
-    JSON.stringify(providedDebugData),
-    JSON.stringify(additionalData),
-    JSON.stringify(page)
-  ]); 
+    stringifiedProvidedDebugData,
+    stringifiedAdditionalData,
+    stringifiedPage
+  ]);
 
   // Add Escape key to close
   React.useEffect(() => {
