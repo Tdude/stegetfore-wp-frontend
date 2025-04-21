@@ -131,7 +131,13 @@ export default function DebugPanel({
     } finally {
       setLoadingEndpoints(false);
     }
-  }, [pathname, providedDebugData, additionalData, page]);
+  }, [
+    pathname, 
+    // Use JSON.stringify to depend on content, not reference
+    JSON.stringify(providedDebugData),
+    JSON.stringify(additionalData),
+    JSON.stringify(page)
+  ]); 
 
   // Add Escape key to close
   React.useEffect(() => {
