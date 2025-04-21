@@ -17,6 +17,8 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
 
   const finalImageUrl = React.useMemo(() => {
     const featuredImage: string | string[] | null | undefined = module.featured_image;
+    console.log('Featured image data:', featuredImage);
+
     if (typeof featuredImage === 'string') {
       return featuredImage;
     } else if (Array.isArray(featuredImage) && (featuredImage as string[]).length > 0) {
@@ -65,6 +67,8 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
               alt={module.title || "Hero background"}
               fill={true}
               priority={true}
+              quality={100}
+              unoptimized={true}
               className="object-cover"
               fallbackSrc="/images/hero-fallback.jpg"
             />
