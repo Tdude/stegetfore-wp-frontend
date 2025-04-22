@@ -43,6 +43,7 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
   };
 
   const heightClass = heightClasses[module.height as 'small' | 'medium' | 'large' || 'large'];
+  const isSvg = finalImageUrl.toLowerCase().endsWith('.svg');
 
   return (
     <section
@@ -62,16 +63,24 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
           </div>
         ) : (
           <div className="relative w-full h-full">
-            <NextImage
-              src={finalImageUrl}
-              alt={module.title || "Hero background"}
-              fill={true}
-              priority={true}
-              quality={100}
-              unoptimized={true}
-              className="object-cover"
-              fallbackSrc="/images/hero-fallback.jpg"
-            />
+            {isSvg ? (
+              <img 
+                src={finalImageUrl}
+                alt={module.title || "Hero background"}
+                className="absolute inset-0 w-full h-full"
+                style={{ objectFit: 'contain' }} // Use 'contain' for SVGs instead of 'cover'
+              />
+            ) : (
+              <NextImage
+                src={finalImageUrl}
+                alt={module.title || "Hero background"}
+                fill={true}
+                priority={true}
+                unoptimized={true}
+                className="object-cover"
+                fallbackSrc="/images/hero-fallback.jpg"
+              />
+            )}
           </div>
         )}
         <div
