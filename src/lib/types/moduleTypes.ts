@@ -99,16 +99,19 @@ export interface SellingPointsModule extends BaseModule {
 /**
  * Testimonials module
  */
+export interface TestimonialItem {
+  id?: number;
+  text: string;
+  author: string;
+  position?: string;
+  image?: string;
+  rating?: number;
+}
+
 export interface TestimonialsModule extends BaseModule {
   type: "testimonials";
   title?: string;
-  testimonials: Array<{
-    id: number;
-    content: string;
-    author_name: string;
-    author_position?: string;
-    author_image?: string;
-  }>;
+  testimonials: TestimonialItem[];
   display_style?: "carousel" | "grid" | "list";
   display_count?: number;
 }

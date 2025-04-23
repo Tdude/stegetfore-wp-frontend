@@ -93,20 +93,20 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
                   <CardContent className="pt-6">
                     <div
                       className="text-lg text-muted-foreground mb-4"
-                      dangerouslySetInnerHTML={{ __html: testimonial.content }}
+                      dangerouslySetInnerHTML={{ __html: testimonial.text }}
                     />
                   </CardContent>
                   <CardFooter className="flex items-center gap-4 pt-0">
                     <Avatar className="m-2 h-10 w-10">
-                      {testimonial.author_image ? (
-                        <AvatarImage src={testimonial.author_image} alt={testimonial.author_name} />
+                      {testimonial.image ? (
+                        <AvatarImage src={testimonial.image} alt={testimonial.author} />
                       ) : (
-                        <AvatarFallback>{testimonial.author_name?.[0] || 'A'}</AvatarFallback>
+                        <AvatarFallback>{testimonial.author?.[0] || 'A'}</AvatarFallback>
                       )}
                     </Avatar>
                     <div>
-                      <p className="font-medium">{testimonial.author_name || 'Anonymous'}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.author_position || ''}</p>
+                      <p className="font-medium">{testimonial.author || 'Anonymous'}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.position || ''}</p>
                     </div>
                   </CardFooter>
                 </Card>
