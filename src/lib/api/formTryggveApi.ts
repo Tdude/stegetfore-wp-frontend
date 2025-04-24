@@ -37,11 +37,23 @@ interface EvaluationAPIResponse {
 // JWT token handling
 let token: string | null = null;
 
+// On load, initialize token from localStorage if present
+if (typeof window !== 'undefined') {
+  const storedToken = localStorage.getItem('auth_token');
+  if (storedToken) {
+    token = storedToken;
+    // Optionally: console.log('Auth token loaded from localStorage');
+  }
+}
+
 /**
  * Set the JWT token for API requests
  */
 const setTokenInternal = (newToken: string) => {
   token = newToken;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('auth_token', newToken);
+  }
   console.log('Auth token set');
 };
 
@@ -50,6 +62,9 @@ const setTokenInternal = (newToken: string) => {
  */
 const clearTokenInternal = () => {
   token = null;
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('auth_token');
+  }
   console.log('Auth token cleared');
 };
 
@@ -341,7 +356,7 @@ export const evaluationApi = {
       }
       
       // Log the complete data structure - this helps diagnose exactly where the questions are located
-      console.log('Complete API response structure:', JSON.stringify(data, null, 2));
+      // console.log('Complete API response structure:', JSON.stringify(data, null, 2));
       
       // If still no data, use default structure
       if (!data) {
