@@ -469,6 +469,26 @@ export const evaluationApi = {
   },
 };
 
+// --- JWT User Info Type ---
+export interface JwtUserInfo {
+  user_id: number;
+  exp: number;
+  [key: string]: any;
+}
+
+// --- Expiry Validation Helper ---
+const isTokenValid = () => {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (!payload.exp) return false;
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp > now;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * API route handler for authentication
  */
@@ -492,25 +512,21 @@ export const authApi = {
    */
   login: async (username: string, password: string) => {
     try {
-      // Use the Next.js API route instead of calling WordPress directly
-      const response = await fetch('/api/auth', {
+      // Directly call the WordPress JWT endpoint (example: /wp-json/jwt-auth/v1/token)
+      const response = await fetch(`${API_URL}/jwt-auth/v1/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          action: 'login',
           username, 
           password 
         }),
       });
-      
       const data = await response.json();
-      
       if (data.token) {
         setTokenInternal(data.token);
       }
-      
       return data;
     } catch {
       console.error('Error during login:');
@@ -519,62 +535,27 @@ export const authApi = {
   },
 
   /**
-   * Get current user information including student ID if available
+   * Validate JWT token (checks presence and expiry)
    */
-  getCurrentUser: async () => {
-    try {
-      // Validate token first
-      const isValid = await authApi.validateToken();
-      if (!isValid) {
-        return null;
-      }
-      
-      // Use the Next.js API route
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          action: 'user',
-          token
-        }),
-      });
-      
-      return await response.json();
-    } catch {
-      console.error('Error getting current user:');
-      return null;
-    }
+  validateToken: async () => {
+    return isTokenValid();
   },
 
   /**
-   * Validate JWT token
+   * Get current user info from JWT (decode payload, robust)
    */
-  validateToken: async () => {
-    if (!token) return false;
-
+  getCurrentUser: async (): Promise<JwtUserInfo | null> => {
+    if (!token) return null;
     try {
-      // Use the Next.js API route
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          action: 'validate',
-          token
-        }),
-      });
-      
-      const data = await response.json();
-      return data.valid === true;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (!payload.user_id || !payload.exp) return null;
+      // Optionally, check expiry again
+      if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+      return payload as JwtUserInfo;
     } catch {
-      console.error('Error validating token:');
-      clearTokenInternal();
-      return false;
+      return null;
     }
-  }
+  },
 };
 
 // Helper function to get default anknytning questions
