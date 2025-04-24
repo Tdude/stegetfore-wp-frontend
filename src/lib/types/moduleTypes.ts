@@ -246,8 +246,10 @@ export interface TabsModule extends BaseModule {
     title: string;
     content: string;
     icon?: string;
+    image?: string;
+    imageAlign?: "left" | "right";
   }>;
-  orientation?: "horizontal" | "vertical";
+  layout?: "horizontal" | "vertical";
   default_tab_index?: number;
   order?: number;
   typeOrder?: number;
