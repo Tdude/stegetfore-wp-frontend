@@ -85,14 +85,14 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
             />
           )}
 
-          <h1 className="text-4xl font-bold mb-6 text-center">
+          <h1 className="text-4xl font-bold mb-6">
             <div dangerouslySetInnerHTML={{ __html: page.title.rendered }} />
           </h1>
 
           {/* Content before the form */}
           {shouldShowContentBefore && pageContent && (
             <Card className="mb-12">
-              <CardContent className="pt-6">
+              <CardContent>
                 <div
                   className="prose max-w-none"
                   dangerouslySetInnerHTML={{ __html: pageContent }}

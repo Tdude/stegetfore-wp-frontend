@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -23,11 +22,6 @@ interface FormErrors {
   message?: string;
 }
 
-interface ContactFormProps {
-  title?: string;
-  subtitle?: string;
-}
-
 // Initial form state
 const initialFormState: FormState = {
   name: '',
@@ -36,10 +30,7 @@ const initialFormState: FormState = {
   message: ''
 };
 
-export default function ContactForm({
-  title = "Kontakta oss",
-  subtitle = "Fyll i formuläret så återkommer vi till dig inom kort."
-}: ContactFormProps) {
+export default function (ContactForm) {
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,99 +126,70 @@ export default function ContactForm({
   }, [formData, isSubmitted]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
-        {subtitle && (
-          <p className="text-center text-muted-foreground mt-2">{subtitle}</p>
-        )}
-      </CardHeader>
-      <CardContent>
-        {isSubmitted ? (
-          <div className="text-center py-8">
-            <h3 className="text-xl font-semibold mb-4">Tack för ditt meddelande!</h3>
-            <p className="mb-6">Vi återkommer till dig så snart som möjligt.</p>
-            <Button
-              onClick={() => setIsSubmitted(false)}
-              variant="outline"
-            >
-              Skicka ett nytt meddelande
-            </Button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Namn</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Ditt namn"
-                className={errors.name ? "border-red-500" : ""}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm">{errors.name}</p>
-              )}
-            </div>
+    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      {/* Name field */}
+      <div>
+        <Label htmlFor="name">Namn</Label>
+        <Input
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className={errors.name ? 'border-red-500' : ''}
+        />
+        {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-post</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="din.epost@exempel.se"
-                className={errors.email ? "border-red-500" : ""}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
-              )}
-            </div>
+      {/* Email field */}
+      <div>
+        <Label htmlFor="email">E-post</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className={errors.email ? 'border-red-500' : ''}
+        />
+        {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="subject">Ämne</Label>
-              <Input
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                placeholder="Vad gäller ditt meddelande?"
-                className={errors.subject ? "border-red-500" : ""}
-              />
-              {errors.subject && (
-                <p className="text-red-500 text-sm">{errors.subject}</p>
-              )}
-            </div>
+      {/* Subject field */}
+      <div>
+        <Label htmlFor="subject">Ämne</Label>
+        <Input
+          id="subject"
+          name="subject"
+          value={formData.subject}
+          onChange={handleChange}
+          required
+          className={errors.subject ? 'border-red-500' : ''}
+        />
+        {errors.subject && <p className="text-sm text-red-500 mt-1">{errors.subject}</p>}
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="message">Meddelande</Label>
-              <Textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Beskriv ditt ärende..."
-                rows={5}
-                className={errors.message ? "border-red-500" : ""}
-              />
-              {errors.message && (
-                <p className="text-red-500 text-sm">{errors.message}</p>
-              )}
-            </div>
+      {/* Message field */}
+      <div>
+        <Label htmlFor="message">Meddelande</Label>
+        <Textarea
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          required
+          className={errors.message ? 'border-red-500' : ''}
+        />
+        {errors.message && <p className="text-sm text-red-500 mt-1">{errors.message}</p>}
+      </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Skickar..." : "Skicka meddelande"}
-            </Button>
-          </form>
-        )}
-      </CardContent>
-    </Card>
+      {/* Submit button */}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting} className="min-w-32">
+          {isSubmitting ? 'Skickar...' : 'Skicka'}
+        </Button>
+      </div>
+    </form>
   );
 }
