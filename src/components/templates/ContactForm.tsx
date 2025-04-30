@@ -7,30 +7,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
+import { submitForm } from '@/lib/api/formApi';
 
+interface ContactFormProps {
+  formId: number;
+}
+
+// Default field names from WPCF7
 interface FormState {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
+  'your-name': string;
+  'your-email': string;
+  'your-message': string;
 }
 
 interface FormErrors {
-  name?: string;
-  email?: string;
-  subject?: string;
-  message?: string;
+  'your-name'?: string;
+  'your-email'?: string;
+  'your-message'?: string;
 }
 
 // Initial form state
 const initialFormState: FormState = {
-  name: '',
-  email: '',
-  subject: '',
-  message: ''
+  'your-name': '',
+  'your-email': '',
+  'your-message': ''
 };
 
-export default function (ContactForm) {
+export default function ContactForm({ formId }: ContactFormProps) {
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,34 +43,28 @@ export default function (ContactForm) {
     const newErrors: FormErrors = {};
     let isValid = true;
 
-    // Validate name
-    if (!formData.name.trim()) {
-      newErrors.name = 'Namn är obligatoriskt';
+    // Validate your-name
+    if (!formData['your-name'].trim()) {
+      newErrors['your-name'] = 'Namn är obligatoriskt';
       isValid = false;
     }
 
-    // Validate email
+    // Validate your-email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = 'E-post är obligatoriskt';
+    if (!formData['your-email'].trim()) {
+      newErrors['your-email'] = 'E-post är obligatoriskt';
       isValid = false;
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Ange en giltig e-postadress';
-      isValid = false;
-    }
-
-    // Validate subject
-    if (!formData.subject.trim()) {
-      newErrors.subject = 'Ämne är obligatoriskt';
+    } else if (!emailRegex.test(formData['your-email'])) {
+      newErrors['your-email'] = 'Ange en giltig e-postadress';
       isValid = false;
     }
 
-    // Validate message
-    if (!formData.message.trim()) {
-      newErrors.message = 'Meddelande är obligatoriskt';
+    // Validate your-message
+    if (!formData['your-message'].trim()) {
+      newErrors['your-message'] = 'Meddelande är obligatoriskt';
       isValid = false;
-    } else if (formData.message.trim().length < 10) {
-      newErrors.message = 'Meddelandet är för kort (minst 10 tecken)';
+    } else if (formData['your-message'].trim().length < 10) {
+      newErrors['your-message'] = 'Meddelandet är för kort (minst 10 tecken)';
       isValid = false;
     }
 
@@ -102,13 +99,16 @@ export default function (ContactForm) {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Success
-      toast.success('Tack för ditt meddelande!');
-      setFormData(initialFormState);
-      setIsSubmitted(true);
+      // Submit to backend
+      const response = await submitForm(formId, formData);
+      if (response.status === 'mail_sent') {
+        toast.success(response.message || 'Tack för ditt meddelande!');
+        setFormData(initialFormState);
+        setIsSubmitted(true);
+      } else {
+        toast.error(response.message || 'Något gick fel. Försök igen senare.');
+        setErrors(prev => ({ ...prev, ...response.invalidFields?.reduce((acc, field) => ({ ...acc, [field.field]: field.message }), {}) }));
+      }
     } catch (error) {
       toast.error('Något gick fel. Försök igen senare.');
       console.error('Form submission error:', error);
@@ -120,7 +120,7 @@ export default function (ContactForm) {
   // Reset the submitted state if the user starts typing again
   useEffect(() => {
     if (isSubmitted &&
-        (formData.name || formData.email || formData.subject || formData.message)) {
+        (formData['your-name'] || formData['your-email'] || formData['your-message'])) {
       setIsSubmitted(false);
     }
   }, [formData, isSubmitted]);
@@ -129,59 +129,45 @@ export default function (ContactForm) {
     <form onSubmit={handleSubmit} className="space-y-6 p-6">
       {/* Name field */}
       <div>
-        <Label htmlFor="name">Namn</Label>
+        <Label htmlFor="your-name">Namn</Label>
         <Input
-          id="name"
-          name="name"
-          value={formData.name}
+          id="your-name"
+          name="your-name"
+          value={formData['your-name']}
           onChange={handleChange}
           required
-          className={errors.name ? 'border-red-500' : ''}
+          className={errors['your-name'] ? 'border-red-500' : ''}
         />
-        {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+        {errors['your-name'] && <p className="text-sm text-red-500 mt-1">{errors['your-name']}</p>}
       </div>
 
       {/* Email field */}
       <div>
-        <Label htmlFor="email">E-post</Label>
+        <Label htmlFor="your-email">E-post</Label>
         <Input
-          id="email"
-          name="email"
+          id="your-email"
+          name="your-email"
           type="email"
-          value={formData.email}
+          value={formData['your-email']}
           onChange={handleChange}
           required
-          className={errors.email ? 'border-red-500' : ''}
+          className={errors['your-email'] ? 'border-red-500' : ''}
         />
-        {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-      </div>
-
-      {/* Subject field */}
-      <div>
-        <Label htmlFor="subject">Ämne</Label>
-        <Input
-          id="subject"
-          name="subject"
-          value={formData.subject}
-          onChange={handleChange}
-          required
-          className={errors.subject ? 'border-red-500' : ''}
-        />
-        {errors.subject && <p className="text-sm text-red-500 mt-1">{errors.subject}</p>}
+        {errors['your-email'] && <p className="text-sm text-red-500 mt-1">{errors['your-email']}</p>}
       </div>
 
       {/* Message field */}
       <div>
-        <Label htmlFor="message">Meddelande</Label>
+        <Label htmlFor="your-message">Meddelande</Label>
         <Textarea
-          id="message"
-          name="message"
-          value={formData.message}
+          id="your-message"
+          name="your-message"
+          value={formData['your-message']}
           onChange={handleChange}
           required
-          className={errors.message ? 'border-red-500' : ''}
+          className={errors['your-message'] ? 'border-red-500' : ''}
         />
-        {errors.message && <p className="text-sm text-red-500 mt-1">{errors.message}</p>}
+        {errors['your-message'] && <p className="text-sm text-red-500 mt-1">{errors['your-message']}</p>}
       </div>
 
       {/* Submit button */}

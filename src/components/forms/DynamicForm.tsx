@@ -1,3 +1,5 @@
+// NOT USED: This form component is not currently wired up or rendered in the app. See ContactForm.tsx for the active contact form.
+
 // src/components/forms/DynamicForm.tsx
 'use client';
 
@@ -199,22 +201,14 @@ export default function DynamicForm({
         );
 
         if (response.status === 'mail_sent') {
-          toast.success(successMessage);
           setIsSubmitted(true);
           setFormData(createInitialFormValues(form));
           setErrors({});
           setTouched({});
+          toast.success(response.message || successMessage);
         } else {
           toast.error(response.message || errorMessage);
-
-          // Set validation errors if returned from server
-          if (response.invalidFields?.length) {
-            const serverErrors: Record<string, string> = {};
-            response.invalidFields.forEach(field => {
-              serverErrors[field.field] = field.message;
-            });
-            setErrors(serverErrors);
-          }
+          setErrors(response.invalidFields?.reduce((acc, field) => ({ ...acc, [field.field]: field.message }), {}));
         }
       }
     } catch (error) {

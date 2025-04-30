@@ -102,7 +102,7 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
           )}
 
           {/* Contact form */}
-          <ContactForm />
+          <ContactForm formId={Number(page?.meta?.cf7_form_id) || 146} />
           
           {/* Content after the form */}
           {shouldShowContentAfter && pageContent && (
