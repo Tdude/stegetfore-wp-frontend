@@ -14,11 +14,7 @@ interface ContactFormProps {
 }
 
 // Default field names from WPCF7
-interface FormState {
-  'your-name': string;
-  'your-email': string;
-  'your-message': string;
-}
+type FormState = Record<string, string>;
 
 interface FormErrors {
   'your-name'?: string;

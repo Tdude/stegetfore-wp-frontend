@@ -473,7 +473,7 @@ export const evaluationApi = {
 export interface JwtUserInfo {
   user_id: number;
   exp: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // --- Expiry Validation Helper ---

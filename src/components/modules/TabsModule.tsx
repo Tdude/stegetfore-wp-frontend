@@ -5,7 +5,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TabsModule } from "@/lib/types/";
 import { cn } from '@/lib/utils';
-
+import Image from 'next/image';
 
 interface TabsModuleProps {
   module: TabsModule;
@@ -92,11 +92,14 @@ export default function TabsModule({ module, className }: TabsModuleProps) {
                   >
                     {tab.image && (
                       <div className={`flex flex-col md:flex-row ${tab.imageAlign === 'right' ? 'md:flex-row-reverse' : ''} items-center gap-6`}>
-                        <img
+                        <Image
                           src={tab.image}
                           alt={tab.title}
                           className="mb-4 md:mb-0 rounded max-w-full h-auto md:w-1/2"
                           style={{ maxHeight: '200px', objectFit: 'contain' }}
+                          width={400}
+                          height={200}
+                          unoptimized={true}
                         />
                         <div
                           className="p-4 rounded-md mt-2 md:mt-0 md:w-1/2"
@@ -151,11 +154,14 @@ export default function TabsModule({ module, className }: TabsModuleProps) {
                 >
                   {tab.image && (
                     <div className={`flex flex-col md:flex-row ${tab.imageAlign === 'right' ? 'md:flex-row-reverse' : ''} items-center gap-6`}>
-                      <img
+                      <Image
                         src={tab.image}
                         alt={tab.title}
                         className="mb-4 md:mb-0 rounded max-w-full h-auto md:w-1/2"
                         style={{ maxHeight: '200px', objectFit: 'contain' }}
+                        width={400}
+                        height={200}
+                        unoptimized={true}
                       />
                       <div
                         className="p-4 rounded-md mt-2 md:mt-0 md:w-1/2"

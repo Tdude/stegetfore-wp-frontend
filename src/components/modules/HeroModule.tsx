@@ -5,6 +5,7 @@ import React from 'react';
 import type { HeroModule } from '@/lib/types/index';
 import { Button } from '@/components/ui/button';
 import NextImage from '@/components/NextImage';
+import Image from 'next/image';
 import { cn, cleanWordPressContent } from '@/lib/utils';
 
 interface HeroModuleProps {
@@ -64,11 +65,15 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
         ) : (
           <div className="relative w-full h-full">
             {isSvg ? (
-              <img 
+              <Image
                 src={finalImageUrl}
                 alt={module.title || "Hero background"}
                 className="absolute inset-0 w-full h-full"
-                style={{ objectFit: 'contain' }} // Use 'contain' for SVGs instead of 'cover'
+                style={{ objectFit: 'contain' }}
+                width={800}
+                height={600}
+                unoptimized={true}
+                priority={true}
               />
             ) : (
               <NextImage
