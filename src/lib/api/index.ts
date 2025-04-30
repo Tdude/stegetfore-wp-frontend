@@ -8,6 +8,7 @@ export {
   fetchPost,
   fetchPostsByIds,
   fetchFeaturedPosts,
+  fetchPaginatedPosts,
 } from "./postApi";
 
 // Page API functions

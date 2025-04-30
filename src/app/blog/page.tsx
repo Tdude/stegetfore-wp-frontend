@@ -6,8 +6,8 @@
 // This is the main blog listing component used at /blog route
 import { Suspense } from 'react';
 import { fetchPosts, fetchCategories } from '@/lib/api';
+import { fetchPaginatedPostsWP } from '@/lib/api/postApi';
 import { Post, Category } from '@/lib/types/contentTypes';
-import { PostSkeleton } from '@/components/PostSkeleton';
 import NextImage from '@/components/NextImage';
 import Link from 'next/link';
 import { Card, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import DebugPanel from '@/components/debug/DebugPanel';
 import { calculateReadingTime } from '@/lib/utils/readingTime';
 import { buildBlogDebugData } from '@/lib/debug/buildBlogDebugData';
 import { decode } from 'he'; // Import the decode function
+import { useSearchParams } from 'next/navigation';
 
 // Define interfaces for blog page types
 interface CategoryDisplay {
@@ -32,19 +33,6 @@ interface CategoriesMap {
 interface BlogPostsData {
   posts: Post[];
   categories: CategoriesMap;
-}
-
-// Fetch posts with categories
-async function fetchPostsWithCategories(): Promise<BlogPostsData> {
-  const [posts, categoriesData] = await Promise.all([
-    fetchPosts(),
-    fetchCategories()
-  ]);
-
-  return {
-    posts,
-    categories: categoriesData
-  };
 }
 
 // Helper function to safely get array elements with fallbacks
@@ -70,6 +58,7 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
       {post.featured_image_url && (
         <div className={`relative ${isCompact ? 'aspect-[4/3]' : 'aspect-video'} ${isWide ? 'md:w-1/2 md:aspect-auto md:h-[350px]' : ''} overflow-hidden`}>
           <NextImage
+            key={post.id + ':' + post.featured_image_url}
             src={post.featured_image_url}
             htmlTitle={post.title?.rendered || ''}
             fill
@@ -156,85 +145,172 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
   );
 }
 
-// Main content component that handles data fetching
-async function BlogContent() {
-  const { posts, categories } = await fetchPostsWithCategories();
-  const safetyPosts = Array.isArray(posts) ? posts : [];
+// Helper function to fetch posts and total count from WP API
+async function fetchPaginatedPosts(page: number, perPage: number = 12): Promise<{ posts: Post[]; total: number; }> {
+  // Use the WP v2 API with _embed for images and pagination
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    per_page: perPage.toString(),
+    _embed: 'true',
+  });
+  const response = await fetch(`/wp-json/wp/v2/posts?${queryParams.toString()}`);
+  const posts = await response.json();
+  const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
+  return { posts, total };
+}
 
-  // Build debug data for the blog index
-  const debugData = buildBlogDebugData(safetyPosts, Object.values(categories));
+// Main content component that handles data fetching
+async function BlogContent({ page }: { page: number }) {
+  const POSTS_PER_PAGE = 12;
+  // Use paginated fetch with _embed for images
+  const { posts, total } = await fetchPaginatedPostsWP(page, POSTS_PER_PAGE);
+  // Fetch categories as before
+  const categories = await fetchCategories();
+
+  const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
+  const pagePosts = posts;
+  const debugData = buildBlogDebugData(posts, Object.values(categories));
+
+  // Split posts for layout logic
+  const firstPost = pagePosts[0];
+  // Responsive grid: 3 columns on desktop, 2 on tablet, 1 on mobile
+  const GRID_COLS = 3; // You can make this dynamic if you want
+  let middlePosts: Post[] = [];
+  let lastPosts: Post[] = [];
+
+  // Calculate how many posts should be in the last row (1 or 2)
+  const postsAfterFirst = pagePosts.slice(1);
+  let lastRowCount = 0;
+  if (postsAfterFirst.length % GRID_COLS === 1) {
+    lastRowCount = 1;
+  } else if (postsAfterFirst.length % GRID_COLS === 2) {
+    lastRowCount = 2;
+  }
+  // Only split off last 1 or 2 posts if it will not leave a gap in the grid
+  if (lastRowCount > 0 && postsAfterFirst.length > GRID_COLS) {
+    middlePosts = postsAfterFirst.slice(0, postsAfterFirst.length - lastRowCount);
+    lastPosts = postsAfterFirst.slice(postsAfterFirst.length - lastRowCount);
+  } else {
+    middlePosts = postsAfterFirst;
+    lastPosts = [];
+  }
+
+  // If only 1 post remains at the end, make a middle post wide (pick the first middle post)
+  let wideMiddleIndex = -1;
+  if (lastPosts.length === 1 && middlePosts.length > 0) {
+    wideMiddleIndex = 0; // or random index for more variety
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">I fokus</h1>
 
       {/* Blog posts with specific layout */}
-      {safetyPosts.length > 0 && (
+      {pagePosts.length > 0 && (
         <div className="space-y-8">
           {/* FIRST post - full width */}
-          <div className="w-full">
-            <Link href={`/posts/${safetyPosts[0]?.slug || '#'}`} className="block h-full">
-              {renderPostCard(safetyPosts[0], categories, 'wide')}
-            </Link>
-          </div>
+          {firstPost && (
+            <div className="w-full">
+              <Link href={`/posts/${firstPost.slug || '#'}`} className="block h-full">
+                {renderPostCard(firstPost, categories, 'wide')}
+              </Link>
+            </div>
+          )}
 
-          {/* Middle posts - standard grid */}
-          {safetyPosts.length > 3 && (
+          {/* Middle posts - standard grid, except possibly one wide */}
+          {middlePosts.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {safetyPosts.slice(1, safetyPosts.length - 2).map((post) => (
-                <Link key={post.id} href={`/posts/${post.slug || '#'}`} className="block h-full">
-                  {renderPostCard(post, categories, 'standard')}
+              {middlePosts.map((post, idx) => (
+                <Link key={post.id} href={`/posts/${post.slug || '#'}`} className="block h-full col-span-1">
+                  {renderPostCard(post, categories, wideMiddleIndex === idx ? 'wide' : 'standard')}
                 </Link>
               ))}
             </div>
           )}
 
-          {/* LAST TWO posts - 50/50 or full width */}
-          {safetyPosts.length > 1 && (
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Second-to-last post */}
-              {safetyPosts.length > 1 && (
-                <Link 
-                  href={`/posts/${getSafePost(safetyPosts, safetyPosts.length - 2)?.slug || '#'}`} 
-                  className="block h-full"
-                >
-                  {renderPostCard(getSafePost(safetyPosts, safetyPosts.length - 2), categories, 'standard')}
+          {/* LAST posts - 1 or 2 at the end */}
+          {lastPosts.length > 0 && (
+            <div className={`grid gap-6 ${lastPosts.length === 2 ? 'sm:grid-cols-2' : ''}`}>
+              {lastPosts.map((post, idx) => (
+                <Link key={post.id} href={`/posts/${post.slug || '#'}`} className={`block h-full ${lastPosts.length === 1 ? 'sm:col-span-2' : ''}`}>
+                  {renderPostCard(post, categories, lastPosts.length === 1 ? 'wide' : 'standard')}
                 </Link>
-              )}
-
-              {/* Last post - either 50% or full width */}
-              <Link 
-                href={`/posts/${getSafePost(safetyPosts, safetyPosts.length - 1)?.slug || '#'}`} 
-                className={`block h-full ${safetyPosts.length % 2 === 0 ? "" : "sm:col-span-2"}`}
-              >
-                {renderPostCard(
-                  getSafePost(safetyPosts, safetyPosts.length - 1), 
-                  categories, 
-                  safetyPosts.length % 2 === 0 ? 'standard' : 'wide'
-                )}
-              </Link>
+              ))}
             </div>
           )}
         </div>
       )}
 
+      {/* Pagination bar */}
+      {totalPages > 1 && (
+        <PaginationBar currentPage={page} totalPages={totalPages} />
+      )}
+
       {/* Show a message if no posts */}
-      {safetyPosts.length === 0 && (
+      {pagePosts.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-600">Inga inlägg hittades.</p>
         </div>
       )}
 
       {/* DebugPanel for blog index */}
-      <DebugPanel debugData={debugData} additionalData={{ posts: safetyPosts, categories }} />
+      <DebugPanel debugData={debugData} additionalData={{ posts: pagePosts, categories, total, page }} />
     </div>
   );
 }
 
-export default function BlogPage() {
+// PaginationBar: pills with arrows and page numbers
+function PaginationBar({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
+  const createPageLink = (page: number) => page === 1 ? '/blog' : `/blog?page=${page}`;
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   return (
-    <Suspense fallback={<PostSkeleton />}>
-      <BlogContent />
+    <nav className="flex justify-center items-center gap-2 mt-12" aria-label="Blog Pagination">
+      <Link
+        href={createPageLink(currentPage - 1)}
+        aria-disabled={currentPage === 1}
+        tabIndex={currentPage === 1 ? -1 : 0}
+        className={cn(
+          badgeVariants({ variant: 'secondary' }),
+          'inline-block',
+          currentPage === 1 ? 'opacity-50 pointer-events-none' : ''
+        )}
+      >
+        ←
+      </Link>
+      {pageNumbers.map((num) => (
+        <Link
+          key={num}
+          href={createPageLink(num)}
+          aria-current={num === currentPage ? 'page' : undefined}
+          className={cn(
+            badgeVariants({ variant: num === currentPage ? 'default' : 'secondary' }),
+            'inline-block'
+          )}
+        >
+          {num}
+        </Link>
+      ))}
+      <Link
+        href={createPageLink(currentPage + 1)}
+        aria-disabled={currentPage === totalPages}
+        tabIndex={currentPage === totalPages ? -1 : 0}
+        className={cn(
+          badgeVariants({ variant: 'secondary' }),
+          'inline-block',
+          currentPage === totalPages ? 'opacity-50 pointer-events-none' : ''
+        )}
+      >
+        →
+      </Link>
+    </nav>
+  );
+}
+
+export default function BlogPage({ searchParams }: { searchParams: { page?: string } }) {
+  const page = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+  return (
+    <Suspense fallback={null}>
+      <BlogContent page={page} />
     </Suspense>
   );
 }

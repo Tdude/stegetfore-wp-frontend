@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import React, { useState } from 'react';
 
 /**
  * SiteInfo interface defining the structure of the siteInfo prop
@@ -14,16 +15,113 @@ interface SiteInfo {
 }
 
 /**
+ * MenuItem interface defining the structure of the menuItem prop
+ */
+interface MenuItem {
+  ID: number;
+  title: string;
+  slug: string;
+  target?: string;
+  children?: MenuItem[];
+}
+
+/**
+ * FooterProps interface defining the structure of the Footer props
+ */
+interface FooterProps {
+  siteInfo?: SiteInfo;
+  menuItems?: MenuItem[];
+}
+
+/**
  * Footer Component
  * Site footer with navigation and copyright info
  * Visual styling based on Bigspring theme
  */
-export default function Footer({ siteInfo = {} as SiteInfo }) {
+export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: FooterProps) {
   // Get site info with fallbacks
   const siteName = siteInfo?.name || 'Tryggve';
   const logoUrl = siteInfo?.logo_url || '/Maja-logo-tryggve-text-inverted.svg';
   const year = new Date().getFullYear();
-  
+
+  // Function to format href based on slug
+  function getFormattedHref(slug: string) {
+    if (slug === '/' || !slug) {
+      return '/';
+    }
+    if (slug === 'blog') {
+      return '/blog';
+    }
+    if (slug.startsWith('posts/')) {
+      return `/${slug}`;
+    }
+    return `/${slug}`;
+  }
+
+  // Track open/close state for all menu items by ID
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  // Toggle open/close for a given menu key
+  function toggleMenu(key: string) {
+    setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  // Recursive rendering for dropdown-style menu items in vertical layout
+  function renderMenuItem(item: MenuItem, parentKey = '') {
+    const hasChildren = item.children && item.children.length > 0;
+    const key = parentKey + item.ID;
+    const open = !!openMenus[key];
+
+    return (
+      <li key={key} className="relative">
+        <div
+          className="flex items-center justify-between w-full cursor-pointer"
+          onClick={() => hasChildren && toggleMenu(key)}
+        >
+          <Link
+            href={getFormattedHref(item.slug)}
+            className="text-gray-400 hover:text-primary transition-colors flex-1"
+            target={item.target}
+            onClick={e => e.stopPropagation()}
+          >
+            {item.title}
+          </Link>
+          {hasChildren && (
+            <button
+              type="button"
+              className="ml-2 text-xs text-gray-500 focus:outline-none"
+              aria-expanded={open}
+              aria-controls={`submenu-${key}`}
+              tabIndex={0}
+              onClick={e => { e.stopPropagation(); toggleMenu(key); }}
+            >
+              <span className={open ? 'rotate-180 transition-transform' : 'transition-transform'}>▼</span>
+            </button>
+          )}
+        </div>
+        {hasChildren && (
+          <div
+            className={
+              'transition-all duration-300 overflow-hidden' +
+              (open ? ' max-h-96 opacity-100' : ' max-h-0 opacity-0')
+            }
+            style={{
+              // For smoothness: use maxHeight, but allow for variable submenu length
+              // 384px (max-h-96) is enough for most submenus; adjust if needed
+            }}
+          >
+            <ul
+              id={`submenu-${key}`}
+              className="ml-4 mt-1 space-y-1 border-l border-gray-700 pl-4"
+            >
+              {item.children!.map((child) => renderMenuItem(child, key + '-'))}
+            </ul>
+          </div>
+        )}
+      </li>
+    );
+  }
+
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container mx-auto px-4">
@@ -93,26 +191,32 @@ export default function Footer({ siteInfo = {} as SiteInfo }) {
           <div className="md:col-span-4">
             <h3 className="text-xl font-bold mb-4">Snabblänkar</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-gray-400 hover:text-primary transition-colors">
-                  Start
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-gray-400 hover:text-primary transition-colors">
-                  Om oss
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-gray-400 hover:text-primary transition-colors">
-                  Blogg
-                </Link>
-              </li>
-              <li>
-                <Link href="/kontakt" className="text-gray-400 hover:text-primary transition-colors">
-                  Kontakt
-                </Link>
-              </li>
+              {menuItems && menuItems.length > 0 ? (
+                menuItems.map((item) => renderMenuItem(item))
+              ) : (
+                <>
+                  <li>
+                    <Link href="/" className="text-gray-400 hover:text-primary transition-colors">
+                      Start
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/about" className="text-gray-400 hover:text-primary transition-colors">
+                      Om oss
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/blog" className="text-gray-400 hover:text-primary transition-colors">
+                      Blogg
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/kontakt" className="text-gray-400 hover:text-primary transition-colors">
+                      Kontakt
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
           

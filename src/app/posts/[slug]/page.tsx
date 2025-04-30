@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { fetchPost } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
-import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { badgeVariants } from "@/components/ui/badge";
@@ -66,7 +65,8 @@ async function Post({ slug }: { slug: string }) {
               <Link href="/blog">
                 <span className={cn(
                   badgeVariants({ variant: "secondary" }),
-                  "inline-block"
+                  "inline-block",
+                  "w-full"
                 )}>
                   ← Alla inlägg
                 </span>
@@ -116,22 +116,23 @@ async function Post({ slug }: { slug: string }) {
             dangerouslySetInnerHTML={{ __html: post.content.rendered }}
           />
 
-          {/* Share Article Component */}
-          <ShareArticle 
-            title={post.title.rendered.replace(/<[^>]*>/g, '')}
-            description={post.excerpt?.rendered?.replace(/<[^>]*>/g, '') || ''}
-          />
-
-          <div className="mt-8 mb-8">
+          <div className="w-full mt-8 mb-8">
             <Link href="/blog">
               <span className={cn(
                 badgeVariants({ variant: "secondary" }),
-                "inline-block"
+                "inline-block",
+                "w-full"
               )}>
                 ← Alla inlägg
               </span>
             </Link>
           </div>
+
+          {/* Share Article Component */}
+          <ShareArticle 
+            title={post.title.rendered.replace(/<[^>]*>/g, '')}
+            description={post.excerpt?.rendered?.replace(/<[^>]*>/g, '') || ''}
+          />
         </article>
         
         {/* Add debug panel */}
@@ -163,7 +164,7 @@ export default async function PostPage({
 
   return (
     <article className="container mx-auto px-4 my-8 flex-grow">
-      <Suspense fallback={<SinglePostSkeleton />}>
+      <Suspense fallback={null}>
         <Post slug={slug} />
       </Suspense>
     </article>

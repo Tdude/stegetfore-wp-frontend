@@ -4,6 +4,7 @@ import { Post } from "@/lib/types/contentTypes";
 import {
   adaptWordPressPost,
   adaptWordPressPosts,
+  enhancePosts,
 } from "@/lib/adapters/postAdapter";
 import { getOptimalImageSize } from "@/lib/imageUtils";
 
@@ -135,6 +136,65 @@ export async function fetchFeaturedPosts(count: number = 3): Promise<Post[]> {
     console.error("Error fetching featured posts:", error);
     return [];
   }
+}
+
+/**
+ * Fetch paginated posts from the custom WP REST endpoint.
+ * Returns { posts, total, page, per_page }
+ */
+export async function fetchPaginatedPosts(
+  params: {
+    page?: number;
+    perPage?: number;
+  } = {}
+): Promise<{ posts: Post[]; total: number; page: number; per_page: number }> {
+  try {
+    const { page = 1, perPage = 12 } = params;
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      per_page: perPage.toString(),
+    });
+    const data = await fetchApi(`/steget/v1/posts-extended?${queryParams.toString()}`, {
+      revalidate: 3600,
+    });
+    return {
+      posts: Array.isArray(data.posts) ? adaptWordPressPosts(data.posts) : [],
+      total: Number(data.total) || 0,
+      page: Number(data.page) || 1,
+      per_page: Number(data.per_page) || perPage,
+    };
+  } catch (error) {
+    console.error('Error fetching paginated posts:', error);
+    return { posts: [], total: 0, page: 1, per_page: 12 };
+  }
+}
+
+/**
+ * Helper function for paginated fetch with total count, using WP v2 API
+ * This version is for server-side usage (Node.js fetch)
+ */
+export async function fetchPaginatedPostsWP(
+  page: number,
+  perPage: number = 12
+): Promise<{ posts: Post[]; total: number }> {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    per_page: perPage.toString(),
+    _embed: 'true',
+  });
+  // Use NEXT_PUBLIC_WORDPRESS_URL for server-side fetch if available
+  let url = `/wp-json/wp/v2/posts?${queryParams.toString()}`;
+  const wpUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window === 'undefined' && wpUrl) {
+    // Remove trailing slash if present
+    const cleanUrl = wpUrl.replace(/\/$/, '');
+    url = `${cleanUrl}/wp-json/wp/v2/posts?${queryParams.toString()}`;
+  }
+  const response = await fetch(url);
+  const posts = await response.json();
+  const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
+  // Enhance posts for optimal featured image URL
+  return { posts: enhancePosts(adaptWordPressPosts(posts)), total };
 }
 
 /**

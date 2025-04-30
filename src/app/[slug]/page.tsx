@@ -1,7 +1,6 @@
 // src/app/[slug]/page.tsx
 import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api/pageApi'; 
-import { SinglePostSkeleton } from '@/components/PostSkeleton';
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
 import type { LocalPage } from '@/lib/types/contentTypes';
@@ -10,6 +9,7 @@ import type { Metadata } from 'next/types';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { buildPageDebugData } from '@/lib/debug/buildPageDebugData';
 import RequireAuth from '@/lib/utils/RequireAuth';
+import ContentFade from '@/components/ContentFade';
 
 // Tell Next.js to dynamically render this page
 export const dynamic = 'force-dynamic';
@@ -73,7 +73,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
   return (
     <section className="mx-auto flex-grow">
-      <Suspense fallback={<SinglePostSkeleton />}>
+      <Suspense fallback={<ContentFade />}>
         <PageContent slug={slug} />
       </Suspense>
     </section>

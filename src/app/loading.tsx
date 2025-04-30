@@ -1,5 +1,4 @@
 // src/app/loading.tsx
-import { PostSkeleton } from '@/components/PostSkeleton';
 
 export default function Loading() {
   return (
@@ -8,7 +7,6 @@ export default function Loading() {
         <div className="h-8 bg-gray-200 rounded w-1/3 mb-4" /> {/* Title */}
         <div className="h-4 bg-gray-200 rounded w-2/3" /> {/* Description */}
       </div>
-      <PostSkeleton count={6} />
     </main>
   );
 }
