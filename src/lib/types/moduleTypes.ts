@@ -24,6 +24,7 @@ export interface BaseModule {
       | "ghost"
       | "default"
       | "destructive";
+    size?: "sm" | "md" | "lg" | "xl";
     new_tab?: boolean; // Added to match the API
   }>;
   order?: number;

@@ -8,7 +8,7 @@ import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
-import LoginButton from '@/components/auth/LoginButton';
+import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   siteInfo: SiteInfo;
@@ -59,7 +59,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
         {/* Dropdown for items with children */}
         {hasChildren && (
           <div className="absolute z-50 left-0 top-full w-48 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <ul className="bg-white rounded-b-md shadow-lg overflow-hidden">
+            <ul className="bg-white rounded-b-md shadow-sm overflow-hidden">
 
               {item.children?.map((child) => (
                 <li key={child.ID}>
@@ -92,7 +92,7 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
   }, []);
 
   return (
-    <header className="bg-white shadow-md">
+    <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-2">
         <nav className="flex justify-between items-stretch">
           {/* Logo */}
@@ -128,31 +128,38 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
           <div className="hidden lg:flex items-center h-16">
             <div className="flex items-center space-x-2">
               <Link href="/start" className="hidden lg:inline-block">
-                <button className="px-4 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                <Button variant="primary" size="md" className="px-4 py-1">
                   Börja nu
-                </button>
+                </Button>
               </Link>
 
               {isAuthenticated ? (
-                <button 
+                <Button
                   onClick={logout}
-                  className="hidden lg:flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 opacity-50 hover:opacity-100 transition-opacity"
+                  variant="default"
+                  size="md"
+                  className="hidden lg:flex items-center px-3 py-1 opacity-50 hover:opacity-90 transition-opacity"
                 >
                   <LogOut className="h-4 w-4 mr-1" />
                   <span className="text-sm">Logga ut</span>
-                </button>
+                </Button>
               ) : (
-                <LoginButton
+                <Button
                   onClick={() => setLoginModalOpen(true)}
+                  variant="default"
+                  size="md"
                   className="hidden lg:flex"
-                />
+                >
+                  <LogIn className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Logga in</span>
+                </Button>
               )}
             </div>
           </div>
 
           {/* Mobile menu */}
           {mobileMenuOpen && (
-            <div className="absolute top-16 left-0 right-0 bg-white shadow-md z-50 lg:hidden">
+            <div className="absolute top-16 left-0 right-0 bg-white shadow-sm z-50 lg:hidden">
               <ul className="py-2 px-4">
                 {items.map(item => {
                   const href = getFormattedHref(item.slug);
@@ -189,32 +196,36 @@ export default function Header({ siteInfo, menuItems }: HeaderProps) {
 
                 <li className="mt-4 mb-2">
                   <Link href="/start">
-                    <button className="w-full px-4 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                    <Button variant="primary" size="md" className="w-full px-4 py-1.5">
                       Börja nu
-                    </button>
+                    </Button>
                   </Link>
                 </li>
 
                 <li className="mt-2 mb-4">
                   {isAuthenticated ? (
-                    <button 
+                    <Button
                       onClick={logout}
-                      className="w-full flex items-center justify-center px-4 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 opacity-50 hover:opacity-100 transition-opacity"
+                      variant="default"
+                      size="md"
+                      className="w-full flex items-center justify-center px-4 py-1.5 opacity-50 hover:opacity-100 transition-opacity"
                     >
                       <LogOut className="h-4 w-4 mr-1" />
                       <span className="text-sm">Logga ut</span>
-                    </button>
+                    </Button>
                   ) : (
-                    <button 
+                    <Button
                       onClick={() => {
                         setLoginModalOpen(true);
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-center px-4 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                      variant="default"
+                      size="md"
+                      className="w-full flex items-center justify-center px-4 py-1.5"
                     >
                       <LogIn className="h-4 w-4 mr-1" />
                       <span className="text-sm">Logga in</span>
-                    </button>
+                    </Button>
                   )}
                 </li>
               </ul>

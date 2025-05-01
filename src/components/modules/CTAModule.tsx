@@ -76,11 +76,15 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
                   {module.buttons.map((button, index) => (
                     <Button
                       key={index}
-                      size="lg"
+                      size={button.size || 'md'}
                       variant={button.style || 'primary'}
                       asChild
                     >
-                      <a href={button.url} target={button.new_tab ? "_blank" : "_self"} rel="noopener noreferrer">
+                      <a
+                        href={button.url}
+                        target={button.new_tab ? "_blank" : undefined}
+                        rel={button.new_tab ? "noopener noreferrer" : undefined}
+                      >
                         {button.text}
                       </a>
                     </Button>

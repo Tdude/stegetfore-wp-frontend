@@ -66,7 +66,8 @@ async function Post({ slug }: { slug: string }) {
                 <span className={cn(
                   badgeVariants({ variant: "secondary" }),
                   "inline-block",
-                  "w-full"
+                  "w-full",
+                  "py-2"
                 )}>
                   ← Alla inlägg
                 </span>
@@ -121,7 +122,8 @@ async function Post({ slug }: { slug: string }) {
               <span className={cn(
                 badgeVariants({ variant: "secondary" }),
                 "inline-block",
-                "w-full"
+                "w-full",
+                "py-2"
               )}>
                 ← Alla inlägg
               </span>

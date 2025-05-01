@@ -177,7 +177,7 @@ async function BlogContent({ page }: { page: number }) {
           {firstPost && (
             <div className="w-full">
               <Link href={`/posts/${firstPost.slug || '#'}`} className="block h-full">
-                {renderPostCard(firstPost, categories, 'wide')}
+                {renderPostCard(firstPost, categories, "wide")}
               </Link>
             </div>
           )}
@@ -187,7 +187,7 @@ async function BlogContent({ page }: { page: number }) {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {middlePosts.map((post) => (
                 <Link key={post.id} href={`/posts/${post.slug || '#'}`} className="block h-full col-span-1">
-                  {renderPostCard(post, categories, wideMiddleIndex === 0 ? 'wide' : 'standard')}
+                  {renderPostCard(post, categories, wideMiddleIndex === 0 ? "wide" : "standard")}
                 </Link>
               ))}
             </div>
@@ -195,10 +195,10 @@ async function BlogContent({ page }: { page: number }) {
 
           {/* LAST posts - 1 or 2 at the end */}
           {lastPosts.length > 0 && (
-            <div className={`grid gap-6 ${lastPosts.length === 2 ? 'sm:grid-cols-2' : ''}`}>
+            <div className={`grid gap-6 ${lastPosts.length === 2 ? "sm:grid-cols-2" : ""}`}>
               {lastPosts.map((post) => (
-                <Link key={post.id} href={`/posts/${post.slug || '#'}`} className={`block h-full ${lastPosts.length === 1 ? 'sm:col-span-2' : ''}`}>
-                  {renderPostCard(post, categories, lastPosts.length === 1 ? 'wide' : 'standard')}
+                <Link key={post.id} href={`/posts/${post.slug || "#"}`} className={`block h-full ${lastPosts.length === 1 ? "sm:col-span-2" : ""}`}>
+                  {renderPostCard(post, categories, lastPosts.length === 1 ? "wide" : "standard")}
                 </Link>
               ))}
             </div>
@@ -224,9 +224,9 @@ async function BlogContent({ page }: { page: number }) {
   );
 }
 
-// PaginationBar: pills with arrows and page numbers
+// PaginationBar: badges with arrows and page numbers
 function PaginationBar({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
-  const createPageLink = (page: number) => page === 1 ? '/blog' : `/blog?page=${page}`;
+  const createPageLink = (page: number) => page === 1 ? "/blog" : `/blog?page=${page}`;
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   return (
     <nav className="flex justify-center items-center gap-2 mt-12" aria-label="Blog Pagination">
@@ -235,9 +235,12 @@ function PaginationBar({ currentPage, totalPages }: { currentPage: number; total
         aria-disabled={currentPage === 1}
         tabIndex={currentPage === 1 ? -1 : 0}
         className={cn(
-          badgeVariants({ variant: 'secondary' }),
-          'inline-block',
-          currentPage === 1 ? 'opacity-50 pointer-events-none' : ''
+          badgeVariants({ variant: "secondary" }),
+          "inline-block",
+          "px-6",
+          "py-2",
+          "text-sm",
+          currentPage === 1 ? "opacity-50 pointer-events-none" : ""
         )}
       >
         ←
@@ -246,10 +249,13 @@ function PaginationBar({ currentPage, totalPages }: { currentPage: number; total
         <Link
           key={num}
           href={createPageLink(num)}
-          aria-current={num === currentPage ? 'page' : undefined}
+          aria-current={num === currentPage ? "page" : undefined}
           className={cn(
-            badgeVariants({ variant: num === currentPage ? 'default' : 'secondary' }),
-            'inline-block'
+            badgeVariants({ variant: num === currentPage ? "default" : "secondary" }),
+            "inline-block",
+            "px-6",
+            "py-2",
+            "text-sm"
           )}
         >
           {num}
@@ -260,9 +266,12 @@ function PaginationBar({ currentPage, totalPages }: { currentPage: number; total
         aria-disabled={currentPage === totalPages}
         tabIndex={currentPage === totalPages ? -1 : 0}
         className={cn(
-          badgeVariants({ variant: 'secondary' }),
-          'inline-block',
-          currentPage === totalPages ? 'opacity-50 pointer-events-none' : ''
+          badgeVariants({ variant: "secondary" }),
+          "inline-block",
+          "px-6",
+          "py-2",
+          "text-sm",
+          currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
         )}
       >
         →
@@ -271,8 +280,10 @@ function PaginationBar({ currentPage, totalPages }: { currentPage: number; total
   );
 }
 
-export default function BlogPage({ searchParams }: { searchParams: { page?: string } }) {
-  const page = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+export default async function BlogPage({ searchParams }: { searchParams: { page?: string } }) {
+  // Await searchParams before using
+  const resolvedSearchParams = await searchParams;
+  const page = resolvedSearchParams?.page ? parseInt(resolvedSearchParams.page, 10) : 1;
   return (
     <Suspense fallback={null}>
       <BlogContent page={page} />

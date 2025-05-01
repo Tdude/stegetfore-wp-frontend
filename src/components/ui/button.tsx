@@ -11,7 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "border border-yellow-400 bg-yellow-500 text-gray-900 hover:bg-yellow-600 hover:border-yellow-500 shadow-md hover:shadow-lg focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2",
+          "border border-yellow-400 bg-yellow-400 text-gray-900 hover:bg-yellow-500 hover:border-yellow-500 shadow-md hover:shadow-lg focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2",
         secondary:
           "border border-slate-700 bg-slate-800 text-gray-100 hover:bg-slate-900 hover:border-slate-800 shadow-md hover:shadow-lg focus:ring-2 focus:ring-slate-500 focus:ring-offset-2",
         default:
@@ -27,17 +27,18 @@ const buttonVariants = cva(
         link: "text-slate-600 underline-offset-4 hover:underline hover:text-slate-700 focus:ring-2 focus:ring-slate-600 focus:ring-offset-2",
       },
       size: {
-        default: "h-9 px-4 py-2 text-sm",
-        sm: "h-8 px-3 text-s",
-        lg: "h-10 px-8 text-base",
-        xl: "h-12 px-10 py-4 text-lg",
-        xxl: "h-16 px-14 py-8 text-xl",
+        sm: "h-8 px-3 text-sm",
+        md: "h-10 px-8 text-md",
+        lg: "h-14 px-10 text-lg",
+        xl: "h-16 px-12 text-xl",
+        xxl: "h-18 px-12 text-2xl",
+        default: "h-9 px-4 text-md",
         icon: "h-9 w-9 p-2",
       },
     },
     defaultVariants: {
       variant: "primary",
-      size: "default",
+      size: "md",
     },
   }
 );

@@ -68,8 +68,9 @@ async function PageContent({ slug }: { slug: string }) {
 
 // Main page component
 export default async function Page({ params }: { params: { slug: string } }) {
-  // Extract slug from params
-  const slug = params.slug;
+  // Await params before using
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
 
   return (
     <section className="mx-auto flex-grow">
@@ -84,8 +85,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
 export async function generateMetadata(
   { params }: { params: { slug: string } }
 ): Promise<Metadata> {
-  // Extract slug from params
-  const slug = params.slug;
+  // Await params before using
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
   const page = await getPageData(slug);
 
   if (!page) {
