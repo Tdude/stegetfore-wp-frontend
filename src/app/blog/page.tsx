@@ -5,7 +5,7 @@
 // - Last two cards have special treatment (50/50 or full width for last card)
 // This is the main blog listing component used at /blog route
 import { Suspense } from 'react';
-import { fetchPosts, fetchCategories } from '@/lib/api';
+import { fetchCategories } from '@/lib/api';
 import { fetchPaginatedPostsWP } from '@/lib/api/postApi';
 import { Post, Category } from '@/lib/types/contentTypes';
 import NextImage from '@/components/NextImage';
@@ -17,31 +17,10 @@ import DebugPanel from '@/components/debug/DebugPanel';
 import { calculateReadingTime } from '@/lib/utils/readingTime';
 import { buildBlogDebugData } from '@/lib/debug/buildBlogDebugData';
 import { decode } from 'he'; // Import the decode function
-import { useSearchParams } from 'next/navigation';
-
-// Define interfaces for blog page types
-interface CategoryDisplay {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface CategoriesMap {
-  [key: number]: CategoryDisplay;
-}
-
-interface BlogPostsData {
-  posts: Post[];
-  categories: CategoriesMap;
-}
-
-// Helper function to safely get array elements with fallbacks
-function getSafePost(posts: Post[], index: number): Post | null {
-  return posts && posts.length > index ? posts[index] : null;
-}
 
 // Helper function to render a consistent post card
-function renderPostCard(post: Post | null, categories: CategoriesMap, variant: 'standard' | 'wide' | 'compact' = 'standard') {
+// Inline type for CategoryDisplay to avoid import and fix lint
+function renderPostCard(post: Post | null, categories: { [key: number]: { id: number; name: string; slug: string } }, variant: 'standard' | 'wide' | 'compact' = 'standard') {
   if (!post) return null;
   
   const isWide = variant === 'wide';
@@ -75,7 +54,7 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
           {/* Categories with reading time badge for test */}
           {post.categories && categories && (
             <div className="flex flex-wrap gap-2 mb-2">
-              {(post.categories || []).slice(0, 2).map((categoryId, idx) => {
+              {(post.categories || []).slice(0, 2).map((categoryId) => {
                 const catId = typeof categoryId === 'number' ? categoryId : 
                   (typeof categoryId === 'object' && categoryId !== null && 'id' in categoryId) 
                     ? (categoryId as Category).id 
@@ -85,7 +64,7 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
                   <Badge key={`cat-${catId}`} variant="secondary">
                     {categories[catId]?.name || 'Category'}
                     {/* Add reading time to the first badge for test */}
-                    {idx === 0 && readingTime && (
+                    {readingTime && (
                       <span className="ml-2 text-xs text-muted-foreground">{readingTime}</span>
                     )}
                   </Badge>
@@ -143,20 +122,6 @@ function renderPostCard(post: Post | null, categories: CategoriesMap, variant: '
       {cardContent}
     </Card>
   );
-}
-
-// Helper function to fetch posts and total count from WP API
-async function fetchPaginatedPosts(page: number, perPage: number = 12): Promise<{ posts: Post[]; total: number; }> {
-  // Use the WP v2 API with _embed for images and pagination
-  const queryParams = new URLSearchParams({
-    page: page.toString(),
-    per_page: perPage.toString(),
-    _embed: 'true',
-  });
-  const response = await fetch(`/wp-json/wp/v2/posts?${queryParams.toString()}`);
-  const posts = await response.json();
-  const total = parseInt(response.headers.get('X-WP-Total') || '0', 10);
-  return { posts, total };
 }
 
 // Main content component that handles data fetching
@@ -220,9 +185,9 @@ async function BlogContent({ page }: { page: number }) {
           {/* Middle posts - standard grid, except possibly one wide */}
           {middlePosts.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {middlePosts.map((post, idx) => (
+              {middlePosts.map((post) => (
                 <Link key={post.id} href={`/posts/${post.slug || '#'}`} className="block h-full col-span-1">
-                  {renderPostCard(post, categories, wideMiddleIndex === idx ? 'wide' : 'standard')}
+                  {renderPostCard(post, categories, wideMiddleIndex === 0 ? 'wide' : 'standard')}
                 </Link>
               ))}
             </div>
@@ -231,7 +196,7 @@ async function BlogContent({ page }: { page: number }) {
           {/* LAST posts - 1 or 2 at the end */}
           {lastPosts.length > 0 && (
             <div className={`grid gap-6 ${lastPosts.length === 2 ? 'sm:grid-cols-2' : ''}`}>
-              {lastPosts.map((post, idx) => (
+              {lastPosts.map((post) => (
                 <Link key={post.id} href={`/posts/${post.slug || '#'}`} className={`block h-full ${lastPosts.length === 1 ? 'sm:col-span-2' : ''}`}>
                   {renderPostCard(post, categories, lastPosts.length === 1 ? 'wide' : 'standard')}
                 </Link>

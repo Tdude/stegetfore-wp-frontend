@@ -117,8 +117,6 @@ export default function DebugPanel({
     setMounted(true);
   }, []);
 
-  // We use stringified dependencies for efficiency and to avoid unnecessary rerenders.
-  // This is intentional: see https://react.dev/reference/react/useEffect#tip-optimizing-performance-by-skipping-effects
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
