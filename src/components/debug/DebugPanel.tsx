@@ -107,15 +107,15 @@ export default function DebugPanel({
   const [mounted, setMounted] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
-  // Prepare stable dependencies for the endpoint discovery effect
-  const stringifiedProvidedDebugData = JSON.stringify(providedDebugData);
-  const stringifiedAdditionalData = JSON.stringify(additionalData);
-  const stringifiedPage = JSON.stringify(page);
-
   React.useEffect(() => {
     setDebugEnabled(process.env.NEXT_PUBLIC_DEBUG_MODE === 'true');
     setMounted(true);
   }, []);
+
+  // Use stringified versions of debug objects as dependencies to avoid infinite loops
+  const stringifiedProvidedDebugData = JSON.stringify(providedDebugData);
+  const stringifiedAdditionalData = JSON.stringify(additionalData);
+  const stringifiedPage = JSON.stringify(page);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
