@@ -75,12 +75,19 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
     return (
       <li key={key} className="relative">
         <div
-          className="flex items-center justify-between w-full cursor-pointer"
+          className="flex items-center justify-between w-full cursor-pointer group"
           onClick={() => hasChildren && toggleMenu(key)}
+          tabIndex={hasChildren ? 0 : undefined}
+          onKeyDown={e => {
+            if (hasChildren && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              toggleMenu(key);
+            }
+          }}
         >
           <Link
             href={getFormattedHref(item.slug)}
-            className="text-gray-400 hover:text-primary transition-colors flex-1"
+            className="text-gray-400 hover:text-primary transition-colors flex-1 hover:bg-slate-700 pr-2"
             target={item.target}
             onClick={e => e.stopPropagation()}
           >
@@ -89,11 +96,12 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
           {hasChildren && (
             <button
               type="button"
-              className="ml-2 text-xs text-gray-500 focus:outline-none"
+              className="text-xs text-gray-500 focus:outline-none ml-0.5 -mr-1 group-hover:text-primary"
               aria-expanded={open}
               aria-controls={`submenu-${key}`}
-              tabIndex={0}
+              tabIndex={-1}
               onClick={e => { e.stopPropagation(); toggleMenu(key); }}
+              style={{ paddingLeft: 0, paddingRight: 0 }}
             >
               <span className={open ? 'rotate-180 transition-transform' : 'transition-transform'}>▼</span>
             </button>
@@ -105,10 +113,7 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
               'transition-all duration-300 overflow-hidden' +
               (open ? ' max-h-96 opacity-100' : ' max-h-0 opacity-0')
             }
-            style={{
-              // For smoothness: use maxHeight, but allow for variable submenu length
-              // 384px (max-h-96) is enough for most submenus; adjust if needed
-            }}
+            style={{}}
           >
             <ul
               id={`submenu-${key}`}
@@ -189,29 +194,29 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
           
           {/* Footer Links */}
           <div className="md:col-span-4">
-            <h3 className="text-xl font-bold mb-4">Snabblänkar</h3>
+            <h3 className="text-xl text-slate-400 font-bold mb-4">Snabblänkar</h3>
             <ul className="space-y-2">
               {menuItems && menuItems.length > 0 ? (
                 menuItems.map((item) => renderMenuItem(item))
               ) : (
                 <>
                   <li>
-                    <Link href="/" className="text-gray-400 hover:text-primary transition-colors">
+                    <Link href="/" className="text-gray-400 hover:text-primary transition-colors border-b border-gray-400">
                       Start
                     </Link>
                   </li>
                   <li>
-                    <Link href="/about" className="text-gray-400 hover:text-primary transition-colors">
+                    <Link href="/about" className="text-gray-400 hover:text-primary transition-colors border-b border-gray-400">
                       Om oss
                     </Link>
                   </li>
                   <li>
-                    <Link href="/blog" className="text-gray-400 hover:text-primary transition-colors">
+                    <Link href="/blog" className="text-gray-400 hover:text-primary transition-colors border-b border-gray-400">
                       Blogg
                     </Link>
                   </li>
                   <li>
-                    <Link href="/kontakt" className="text-gray-400 hover:text-primary transition-colors">
+                    <Link href="/kontakt" className="text-gray-400 hover:text-primary transition-colors border-b border-gray-400">
                       Kontakt
                     </Link>
                   </li>
@@ -222,7 +227,7 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
           
           {/* Contact Info */}
           <div className="md:col-span-4">
-            <h3 className="text-xl font-bold mb-4">Kontakt</h3>
+            <h3 className="text-xl text-slate-400 font-bold mb-4">Kontakt</h3>
             <ul className="space-y-4">
               <li className="flex">
                 <svg className="w-5 h-5 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
