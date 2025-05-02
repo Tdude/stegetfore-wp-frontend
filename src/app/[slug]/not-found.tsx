@@ -25,12 +25,21 @@ const notFoundPhrases = [
   "Sidan är på vift. Vi letar...",
 ];
 
-function getRandomTitle() {
-  return notFoundTitles[Math.floor(Math.random() * notFoundTitles.length)];
-}
+const notFoundButtons = [
+  "Startsidan",
+  "Startknappen",
+  "Försök igen",
+  "Skicka choklad",
+  "Starta om",
+  "Rädda mig!",
+  "Rädda dig!",
+  "DO NOT TOUCH",
+  "Återställ gravitation"
+];
 
-function getRandomPhrase() {
-  return notFoundPhrases[Math.floor(Math.random() * notFoundPhrases.length)];
+function getRandomFrom<T>(arr: T[], fallback?: T): T {
+  if (!arr || arr.length === 0) return fallback as T;
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export default function NotFound() {
@@ -46,11 +55,11 @@ export default function NotFound() {
                 className="object-cover"
               />
             </div>
-            <h1 className="text-4xl font-bold mb-12">404 - {getRandomTitle()}</h1>
-            <p className="text-gray-600 mb-8">{getRandomPhrase()}</p>
+            <h1 className="text-4xl font-bold mb-12">404 - {getRandomFrom(notFoundTitles)}</h1>
+            <p className="text-gray-600 mb-8">{getRandomFrom(notFoundPhrases)}</p>
             <Link href="/start" className="inline-block">
               <Button variant="primary" size="md" className="px-4 py-1">
-                Rädda mig!
+                {getRandomFrom(notFoundButtons)}
               </Button>
             </Link>
           </article>
