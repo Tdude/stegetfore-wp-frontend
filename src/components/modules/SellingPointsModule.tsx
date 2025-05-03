@@ -4,6 +4,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
+import * as LucideIcons from "lucide-react";
 
 interface SellingPointsModule {
   title?: string;
@@ -54,6 +55,69 @@ export default function SellingPointsModule({ module, className }: SellingPoints
   // Get layout
   const layout = module.layout || 'grid';
 
+  // Helper to convert kebab/lowercase to PascalCase (lucide expects e.g. Check, Briefcase)
+  function toPascalCase(str: string) {
+    return str
+      .replace(/(^|[-_\s])(\w)/g, (_, __, c) => c ? c.toUpperCase() : '')
+      .replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  // Helper to render Lucide icon by key
+  const renderIcon = (iconKey: string | undefined, fallbackIndex: number) => {
+    if (iconKey) {
+      // If it's a .svg file, render as <img> (for the next step)
+      if (iconKey.endsWith('.svg')) {
+        return (
+          <img
+            src={`/images/icons/${iconKey}`}
+            alt={iconKey.replace(/\.svg$/, '')}
+            width={28}
+            height={28}
+            style={{ display: 'inline-block' }}
+          />
+        );
+      }
+      // Try Lucide icon (convert key to PascalCase)
+      const pascalKey = toPascalCase(iconKey);
+      if (pascalKey in LucideIcons) {
+        const LucideIcon = LucideIcons[pascalKey] as React.ComponentType<{ size?: number, color?: string }>;
+        return <LucideIcon size={28} color="currentColor" />;
+      }
+      // fallback to SVG string if present (legacy)
+      if (iconKey.startsWith('<')) {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            dangerouslySetInnerHTML={{ __html: iconKey }}
+          />
+        );
+      }
+    }
+    // fallback to default SVG string
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        dangerouslySetInnerHTML={{ __html: defaultIcons[fallbackIndex % defaultIcons.length] }}
+      />
+    );
+  };
+
   return (
     <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || "#eeeeee" }}>
       <div className="container px-4 md:px-6 mx-auto">
@@ -85,18 +149,7 @@ export default function SellingPointsModule({ module, className }: SellingPoints
                 <Card className="h-full overflow-hidden">
                   <CardHeader className="pb-4 flex items-center">
                     <div className="w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 text-primary mb-6">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="28"
-                        height="28"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        dangerouslySetInnerHTML={{ __html: point.icon || defaultIcons[index % defaultIcons.length] }}
-                      />
+                      {renderIcon(point.icon, index)}
                     </div>
                     <CardTitle className="text-2xl font-bold text-center">{point.title}</CardTitle>
                   </CardHeader>

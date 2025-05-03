@@ -34,7 +34,7 @@ const notFoundButtons = [
   "Rädda mig!",
   "Rädda dig!",
   "DO NOT TOUCH",
-  "Återställ gravitation"
+  "Återställ gravitation",
 ];
 
 function getRandomFrom<T>(arr: T[], fallback?: T): T {
