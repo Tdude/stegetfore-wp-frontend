@@ -522,6 +522,7 @@ export const authApi = {
           username, 
           password 
         }),
+        credentials: 'include', // To support cross-domain cookie-based authentication and not answer "*"
       });
       const data = await response.json();
       if (data.token) {

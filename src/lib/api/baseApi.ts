@@ -55,6 +55,7 @@ export async function makeRequest(
     headers: requestHeaders,
     body: typeof body === 'object' ? JSON.stringify(body) : body,
     mode: 'cors', // Add explicit CORS mode
+    credentials: 'include', // Support cross-domain cookie-based authentication
   };
 
   // Handle Next.js caching via revalidate if present (only if running in supported env)

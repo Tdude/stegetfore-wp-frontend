@@ -8,7 +8,7 @@ Set these in the Netlify dashboard under Site settings > Build & deploy > Enviro
 
 ```
 # WordPress API URL
-NEXT_PUBLIC_API_URL=https://stegetfore.nu/wp-json
+NEXT_PUBLIC_API_URL=https://cms.stegetfore.nu/wp-json
 
 # Theme slug
 NEXT_PUBLIC_THEME_SLUG=steget
@@ -17,7 +17,7 @@ NEXT_PUBLIC_THEME_SLUG=steget
 NEXT_PUBLIC_DEBUG=false
 
 # WordPress URL for API proxy
-NEXT_PUBLIC_WORDPRESS_URL=https://stegetfore.nu
+NEXT_PUBLIC_WORDPRESS_URL=https://cms.stegetfore.nu
 ```
 
 ## Build Settings
