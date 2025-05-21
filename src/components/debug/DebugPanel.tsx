@@ -117,7 +117,7 @@ export default function DebugPanel({
   const stringifiedAdditionalData = JSON.stringify(additionalData);
   const stringifiedPage = JSON.stringify(page);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     setLoadingEndpoints(true);
