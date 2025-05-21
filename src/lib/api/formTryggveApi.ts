@@ -512,8 +512,8 @@ export const authApi = {
    */
   login: async (username: string, password: string) => {
     try {
-      // Directly call the WordPress JWT endpoint (example: /wp-json/jwt-auth/v1/token)
-      const response = await fetch(`${API_URL}/jwt-auth/v1/token`, {
+      // Directly call the WordPress JWT endpoint (custom HAM plugin)
+      const response = await fetch(`${API_URL}/ham/v1/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

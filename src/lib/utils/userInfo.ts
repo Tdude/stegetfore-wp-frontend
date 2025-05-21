@@ -1,5 +1,8 @@
 // Utility functions for handling user info in localStorage
 
+import type { JwtUserInfo } from '@/lib/api/formTryggveApi';
+import type { UserInfo } from '@/contexts/AuthContext';
+
 export const USER_INFO_KEY = 'user_info';
 
 export function setUserInfo(user: unknown) {
@@ -13,4 +16,15 @@ export function getUserInfo<T = unknown>(): T | null {
 
 export function removeUserInfo() {
   localStorage.removeItem(USER_INFO_KEY);
+}
+
+export function jwtToUserInfo(jwt: JwtUserInfo): UserInfo {
+  return {
+    id: jwt.user_id,
+    username: 'dev', // fallback or replace with jwt.username if present
+    display_name: 'Dev User',
+    email: 'dev@example.com',
+    roles: ['administrator'],
+    ...jwt,
+  };
 }
