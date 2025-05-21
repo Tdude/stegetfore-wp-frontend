@@ -18,6 +18,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const { login, devLogin } = useAuth();
 
   // Check if in development mode
@@ -30,7 +31,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setSuccess(false);
 
     try {
-      const result = await login(username, password);
+      const result = await login(username, password, rememberMe);
       if (result.success) {
         // Show success message
         setSuccess(true);
@@ -43,12 +44,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           setSuccess(false);
         }, 1500);
       } else {
-        setError(result.error || 'Inloggningen misslyckades. Kontrollera dina uppgifter.');
+        setError(result.error ? String(result.error) : 'Inloggningen misslyckades. Kontrollera dina uppgifter.');
       }
     } catch (error) {
       // Log error and show detailed message if available
       console.error('Login error:', error);
-      setError(`Ett fel uppstod vid inloggning: ${error instanceof Error ? error.message : 'Okänt fel'}`);
+      setError(`Ett fel uppstod vid inloggning: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setSuccess(false);
 
     try {
-      const result = await devLogin();
+      const result = await devLogin(rememberMe);
       if (result.success) {
         // Show success message
         setSuccess(true);
@@ -70,12 +71,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           setSuccess(false);
         }, 1500);
       } else {
-        setError(result.error || 'Dev-inloggning misslyckades. Kontrollera .env.local filen.');
+        setError(result.error ? String(result.error) : 'Dev-inloggning misslyckades. Kontrollera .env.local filen.');
       }
     } catch (error) {
       // Log error details for debugging
       console.error('Dev login error:', error);
-      setError(`Ett fel uppstod vid dev-inloggning: ${error instanceof Error ? error.message : 'Okänt fel'}`);
+      setError(`Ett fel uppstod vid dev-inloggning: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -103,6 +104,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <p className="text-green-700">Du är inloggad</p>
             </div>
           )}
+          
+          <label className="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              className="accent-primary"
+            />
+            Håll mig inloggad
+          </label>
           
           <div className="space-y-2">
             <Label htmlFor="username">Användarnamn</Label>
