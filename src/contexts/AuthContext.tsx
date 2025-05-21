@@ -4,6 +4,8 @@ import { authApi } from '@/lib/api/formTryggveApi';
 import { quickDevLogin } from '@/lib/utils/devAuth';
 import { setAuthToken, getAuthToken, removeAuthToken } from '@/lib/utils/authToken';
 import { setUserInfo as persistUserInfo, getUserInfo as retrieveUserInfo, removeUserInfo } from '@/lib/utils/userInfo';
+import type { JwtUserInfo } from '@/lib/api/formTryggveApi';
+import { jwtToUserInfo } from '@/lib/utils/userInfo';
 
 type UserInfo = {
   id: number;
@@ -18,8 +20,8 @@ type UserInfo = {
 interface AuthContextType {
   isAuthenticated: boolean;
   userInfo: UserInfo | null;
-  login: (username: string, password: string) => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
-  devLogin: () => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
+  login: (username: string, password: string, persistent: boolean) => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
+  devLogin: (persistent: boolean) => Promise<{ success: boolean; data?: UserInfo; error?: unknown }>;
   logout: () => void;
   loading: boolean;
 }
@@ -53,8 +55,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           // Get user info if token is valid
           const userData = await authApi.getCurrentUser();
           if (userData) {
-            setUserInfo(userData);
-            persistUserInfo(userData);
+            // If userData is a JwtUserInfo (from JWT), adapt it to UserInfo
+            const fullUser = (userData && 'user_id' in userData)
+              ? jwtToUserInfo(userData as JwtUserInfo)
+              : userData;
+            setUserInfo(fullUser);
+            persistUserInfo(fullUser);
             setIsAuthenticated(true);
           } else {
             // Clear invalid token
@@ -76,38 +82,62 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     checkAuthStatus();
   }, []);
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; data?: UserInfo; error?: unknown }> => {
+  const login = async (username: string, password: string, persistent: boolean) => {
+    setLoading(true);
     try {
-      // Call the WordPress REST API directly
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ham/v1/auth/token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      if (response.ok && data.token) {
-        setAuthToken(data.token);
-        setUserInfo(data.user_data || null);
-        persistUserInfo(data.user_data || null);
-        setIsAuthenticated(true);
-        return { success: true, data: data.user_data };
+      const response = await authApi.login(username, password);
+      if (response.token) {
+        setAuthToken(response.token, persistent);
+        authApi.setToken(response.token);
+        const userData = await authApi.getCurrentUser();
+        if (userData) {
+          // If userData is a JwtUserInfo (from JWT), adapt it to UserInfo
+          const fullUser = (userData && 'user_id' in userData)
+            ? jwtToUserInfo(userData as JwtUserInfo)
+            : userData;
+          setUserInfo(fullUser);
+          persistUserInfo(fullUser);
+          setIsAuthenticated(true);
+          setLoading(false);
+          return { success: true, data: fullUser };
+        }
       }
-      // Login failed
-      return {
-        success: false,
-        error: data.message || 'Invalid credentials',
-      };
-    } catch (err) {
-      console.error('Login error:', err);
-      return { success: false, error: 'An unexpected error occurred' };
+      setLoading(false);
+      return { success: false, error: response.error || 'Inloggningen misslyckades.' };
+    } catch (error) {
+      setLoading(false);
+      return { success: false, error };
     }
   };
 
-  // Quick developer login using .env.local credentials
-  const devLogin = async (): Promise<{ success: boolean; data?: UserInfo; error?: unknown }> => {
-    return await quickDevLogin(login);
+  const devLogin = async (persistent: boolean) => {
+    setLoading(true);
+    try {
+      const response = await quickDevLogin(login, persistent);
+      if (response && typeof response === 'object' && 'token' in response) {
+        const { token } = response as { token: string };
+        setAuthToken(token, persistent);
+        authApi.setToken(token);
+        const userData = await authApi.getCurrentUser();
+        if (userData) {
+          // If userData is a JwtUserInfo (from JWT), adapt it to UserInfo
+          const fullUser = (userData && 'user_id' in userData)
+            ? jwtToUserInfo(userData as JwtUserInfo)
+            : userData;
+          setUserInfo(fullUser);
+          persistUserInfo(fullUser);
+          setIsAuthenticated(true);
+          setLoading(false);
+          return { success: true, data: fullUser };
+        }
+      }
+      setLoading(false);
+      return { success: false, error: (response && typeof response === 'object' && 'error' in response) 
+        ? (response as { error: string }).error : 'Dev-inloggning misslyckades.' };
+    } catch (error) {
+      setLoading(false);
+      return { success: false, error };
+    }
   };
 
   const logout = (): void => {
@@ -134,7 +164,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
