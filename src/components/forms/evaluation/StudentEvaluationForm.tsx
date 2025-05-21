@@ -8,9 +8,10 @@ import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
 import LoadingDots from '@/components/ui/LoadingDots';
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
-import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginButton from '@/components/auth/LoginButton';
+import { launchConfetti } from '@/lib/utils/confetti';
+import CenteredToast from '@/components/CenteredToast';
 
 /**
  * Student Evaluation Form component
@@ -37,6 +38,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           : initialStudentId) 
       : null
   );
+  const [centeredToastOpen, setCenteredToastOpen] = useState(false);
   
   // Auto-advance timeout ref
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -339,6 +341,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       
       // Success - show toast and confetti celebration
       toast.success('Utvärderingen har sparats');
+      setCenteredToastOpen(true);
       
       // Trigger confetti celebration
       launchConfetti();
@@ -362,42 +365,6 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       toast.error('Något gick fel vid sparande av utvärderingen');
       setIsSaving(false);
     }
-  };
-
-  // Confetti celebration function
-  const launchConfetti = () => {
-    const duration = 3000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-    function randomInRange(min: number, max: number) {
-      return Math.random() * (max - min) + min;
-    }
-
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-      
-      // Since particles fall down, start a bit higher than random
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        colors: ['#FFD700', '#FF4500', '#00BFFF', '#7CFC00', '#DA70D6'], // Gold, orange, blue, green, purple
-      });
-      
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        colors: ['#FFD700', '#FF4500', '#00BFFF', '#7CFC00', '#DA70D6'],
-      });
-    }, 250);
   };
 
   // Handle question change in step-by-step view
@@ -464,42 +431,49 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
 
   // Show appropriate view based on showFullForm state
   return (
-    <div className="form-container">
-      {!showFullForm ? (
-        <StepByStepView 
-          formData={formData}
-          questionsStructure={questionsStructure}
-          allQuestions={allQuestions}
-          currentQuestionIndex={currentQuestionIndex}
-          currentSection={allQuestions[currentQuestionIndex]?.sectionId}
-          fadeState={fadeState}
-          handlePrevQuestion={handlePrevQuestion}
-          handleNextQuestion={handleNextQuestion}
-          toggleFullForm={toggleFullForm}
-          handleStepByStepQuestionChange={handleStepByStepQuestionChange}
-          handleCommentChange={handleCommentChange}
-          calculateProgress={calculateProgress}
-          calculateSectionProgress={calculateSectionProgress}
-          isSaving={isSaving}
-          handleSubmit={handleSubmit}
-          evaluationId={evaluationId}
-          isFormSaved={isFormSaved}
-        />
-      ) : (
-        <FullFormView
-          formData={formData}
-          questionsStructure={questionsStructure}
-          toggleFullForm={toggleFullForm}
-          handleQuestionChange={handleQuestionChange}
-          handleCommentChange={handleCommentChange}
-          calculateSectionProgress={calculateSectionProgress}
-          isSaving={isSaving}
-          handleSubmit={handleSubmit}
-          evaluationId={evaluationId}
-          isFormSaved={isFormSaved}
-        />
-      )}
-    </div>
+    <>
+      <div className="form-container">
+        {!showFullForm ? (
+          <StepByStepView 
+            formData={formData}
+            questionsStructure={questionsStructure}
+            allQuestions={allQuestions}
+            currentQuestionIndex={currentQuestionIndex}
+            currentSection={allQuestions[currentQuestionIndex]?.sectionId}
+            fadeState={fadeState}
+            handlePrevQuestion={handlePrevQuestion}
+            handleNextQuestion={handleNextQuestion}
+            toggleFullForm={toggleFullForm}
+            handleStepByStepQuestionChange={handleStepByStepQuestionChange}
+            handleCommentChange={handleCommentChange}
+            calculateProgress={calculateProgress}
+            calculateSectionProgress={calculateSectionProgress}
+            isSaving={isSaving}
+            handleSubmit={handleSubmit}
+            evaluationId={evaluationId}
+            isFormSaved={isFormSaved}
+          />
+        ) : (
+          <FullFormView
+            formData={formData}
+            questionsStructure={questionsStructure}
+            toggleFullForm={toggleFullForm}
+            handleQuestionChange={handleQuestionChange}
+            handleCommentChange={handleCommentChange}
+            calculateSectionProgress={calculateSectionProgress}
+            isSaving={isSaving}
+            handleSubmit={handleSubmit}
+            evaluationId={evaluationId}
+            isFormSaved={isFormSaved}
+          />
+        )}
+      </div>
+      <CenteredToast
+        message="Utvärderingen har sparats"
+        open={centeredToastOpen}
+        onClose={() => setCenteredToastOpen(false)}
+      />
+    </>
   );
 };
 
