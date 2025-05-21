@@ -5,6 +5,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
 import * as LucideIcons from "lucide-react";
+import Image from 'next/image';
 
 interface SellingPointsModule {
   title?: string;
@@ -68,7 +69,7 @@ export default function SellingPointsModule({ module, className }: SellingPoints
       // If it's a .svg file, render as <img> (for the next step)
       if (iconKey.endsWith('.svg')) {
         return (
-          <img
+          <Image 
             src={`/images/icons/${iconKey}`}
             alt={iconKey.replace(/\.svg$/, '')}
             width={28}
@@ -121,14 +122,12 @@ export default function SellingPointsModule({ module, className }: SellingPoints
   return (
     <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || "#eeeeee" }}>
       <div className="container px-4 md:px-6 mx-auto">
-        {module.title && (
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold tracking-tight mb-4">
-              {module.title}
-            </h2>
-            <div className="w-24 h-1 bg-primary mx-auto"></div>
-          </div>
-        )}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-4">
+            {module.title}
+          </h2>
+          <div className="w-24 h-1 bg-primary mx-auto"></div>
+        </div>
 
         {module.points?.length > 0 && (
           <div
@@ -143,7 +142,8 @@ export default function SellingPointsModule({ module, className }: SellingPoints
                 key={point.id || index}
                 className={cn(
                   "block h-full",
-                  layout === 'carousel' ? 'min-w-[300px] sm:min-w-[350px] snap-center' : ''
+                  layout === 'carousel' ? 'min-w-[300px] sm:min-w-[350px] snap-center' : '',
+                  layout === 'left' ? 'text-left' : layout === 'center' ? 'text-center' : layout === 'right' ? 'text-right' : ''
                 )}
               >
                 <Card className="h-full overflow-hidden">
