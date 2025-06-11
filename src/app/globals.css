@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.glow-white {
+  box-shadow: .05em .05em 5px #fff, .05em .05em 10px #fff, .05em .05em 15px #fff, .05em .05em 20px #ffffff;
+}
+
+.text-hard-shadow-white {
+  text-shadow: .05em .05em 1px #fff; /* X-offset, Y-offset, Blur-radius, Color */
+}
+
 @layer base {
   /* Still use CSS variables for HSL values */
   :root {

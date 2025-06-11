@@ -16,7 +16,7 @@ interface HeaderProps {
   megaMenuLayout?: 'grid' | 'stack';
 }
 
-// Use grid or stack for mega menu layout
+// Use grid|stack for mega menu layout
 export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }: HeaderProps) {
   const { name } = siteInfo || {};
   const logoUrl = siteInfo?.logo_url || '/Maja-logo-Tryggve-text.svg'; // fallback logo
@@ -36,6 +36,9 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
   // State for 'stack' layout (individual dropdowns)
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
+  // State for the sliding indicator
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
+
   function getFormattedHref(slug: string) {
     if (slug === '/' || !slug) {
       return '/';
@@ -49,6 +52,19 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
     return `/${slug}`;
   }
 
+  const handleMenuItemMouseEnter = (event: React.MouseEvent<HTMLLIElement>) => {
+    const target = event.currentTarget;
+    setIndicatorStyle({
+      left: target.offsetLeft,
+      width: target.offsetWidth,
+      opacity: 1,
+    });
+  };
+
+  const handleMenuListMouseLeave = () => {
+    setIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+  };
+
   const renderMenuItem = (item: MenuItem) => {
     const href = getFormattedHref(item.slug);
     const linkProps = item.target ? { target: item.target } : {};
@@ -59,6 +75,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
         key={item.ID} 
         className="h-16 flex items-center relative" 
         onMouseEnter={(event) => {
+          handleMenuItemMouseEnter(event); // For sliding indicator
           if (megaMenuLayout === 'stack' && hasChildren) {
             setOpenDropdownId(item.ID);
           } else if (megaMenuLayout === 'grid' && hasChildren) {
@@ -86,7 +103,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
         <div className="h-full flex items-center">
           <Link
             href={href}
-            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent hover:border-yellow-500"
+            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent"
             {...linkProps}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -179,7 +196,25 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
             </div>
 
             {/* Navigation items - Desktop */}
-            <ul className="hidden lg:flex items-stretch h-16">
+            <ul 
+              className="hidden lg:flex items-stretch h-16 relative" // Added relative for positioning context
+              onMouseLeave={handleMenuListMouseLeave} // Hide indicator when mouse leaves the UL
+            >
+              {/* Sliding Indicator */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: indicatorStyle.left,
+                  width: indicatorStyle.width,
+                  height: '2px', // Corresponds to border-t-2
+                  backgroundColor: 'hsl(var(--primary))', // Use primary color from CSS variables
+                  opacity: indicatorStyle.opacity,
+                  transition: 'left 0.25s ease-out, width 0.25s ease-out, opacity 0.2s ease-out',
+                  pointerEvents: 'none', // Ensure it doesn't interfere with mouse events
+                  zIndex: 10, // Above items, below dropdowns (which are z-50)
+                }}
+              />
               {items.map(renderMenuItem)}
             </ul>
 
