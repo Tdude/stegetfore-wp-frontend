@@ -523,6 +523,7 @@ export const authApi = {
           password 
         }),
         credentials: 'include', // To support cross-domain cookie-based authentication and not answer "*"
+        mode: 'cors', // Explicitly set CORS mode
       });
       const data = await response.json();
       if (data.token) {
@@ -545,7 +546,7 @@ export const authApi = {
   /**
    * Get current user info from JWT (decode payload, robust)
    */
-  getCurrentUser: async (): Promise<JwtUserInfo | null> => {
+    getCurrentUser: async (): Promise<JwtUserInfo | null> => {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));

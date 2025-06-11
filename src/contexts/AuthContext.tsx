@@ -4,6 +4,7 @@ import { authApi } from '@/lib/api/formTryggveApi';
 import { quickDevLogin } from '@/lib/utils/devAuth';
 import { setAuthToken, getAuthToken, removeAuthToken } from '@/lib/utils/authToken';
 import { setUserInfo as persistUserInfo, getUserInfo as retrieveUserInfo, removeUserInfo } from '@/lib/utils/userInfo';
+
 import type { JwtUserInfo } from '@/lib/api/formTryggveApi';
 import { jwtToUserInfo } from '@/lib/utils/userInfo';
 
@@ -16,6 +17,8 @@ type UserInfo = {
   student_id?: number;
   [key: string]: unknown;
 };
+
+
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -55,10 +58,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           // Get user info if token is valid
           const userData = await authApi.getCurrentUser();
           if (userData) {
-            // If userData is a JwtUserInfo (from JWT), adapt it to UserInfo
-            const fullUser = (userData && 'user_id' in userData)
-              ? jwtToUserInfo(userData as JwtUserInfo)
-              : userData;
+            const fullUser = jwtToUserInfo(userData);
             setUserInfo(fullUser);
             persistUserInfo(fullUser);
             setIsAuthenticated(true);
@@ -111,30 +111,25 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const devLogin = async (persistent: boolean) => {
-    setLoading(true);
+    setLoading(true); // Indicate that the devLogin process has started
     try {
-      const response = await quickDevLogin(login, persistent);
-      if (response && typeof response === 'object' && 'token' in response) {
-        const { token } = response as { token: string };
-        setAuthToken(token, persistent);
-        authApi.setToken(token);
-        const userData = await authApi.getCurrentUser();
-        if (userData) {
-          // If userData is a JwtUserInfo (from JWT), adapt it to UserInfo
-          const fullUser = (userData && 'user_id' in userData)
-            ? jwtToUserInfo(userData as JwtUserInfo)
-            : userData;
-          setUserInfo(fullUser);
-          persistUserInfo(fullUser);
-          setIsAuthenticated(true);
-          setLoading(false);
-          return { success: true, data: fullUser };
-        }
+      // quickDevLogin calls the main `login` function.
+      // The `login` function handles token, user info, auth state, and calls setLoading(false) on completion.
+      const result = await quickDevLogin(login, persistent) as { success: boolean; data?: UserInfo; error?: unknown };
+
+      // If quickDevLogin failed early (e.g., not dev mode, no creds), `login` wasn't called,
+      // so `login`'s `setLoading(false)` wasn't hit. We need to ensure it's set here.
+      // If `login` was called and failed, `login` already set loading to false.
+      // If `login` was called and succeeded, `login` already set loading to false.
+      if (!result.success) {
+        setLoading(false);
       }
-      setLoading(false);
-      return { success: false, error: (response && typeof response === 'object' && 'error' in response) 
-        ? (response as { error: string }).error : 'Dev-inloggning misslyckades.' };
+      // If result.success is true, login() already called setLoading(false).
+
+      return result; // Simply return the result from the login attempt.
     } catch (error) {
+      // This catch is for unexpected errors thrown by quickDevLogin itself,
+      // or if `login` throws an error not caught by `quickDevLogin`'s try/catch.
       setLoading(false);
       return { success: false, error };
     }
