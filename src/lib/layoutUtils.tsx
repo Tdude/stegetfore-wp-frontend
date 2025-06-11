@@ -15,7 +15,7 @@ export async function getLayoutData(): Promise<{
 
     return {
       siteInfo,
-      menuItems
+      menuItems,
     };
   } catch (error) {
     console.error('Error in getLayoutData:', error);

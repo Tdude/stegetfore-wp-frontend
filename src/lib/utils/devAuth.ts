@@ -25,12 +25,9 @@ export const getDevCredentials = () => {
 
   if (!devCredentials.username || !devCredentials.password) {
     console.warn('Missing development credentials in .env.local file');
-    console.log('Dev credentials:', devCredentials);
     return null;
   }
 
-  console.log('Development credentials ready for user:', devCredentials.username);
-  
   return {
     username: devCredentials.username,
     password: devCredentials.password
@@ -54,8 +51,6 @@ export const quickDevLogin = async (
   if (!credentials) {
     return { success: false };
   }
-
-  console.log(`Using development credentials for quick login with username: ${credentials.username}`);
 
   try {
     return await login(credentials.username, credentials.password, persistent);

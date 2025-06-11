@@ -63,6 +63,9 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
 
   const handleMenuListMouseLeave = () => {
     setIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+    if (megaMenuLayout === 'stack') {
+      setOpenDropdownId(null);
+    }
   };
 
   const renderMenuItem = (item: MenuItem) => {
@@ -113,9 +116,13 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
         </div>
 
         {/* Individual Dropdown for 'stack' layout */}
-        {megaMenuLayout === 'stack' && hasChildren && openDropdownId === item.ID && (
+        {megaMenuLayout === 'stack' && hasChildren && ( // Always render if stack layout and has children
           <div 
-            className="absolute z-50 left-0 top-full w-56 bg-white rounded-b-md shadow-lg overflow-hidden ring-1 ring-black ring-opacity-5"
+            className={`absolute z-50 left-0 top-full w-56 bg-white rounded-b-md shadow-lg overflow-hidden ring-1 ring-black ring-opacity-5 transition-all ease-in-out duration-300 origin-top transform ${
+              openDropdownId === item.ID
+                ? 'opacity-100 scale-y-100 max-h-96'
+                : 'opacity-0 scale-y-95 max-h-0 pointer-events-none'
+            }`}
             onMouseEnter={() => setOpenDropdownId(item.ID)} // Keep open when mouse enters dropdown
             onMouseLeave={() => setOpenDropdownId(null)}   // Close when mouse leaves dropdown
           >
