@@ -366,7 +366,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     )}
                     <div className="p-4 flex flex-col flex-grow max-h-[200px] overflow-hidden">
                       <div>
-                        <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+                        <h3 className="text-xl font-bold mb-2 line-clamp-2">
                           {postTitle}
                         </h3>
 

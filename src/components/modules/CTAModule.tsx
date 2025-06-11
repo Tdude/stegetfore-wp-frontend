@@ -62,7 +62,7 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
 
               {cleanDescription && (
                 <div
-                  className="text-bold md:text-3xl prose prose-invert max-w-none"
+                  className="text-bold md:text-2xl prose prose-invert max-w-none"
                   style={{ color: module.textColor ? `${module.textColor}/90` : "inherit" }}
                   dangerouslySetInnerHTML={{ __html: cleanDescription }}
                 />

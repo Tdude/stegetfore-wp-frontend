@@ -77,12 +77,12 @@ interface ModuleRendererProps {
 
 export default function ModuleRenderer({ module, className }: ModuleRendererProps) {
   // Debug logging to trace what modules are being received
-  console.log('ModuleRenderer received:', { 
-    moduleExists: !!module,
-    moduleType: module?.type,
-    moduleId: module?.id,
-    moduleKeys: module ? Object.keys(module) : []
-  });
+  // console.log('ModuleRenderer received:', { 
+  //   moduleExists: !!module,
+  //   moduleType: module?.type,
+  //   moduleId: module?.id,
+  //   moduleKeys: module ? Object.keys(module) : []
+  // });
   
   // Early return with a placeholder if no module provided
   if (!module) {
@@ -98,7 +98,7 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
   const isFullWidth = module.fullWidth === true;
 
   // Log module details
-  console.log(`ModuleRenderer for ${module.type} (ID: ${moduleId})`, module);
+  // console.log(`ModuleRenderer for ${module.type} (ID: ${moduleId})`, module);
 
   // Add fullWidth class if needed
   const moduleClasses = cn(
@@ -123,7 +123,7 @@ export default function ModuleRenderer({ module, className }: ModuleRendererProp
     const renderModuleContent = () => {
       if (!module) return null;
       
-      console.log(`Rendering module: ${module.type} (ID: ${module.id})`);
+      // console.log(`Rendering module: ${module.type} (ID: ${module.id})`);
       
       // Match based on the actual module type
       switch (module.type) {

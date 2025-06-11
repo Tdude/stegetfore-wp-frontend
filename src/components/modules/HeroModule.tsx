@@ -18,7 +18,7 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
 
   const finalImageUrl = React.useMemo(() => {
     const featuredImage: string | string[] | null | undefined = module.featured_image;
-    console.log('Featured image data:', featuredImage);
+    // console.log('Featured image data:', featuredImage);
 
     if (typeof featuredImage === 'string') {
       return featuredImage;
@@ -100,14 +100,14 @@ export default function HeroModule({ module, className }: HeroModuleProps) {
       )}>
         <div className="max-w-3xl">
           <h1
-            className={cn("text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 text-shadow-lg")}
+            className={cn("text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 text-hard-shadow-white")}
             style={{ color: module.textColor || "#1e73be" }}
           >
             {module.title}
           </h1>
           {cleanContent && (
             <div
-              className={cn("text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-shadow-md")}
+              className={cn("text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-hard-shadow-white")}
               style={{ color: module.textColor ? `${module.textColor}/90` : "#1e73be/90" }}
               dangerouslySetInnerHTML={{ __html: cleanContent }}
             />
