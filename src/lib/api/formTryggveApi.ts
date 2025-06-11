@@ -450,16 +450,16 @@ export const evaluationApi = {
         structure.ansvar.questions = getDefaultAnsvarQuestions();
       }
       
-      console.log('Final structure:', {
-        anknytning: {
-          title: structure.anknytning.title,
-          questionCount: Object.keys(structure.anknytning.questions).length
-        },
-        ansvar: {
-          title: structure.ansvar.title,
-          questionCount: Object.keys(structure.ansvar.questions).length
-        }
-      });
+      // console.log('Final structure:', {
+      //   anknytning: {
+      //     title: structure.anknytning.title,
+      //     questionCount: Object.keys(structure.anknytning.questions).length
+      //   },
+      //   ansvar: {
+      //     title: structure.ansvar.title,
+      //     questionCount: Object.keys(structure.ansvar.questions).length
+      //   }
+      // });
       
       return structure;
     } catch {
