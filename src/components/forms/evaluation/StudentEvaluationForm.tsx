@@ -3,24 +3,43 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { FormData, QuestionsStructure, StudentEvaluationFormProps, initialFormState } from '@/lib/types/formTypesEvaluation';
+import { 
+  FormData, 
+  QuestionsStructure, 
+  StudentEvaluationFormProps, 
+  initialFormState,
+  Question, // Import Question interface instead of redefining it
+  Option
+} from '@/lib/types/formTypesEvaluation';
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
 import LoadingDots from '@/components/ui/LoadingDots';
+
+// Student interface for type checking
+interface Student {
+  id: number;
+  name: string;
+  classId?: number;
+  className?: string;
+}
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginButton from '@/components/auth/LoginButton';
 import { launchConfetti } from '@/lib/utils/confetti';
 import CenteredToast from '@/components/CenteredToast';
+import StudentSearch from './StudentSearch';
 
 /**
  * Student Evaluation Form component
  * Main component for handling evaluation form state and logic
  */
 const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ 
-  studentId: initialStudentId, 
+  studentId: propStudentId, 
   evaluationId 
 }) => {
+  // Auth check - MUST be called before any other hooks or conditionals
+  const { isAuthenticated, loading, userInfo } = useAuth();
+  
   // State for form data and UI (always call hooks at the top, before any return)
   const [formData, setFormData] = useState<FormData>(initialFormState);
   const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({});
@@ -31,14 +50,11 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [fadeState, setFadeState] = useState<'visible' | 'fading-out' | 'fading-in'>('visible');
   const [localStorageKey, setLocalStorageKey] = useState<string | null>(null);
-  const [studentId, setStudentId] = useState<number | null>(
-    initialStudentId !== undefined 
-      ? (typeof initialStudentId === 'string' 
-          ? parseInt(initialStudentId, 10) || null 
-          : initialStudentId) 
-      : null
-  );
+  const [studentId, setStudentId] = useState<number | null>(null);
+  const [studentName, setStudentName] = useState<string>('');
+  const [studentClass, setStudentClass] = useState<string>('');
   const [centeredToastOpen, setCenteredToastOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState<boolean>(true); // Controls if student search is shown
   
   // Auto-advance timeout ref
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -71,9 +87,6 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     fetchData();
   }, []);
 
-  // Auth check
-  const { isAuthenticated, loading } = useAuth();
-
   // Fetch current user info if no studentId is provided
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -86,19 +99,20 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         
         if (userInfo && userInfo.student_id) {
           // If we have a student ID from HAM, use it
-          setStudentId(userInfo.student_id);
+          const studentId = typeof userInfo.student_id === 'string' ? parseInt(userInfo.student_id, 10) : userInfo.student_id;
+          setStudentId(studentId as number);
         } else if (userInfo && userInfo.id) {
           // Fallback to using the WordPress user ID
-          setStudentId(userInfo.id);
+          const userId = typeof userInfo.id === 'string' ? parseInt(userInfo.id, 10) : userInfo.id;
+          setStudentId(userId as number);
         } else {
           console.warn('No student ID or user ID found in current user info');
-          // Fallback to a default student ID for development purposes. WP Admin should always be able to save.
-          setStudentId(1); // Use ID 1 as a fallback (usually the admin user)
+          // Don't set a default ID when using student search
+          // The teacher will need to select a student
         }
       } catch (error) {
         console.error('Error fetching current user:', error);
-        // Fallback to a default student ID for development purposes
-        setStudentId(1); // Use ID 1 as a fallback (usually the admin user)
+        // Don't set a default ID when using student search
       }
     };
 
@@ -114,6 +128,9 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
       console.log('Set up localStorage key for saving:', key);
     }
   }, [studentId]);
+  
+  // NOTE: We no longer need to fetch student details separately
+  // The student details are now provided directly from the StudentSearch component
 
   // Auto-save to localStorage every 30 seconds if form has changes
   // We'll keep this so users don't lose work, but we never load from localStorage on startup
@@ -140,7 +157,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     const questions: Array<{
       sectionId: keyof FormData;
       questionId: string;
-      question: unknown;
+      question: Question; // Using the proper Question type
     }> = [];
 
     Object.entries(questionsStructure).forEach(([sectionId, section]) => {
@@ -394,11 +411,13 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     }
   }, [currentQuestionIndex, allQuestions.length, handleNextQuestion]);
 
+  // Show loading state for initial load
   if (loading) {
-    return  <LoadingDots text="Laddar" />;
+    return <LoadingDots text="Laddar" />;
   }
 
-  if (!isAuthenticated) {
+  // Handle authentication
+  if (!isAuthenticated && !loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="rounded-xl bg-muted/30 border border-muted-foreground/10 shadow-md px-6 py-8 max-w-lg w-full text-center">
@@ -407,7 +426,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             Du måste vara inloggad för att se det här innehållet.
           </div>
           <div className="m-2 text-muted-foreground text-base">
-            <LoginButton
+            <LoginButton 
               onClick={() => typeof window !== 'undefined' && window.dispatchEvent(new CustomEvent('open-login-modal'))}
               className="my-8 mx-auto"
             />
@@ -416,6 +435,86 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             {" om du behöver hjälp."}
           </div>
         </div>
+      </div>
+    );
+  }
+//   h-full bg-card text-card-foreground w-full max-w-3xl mx-auto 
+  // Always render teacher and student information at the top of the form
+  const renderStudentSelection = () => {
+    // Don't render when loading (fixes 'isLoading not found' error)
+    if (loading) return null;
+    
+    return (
+      <div className="mb-8 p-6 w-full max-w-3xl mx-auto rounded-lg border bg-white shadow-sm">
+                  <h2 className="text-xl font-medium mb-4">
+            {!studentId ? 'Välj en elev för att starta bedömningen' : 'Bedömning'}
+          </h2><div className="flex flex-wrap justify-between items-center mb-4">
+
+          {userInfo && userInfo.display_name && (
+            <div className="badge-teacher inline-flex items-center gap-1.5 bg-[hsl(32,100%,50%,0.1)] text-[hsl(32,100%,50%)] py-1.5 px-3 rounded-full text-sm font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" clipRule="evenodd" />
+              </svg>
+              <span>Lärare: <strong>{userInfo.display_name}</strong></span>
+            </div>
+          )}
+          {studentName && (
+            <div className="badge-student inline-flex items-center gap-1.5 bg-[hsl(12,76%,61%,0.1)] text-[hsl(12,76%,61%)] py-1.5 px-3 rounded-full text-sm font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+              <span>Elev: <strong>{studentName}</strong></span>
+            </div>
+          )}
+          {studentClass && (
+            <div className="badge-class inline-flex items-center gap-1.5 bg-[hsl(173,58%,39%,0.1)] text-[hsl(173,58%,39%)] py-1.5 px-3 rounded-full text-sm font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+              </svg>
+              <span>Klass: <strong>{studentClass}</strong></span>
+            </div>
+          )}
+          <button 
+            onClick={() => setShowSearch(true)}
+            className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 py-1.5 px-3 rounded-full text-sm font-medium hover:bg-gray-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+            </svg>
+            Byt elev
+          </button>
+        </div>
+
+        {showSearch ? (
+          // Full search interface when no student is selected or search is shown
+          <StudentSearch 
+            onStudentSelect={(selectedStudent) => {
+              // Set student ID and data from the search component
+              setStudentId(selectedStudent.id);
+              setStudentName(selectedStudent.name);
+              
+              // Use class information directly from the search results
+              // The backend now includes this information for each student
+              setStudentClass(selectedStudent.className || 'Information om klass saknas');
+              
+              // Log the selected student information for debugging
+              console.log('Selected student:', {
+                id: selectedStudent.id,
+                name: selectedStudent.name,
+                classId: selectedStudent.classId,
+                className: selectedStudent.className
+              });
+              
+              setShowSearch(false);
+              toast.success('Elev vald');
+            }}
+            selectedStudentId={studentId}
+            className="mb-4"
+          />
+        ) : (
+          // Just a spacer when student is already selected
+          <div className="mb-4"></div>
+        )}
       </div>
     );
   }
@@ -432,11 +531,11 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   // Show appropriate view based on showFullForm state
   return (
     <>
+      {renderStudentSelection()}
       <div className="form-container">
         {!showFullForm ? (
           <StepByStepView 
             formData={formData}
-            questionsStructure={questionsStructure}
             allQuestions={allQuestions}
             currentQuestionIndex={currentQuestionIndex}
             currentSection={allQuestions[currentQuestionIndex]?.sectionId}

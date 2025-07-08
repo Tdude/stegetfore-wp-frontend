@@ -23,6 +23,7 @@ interface FullFormViewProps {
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
   isFormSaved: boolean;
+  toggleFullForm: () => void; // Added missing property
 }
 
 /**
