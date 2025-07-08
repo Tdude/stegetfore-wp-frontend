@@ -12,6 +12,8 @@
   NEXT_PUBLIC_USE_MODULAR_TEMPLATES = "true"
   REVALIDATION_TOKEN = "#h411edudane-DA_50M_3N_gube_kan_MÅ!"
   HOMEPAGE_ID = "2"
+  TYPESCRIPT_PATH = "./tsconfig.json"
+  TSC_COMPILE_ON_ERROR = "true"
 
 [context.production.environment]
   NODE_ENV = "production"
