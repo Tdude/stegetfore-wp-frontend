@@ -11,6 +11,15 @@
 }
 
 @layer base {
+  /* Add dark mode utilities */
+  .dark-panel {
+    @apply bg-gray-800 text-gray-200;
+  }
+  
+  .dark-card {
+    @apply bg-gray-900 border-gray-700;
+  }
+  
   /* Still use CSS variables for HSL values */
   :root {
     --background: 0 0% 100%;
@@ -94,7 +103,30 @@
 
 @layer components {
   article {
-    @apply bg-white;
+    @apply bg-white dark:bg-gray-800;
+  }
+  
+  /* Form panel styling */
+  .form-container {
+    @apply dark:bg-gray-800 dark:border-gray-700;
+  }
+  
+  /* Info badges for dark mode */
+  .badge-teacher {
+    @apply dark:bg-[hsl(32,100%,50%,0.15)] dark:text-[hsl(32,100%,50%)];
+  }
+  
+  .badge-student {
+    @apply dark:bg-[hsl(12,76%,61%,0.15)] dark:text-[hsl(12,76%,61%)];
+  }
+  
+  .badge-class {
+    @apply dark:bg-[hsl(173,58%,39%,0.15)] dark:text-[hsl(173,58%,39%)];
+  }
+  
+  /* Panels and cards */
+  .card, .panel {
+    @apply dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100;
   }
 
   /* Custom radio styling that can't go in Tailwind config */

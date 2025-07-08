@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
@@ -236,25 +237,26 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
 
                 {isAuthenticated ? (
                   <Button
-                    onClick={logout}
-                    variant="default"
-                    size="md"
-                    className="hidden lg:flex items-center px-3 py-1 opacity-50 hover:opacity-90 transition-opacity"
+                    variant="ghost"
+                    className="ml-4 p-2 flex items-center gap-2"
+                    onClick={() => logout()}
                   >
-                    <LogOut className="h-4 w-4 mr-1" />
-                    <span className="text-sm">Logga ut</span>
+                    <LogOut size={18} />
+                    <span className="hidden sm:inline">Logga ut</span>
                   </Button>
                 ) : (
                   <Button
+                    variant="ghost"
+                    className="ml-4 p-2 flex items-center gap-2"
                     onClick={() => setLoginModalOpen(true)}
-                    variant="default"
-                    size="md"
-                    className="hidden lg:flex"
                   >
-                    <LogIn className="h-4 w-4 mr-1" />
-                    <span className="text-sm">Logga in</span>
+                    <LogIn size={18} />
+                    <span className="hidden sm:inline">Logga in</span>
                   </Button>
                 )}
+                <div className="ml-2">
+                  <ThemeToggle />  
+                </div>
               </div>
             </div>
 
