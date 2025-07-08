@@ -8,19 +8,10 @@ import {
   QuestionsStructure, 
   StudentEvaluationFormProps, 
   initialFormState,
-  Question, // Import Question interface instead of redefining it
-  Option
+  Question
 } from '@/lib/types/formTypesEvaluation';
 import { evaluationApi, authApi } from '@/lib/api/formTryggveApi';
 import LoadingDots from '@/components/ui/LoadingDots';
-
-// Student interface for type checking
-interface Student {
-  id: number;
-  name: string;
-  classId?: number;
-  className?: string;
-}
 import StepByStepView from './StepByStepView';
 import FullFormView from './FullFormView';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,7 +25,7 @@ import StudentSearch from './StudentSearch';
  * Main component for handling evaluation form state and logic
  */
 const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({ 
-  studentId: propStudentId, 
+  studentId: initialStudentId, 
   evaluationId 
 }) => {
   // Auth check - MUST be called before any other hooks or conditionals
@@ -50,7 +41,9 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [fadeState, setFadeState] = useState<'visible' | 'fading-out' | 'fading-in'>('visible');
   const [localStorageKey, setLocalStorageKey] = useState<string | null>(null);
-  const [studentId, setStudentId] = useState<number | null>(null);
+  const [studentId, setStudentId] = useState<number | null>(
+    initialStudentId ? (typeof initialStudentId === 'string' ? parseInt(initialStudentId, 10) : initialStudentId) : null
+  );
   const [studentName, setStudentName] = useState<string>('');
   const [studentClass, setStudentClass] = useState<string>('');
   const [centeredToastOpen, setCenteredToastOpen] = useState(false);
