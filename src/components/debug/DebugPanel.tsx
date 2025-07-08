@@ -136,6 +136,9 @@ export default function DebugPanel({
     } finally {
       setLoadingEndpoints(false);
     }
+    // We're using stringified versions of these objects as dependencies
+    // to prevent infinite re-renders while still capturing changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pathname, 
     stringifiedProvidedDebugData,
@@ -224,7 +227,7 @@ export default function DebugPanel({
     if (typeof value === 'object') {
       // Special case: WP REST API fields like { rendered: string }
       if ('rendered' in (value as Record<string, unknown>) && typeof (value as Record<string, unknown>).rendered === 'string') {
-        return (value as Record<string, unknown>).rendered;
+        return (value as Record<string, unknown>).rendered as string;
       }
       if (Array.isArray(value)) {
         return safeJoin(value);
