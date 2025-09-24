@@ -4,8 +4,9 @@
 import React from 'react';
 import { CTAModule as CTAModuleType } from '@/lib/types/moduleTypes';
 import { Button } from '@/components/ui/button';
-import { cn, cleanWordPressContent } from '@/lib/utils';
+import { cn, cleanWordPressContent, getModuleBackgroundStyle } from '@/lib/utils';
 import NextImage from '@/components/NextImage';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CTAModuleProps {
   module: CTAModuleType;
@@ -13,6 +14,9 @@ interface CTAModuleProps {
 }
 
 export default function CTAModule({ module, className }: CTAModuleProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
   const cleanDescription = module.description ? cleanWordPressContent(module.description) : '';
   const isFullWidth = module.fullWidth === true;
   const hasImage = !!module.featured_image;
@@ -20,10 +24,42 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
   const isLeftAligned = module.layout === 'left';
   const isRightAligned = module.layout === 'right';
 
+  // Adjust overlay opacity based on theme
+  const baseOverlayOpacity = module.overlayOpacity || 0.3;
+  const adjustedOverlayOpacity = isDarkMode 
+    ? Math.min(baseOverlayOpacity + 0.2, 0.7) // Increase opacity more in dark mode for better contrast
+    : baseOverlayOpacity;
+
+  // Determine background color based on theme
+  const backgroundColor = React.useMemo(() => {
+    if (isDarkMode) {
+      // If there's a background image, we'll rely on the overlay
+      if (module.backgroundImage) {
+        return undefined;
+      }
+      // Otherwise use a dark surface color
+      return 'hsl(var(--surface-secondary))';
+    }
+    // Use the provided background color or default in light mode
+    return module.backgroundColor || "#f9fce9";
+  }, [isDarkMode, module.backgroundColor, module.backgroundImage]);
+
+  // Determine text color based on theme
+  const textColor = React.useMemo(() => {
+    if (isDarkMode) {
+      return module.backgroundImage ? 'hsl(var(--hero-text))' : undefined; // Use semantic color for better consistency
+    }
+    return module.textColor || "inherit";
+  }, [isDarkMode, module.textColor, module.backgroundImage]);
+
   return (
     <section
-      className={cn("relative py-16 overflow-hidden", className)}
-      style={{ backgroundColor: module.backgroundColor || "#f9fce9" }}
+      className={cn(
+        "relative py-16 overflow-hidden module-bg", 
+        isDarkMode ? "cta-module-dark" : "",
+        className
+      )}
+      style={module.backgroundColor ? getModuleBackgroundStyle(module.backgroundColor) : {}}
     >
       {module.backgroundImage && (
         <div className="absolute inset-0 w-full h-full">
@@ -31,9 +67,20 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
             src={module.backgroundImage}
             alt="Background"
             fill
-            className="object-cover"
+            className={cn(
+              "object-cover",
+              isDarkMode ? "opacity-90" : "" // Slightly reduce image brightness in dark mode
+            )}
           />
-          <div className="absolute inset-0 bg-black" style={{ opacity: module.overlayOpacity || 0.3 }} />
+          <div 
+            className={cn(
+              "absolute inset-0",
+              isDarkMode 
+                ? "bg-gradient-to-t from-black/90 via-black/80 to-black/70" 
+                : "bg-black"
+            )} 
+            style={{ opacity: adjustedOverlayOpacity }} 
+          />
         </div>
       )}
 
@@ -51,19 +98,34 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
             <div className={cn(
               "flex flex-col space-y-6",
               hasImage ? "md:w-1/2" : "w-full max-w-2xl mx-auto",
-              isCentered ? 'text-center' : 'text-left'
+              isCentered ? 'text-center' : 'text-left',
+              isDarkMode && !module.backgroundImage ? "text-foreground" : ""
             )}>
               <h2
-                className="text-3xl font-bold tracking-tighter sm:text-4xl"
-                style={{ color: module.textColor || "inherit" }}
+                className={cn(
+                  "text-3xl font-bold tracking-tighter sm:text-4xl",
+                  isDarkMode && module.backgroundImage ? "text-shadow-lg" : ""
+                )}
+                style={{ color: textColor }}
               >
                 {module.title}
               </h2>
 
               {cleanDescription && (
                 <div
-                  className="text-bold md:text-2xl prose prose-invert max-w-none"
-                  style={{ color: module.textColor ? `${module.textColor}/90` : "inherit" }}
+                  className={cn(
+                    "text-bold md:text-2xl max-w-none",
+                    isDarkMode && module.backgroundImage 
+                      ? "text-inverted" 
+                      : isDarkMode 
+                        ? "text-secondary" 
+                        : "text-inverted"
+                  )}
+                  style={{ 
+                    color: isDarkMode 
+                      ? (module.backgroundImage ? "rgba(255,255,255,0.9)" : undefined) 
+                      : (module.textColor ? `${module.textColor}/90` : "inherit") 
+                  }}
                   dangerouslySetInnerHTML={{ __html: cleanDescription }}
                 />
               )}
@@ -73,22 +135,59 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
                   "flex flex-wrap gap-4",
                   isCentered ? 'justify-center' : ''
                 )}>
-                  {module.buttons.map((button, index) => (
-                    <Button
-                      key={index}
-                      size={button.size || 'md'}
-                      variant={button.style || 'primary'}
-                      asChild
-                    >
-                      <a
-                        href={button.url}
-                        target={button.new_tab ? "_blank" : undefined}
-                        rel={button.new_tab ? "noopener noreferrer" : undefined}
+                  {module.buttons.map((button, index) => {
+                    // Enhanced button styling for dark mode with better contrast
+                    const buttonVariant = button.style || 'primary';
+                    let buttonClass = "";
+                    
+                    // Apply specific styling based on dark mode and background image
+                    if (isDarkMode && module.backgroundImage) {
+                      switch (buttonVariant) {
+                        case 'primary':
+                          buttonClass = "shadow-lg hover:shadow-xl text-primary-foreground font-medium";
+                          break;
+                        case 'secondary':
+                          buttonClass = "shadow-lg hover:shadow-xl border-panel-border text-text-primary font-medium";
+                          break;
+                        case 'outline':
+                          buttonClass = "shadow-lg hover:shadow-xl border-hero-text text-hero-text hover:bg-interactive-hover hover:text-hero-text/90";
+                          break;
+                        case 'ghost':
+                          buttonClass = "shadow-lg hover:shadow-xl text-hero-text hover:bg-interactive-hover hover:text-hero-text/90";
+                          break;
+                        case 'link':
+                          buttonClass = "text-hero-text hover:text-hero-text/90 underline-offset-4";
+                          break;
+                        default:
+                          buttonClass = "shadow-lg hover:shadow-xl";
+                      }
+                    } else if (isDarkMode) {
+                      // Dark mode without background image
+                      buttonClass = "hover-state focus-visible-state";
+                    }
+                    
+                    return (
+                      <Button
+                        key={index}
+                        size={button.size || 'md'}
+                        variant={buttonVariant}
+                        className={cn(
+                          buttonClass,
+                          "transition-all duration-200",
+                          isDarkMode ? "dark-cta-button" : ""
+                        )}
+                        asChild
                       >
-                        {button.text}
-                      </a>
-                    </Button>
-                  ))}
+                        <a
+                          href={button.url}
+                          target={button.new_tab ? "_blank" : undefined}
+                          rel={button.new_tab ? "noopener noreferrer" : undefined}
+                        >
+                          {button.text}
+                        </a>
+                      </Button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -99,12 +198,18 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
               "w-full",
               isCentered ? "max-w-2xl mx-auto" : "md:w-1/2"
             )}>
-              <div className="relative rounded-lg overflow-hidden aspect-video">
+              <div className={cn(
+                "relative rounded-lg overflow-hidden aspect-video",
+                isDarkMode ? "shadow-lg" : "" // Add shadow in dark mode for better visual separation
+              )}>
                 <NextImage
                   src={module.featured_image}
                   alt={module.title}
                   fill
-                  className="object-cover"
+                  className={cn(
+                    "object-cover",
+                    isDarkMode ? "opacity-90 brightness-[0.9]" : ""
+                  )}
                 />
               </div>
             </div>

@@ -96,7 +96,7 @@ export default function FormModule({ module, className }: FormModuleProps) {
           )}
 
           {module.description && (
-            <p className="text-center text-muted-foreground mb-8">{module.description}</p>
+            <p className="text-center text-secondary mb-8">{module.description}</p>
           )}
 
           <Card className="p-6">
@@ -108,7 +108,7 @@ export default function FormModule({ module, className }: FormModuleProps) {
                 errorMessage={module.error_message || 'There was an error submitting the form. Please try again.'}
               />
             ) : (
-              <p className="text-center text-muted-foreground">Form could not be loaded</p>
+              <p className="text-center text-secondary">Form could not be loaded</p>
             )}
           </Card>
         </div>

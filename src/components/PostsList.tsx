@@ -49,7 +49,7 @@ export default function PostsList({ posts, categories }: PostsListProps) {
                 <div className="flex flex-wrap gap-2 mb-2">
                   {post.categories.slice(0, 2).map((categoryId) => (
                     categories[categoryId as number] && (
-                      <Badge key={categoryId} variant="secondary">
+                      <Badge key={categoryId} variant="muted">
                         {categories[categoryId as number].name}
                       </Badge>
                     )
@@ -64,7 +64,7 @@ export default function PostsList({ posts, categories }: PostsListProps) {
             </CardHeader>
             <CardContent>
               <div
-                className="text-muted-foreground line-clamp-3"
+                className="text-secondary line-clamp-3"
                 dangerouslySetInnerHTML={{ __html: post.content.rendered }}
               />
             </CardContent>

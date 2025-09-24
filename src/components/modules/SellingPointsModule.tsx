@@ -154,7 +154,7 @@ export default function SellingPointsModule({ module, className }: SellingPoints
                     <CardTitle className="text-2xl font-bold text-center">{point.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 flex-grow">
-                    <p className="text-muted-foreground text-lg">{point.description}</p>
+                    <p className="text-secondary text-lg">{point.description}</p>
                   </CardContent>
 
                   {/* Golden ratio decorative element */}

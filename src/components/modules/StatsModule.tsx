@@ -52,7 +52,7 @@ export default function StatsModule({ module, className }: StatsModuleProps) {
               </h2>
             )}
             {module.subtitle && (
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-secondary">
                 {module.subtitle}
               </p>
             )}
@@ -103,7 +103,7 @@ export default function StatsModule({ module, className }: StatsModuleProps) {
                 </div>
 
                 {/* Label */}
-                <p className="text-lg text-muted-foreground mt-3">{stat.label}</p>
+                <p className="text-lg text-secondary mt-3">{stat.label}</p>
               </CardContent>
             </Card>
           ))}

@@ -95,7 +95,7 @@ export default function GalleryModule({ module, className }: GalleryModuleProps)
                             <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
                           )}
                           {item.description && (
-                            <p className="text-muted-foreground mt-2">{item.description}</p>
+                            <p className="text-secondary mt-2">{item.description}</p>
                           )}
                         </div>
                       </DialogContent>
@@ -163,7 +163,7 @@ export default function GalleryModule({ module, className }: GalleryModuleProps)
                         <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
                       )}
                       {item.description && (
-                        <p className="text-muted-foreground mt-2">{item.description}</p>
+                        <p className="text-secondary mt-2">{item.description}</p>
                       )}
                     </div>
                   </DialogContent>
@@ -228,7 +228,7 @@ export default function GalleryModule({ module, className }: GalleryModuleProps)
                       <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
                     )}
                     {item.description && (
-                      <p className="text-muted-foreground mt-2">{item.description}</p>
+                      <p className="text-secondary mt-2">{item.description}</p>
                     )}
                   </div>
                 </DialogContent>

@@ -6,7 +6,7 @@ import { FeaturedPostsModule as FeaturedPostsModuleType } from '@/lib/types/modu
 import { badgeVariants } from "@/components/ui/badge";
 import Link from 'next/link';
 import NextImage from '@/components/NextImage';
-import { cn } from '@/lib/utils';
+import { cn, getModuleBackgroundStyle } from '@/lib/utils';
 
 // Define a WordPress post type that matches the structure received from the API
 interface WordPressPost {
@@ -60,8 +60,8 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   // Fixed width for carousel cards to maintain consistency regardless of content
   const carouselItemWidth = layout === 'carousel' ? 'min-w-[300px] md:min-w-[350px]' : '';
 
-  // Background color from module if available
-  const bgColor = module.backgroundColor ? { backgroundColor: module.backgroundColor } : {};
+  // Background color from module if available - using our utility for dark mode support
+  const bgStyle = module.backgroundColor ? getModuleBackgroundStyle(module.backgroundColor) : {};
   
   // Helper function to check if an object has a rendered property
   const isRenderedTitle = (title: unknown): title is { rendered: string } => {
@@ -79,7 +79,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   // Display a loading state until client-side hydration completes
   if (!isClient) {
     return (
-      <section className={cn("py-12", className)} style={{ backgroundColor: module.backgroundColor || '' }}>
+      <section className={cn("py-12 module-bg", className)} style={getModuleBackgroundStyle(module.backgroundColor || '')}>
         <div className="container px-4 md:px-6 mx-auto">
           <h2 className="text-3xl font-bold tracking-tighter mb-8">{title}</h2>
           <div className="grid gap-6 grid-cols-1 md:grid-cols-3 h-full">
@@ -121,11 +121,11 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   // Handle case where posts haven't been loaded yet
   if (!module.posts || module.posts.length === 0) {
     return (
-      <section className={cn("py-12 bg-muted/50", className)} style={bgColor}>
+      <section className={cn("py-12 module-bg", className)} style={bgStyle}>
         <div className="container px-4 md:px-6 mx-auto">
           <h2 className="text-3xl font-bold tracking-tighter mb-8">{module.title || 'Featured Posts'}</h2>
           {module.subtitle && (
-            <p className="text-xl text-muted-foreground mb-8 max-w-[800px]">{module.subtitle}</p>
+            <p className="text-xl text-secondary mb-8 max-w-[800px]">{module.subtitle}</p>
           )}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 h-full">
             {[1, 2, 3].map((i) => (
@@ -164,7 +164,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
   }
 
   return (
-    <section className={cn("py-12", className)} style={bgColor}>
+    <section className={cn("py-12 module-bg", className)} style={bgStyle}>
       <div className="container px-4 md:px-6 mx-auto">
         <div className="text-center mb-12">
           {module.title && (
@@ -174,7 +174,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
           )}
           <div className="w-24 h-1 bg-primary mx-auto"></div>
           {module.subtitle && (
-            <p className="text-xl text-muted-foreground my-4 text-center">{module.subtitle}</p>
+            <p className="text-xl text-secondary my-4 text-center">{module.subtitle}</p>
           )}
         </div>
 
@@ -193,7 +193,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     href={`/posts/${posts[0].slug || posts[0].id}`}
                     className="block h-full"
                   >
-                    <div className="bg-white rounded-lg shadow-sm h-[420px] flex flex-col overflow-hidden">
+                    <div className="text-secondary">
                       {(posts[0].featured_image_url || posts[0].featured_image) && (
                         <div className="aspect-[16/9] relative overflow-hidden">
                           <NextImage
@@ -218,7 +218,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
 
                           {/* Show date if enabled */}
                           {module.show_date && posts[0].date && (
-                            <p className="text-sm text-muted-foreground mb-2">
+                            <p className="text-sm text-secondary mb-2">
                               {new Date(posts[0].date).toLocaleDateString()}
                             </p>
                           )}
@@ -226,13 +226,13 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
 
                         <div className="flex-grow">
                           {posts[0].excerpt ? (
-                            <div className="text-muted-foreground line-clamp-2">
+                            <div className="text-secondary line-clamp-2">
                               {typeof posts[0].excerpt === 'string'
                                 ? posts[0].excerpt
                                 : isRenderedTitle(posts[0].excerpt) ? posts[0].excerpt.rendered : ''}
                             </div>
                           ) : (
-                            <div className="text-muted-foreground line-clamp-2">
+                            <div className="text-secondary line-clamp-2">
                               {posts[0].content && typeof posts[0].content === 'string'
                                 ? posts[0].content.replace(/<[^>]*>/g, '').slice(0, 300) + '...'
                                 : posts[0].content && typeof posts[0].content === 'object' && 'rendered' in posts[0].content
@@ -303,7 +303,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     href={`/posts/${posts[2].slug || posts[2].id}`}
                     className="block h-full"
                   >
-                    <div className="bg-white rounded-lg shadow-sm h-[420px] flex flex-col overflow-hidden">
+                    <div className="text-secondary">
                       {(posts[2].featured_image_url || posts[2].featured_image) && (
                         <div className="aspect-video relative overflow-hidden">
                           <NextImage
@@ -353,7 +353,7 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                   href={`/posts/${post.slug || post.id}`}
                   className={cn("block h-full", carouselItemWidth)}
                 >
-                  <div className="bg-white rounded-lg shadow-sm h-[420px] flex flex-col overflow-hidden">
+                  <div className="surface-primary rounded-lg shadow-sm h-[420px] flex flex-col overflow-hidden">
                     {(post.featured_image_url || post.featured_image) && (
                       <div className="aspect-video relative overflow-hidden">
                         <NextImage
@@ -366,12 +366,12 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
                     )}
                     <div className="p-4 flex flex-col flex-grow max-h-[200px] overflow-hidden">
                       <div>
-                        <h3 className="text-xl font-bold mb-2 line-clamp-2">
+                        <h3 className="text-xl text-secondary font-bold mb-2 line-clamp-2">
                           {postTitle}
                         </h3>
 
                         {module.show_date && post.date && (
-                          <p className="text-sm text-muted-foreground mb-3">
+                          <p className="text-sm text-secondary mb-3">
                             {new Date(post.date).toLocaleDateString()}
                           </p>
                         )}
@@ -379,13 +379,13 @@ export default function FeaturedPostsModule({ module, className }: FeaturedPosts
 
                       <div className="flex-grow">
                         {post.excerpt ? (
-                          <div className="text-muted-foreground line-clamp-3">
+                          <div className="text-secondary line-clamp-3">
                             {typeof post.excerpt === 'string'
                               ? post.excerpt
                               : isRenderedTitle(post.excerpt) ? post.excerpt.rendered : ''}
                           </div>
                         ) : (
-                          <div className="text-muted-foreground line-clamp-3">
+                          <div className="text-secondary line-clamp-3">
                             {post.content && typeof post.content === 'string'
                               ? post.content.replace(/<[^>]*>/g, '').slice(0, 150) + '...'
                               : post.content && typeof post.content === 'object' && 'rendered' in post.content

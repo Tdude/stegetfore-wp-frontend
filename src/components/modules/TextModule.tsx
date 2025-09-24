@@ -3,7 +3,8 @@
 
 import React from 'react';
 import { TextModule as TextModuleType } from '@/lib/types/moduleTypes';
-import { cn } from '@/lib/utils';
+import { cn, getModuleBackgroundStyle } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface TextModuleProps {
   module: TextModuleType;
@@ -11,6 +12,9 @@ interface TextModuleProps {
 }
 
 export default function TextModule({ module, className }: TextModuleProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+
   // Set alignment classes
   const alignmentClasses = {
     left: 'text-left',
@@ -36,25 +40,47 @@ export default function TextModule({ module, className }: TextModuleProps) {
       : 'md:columns-3'
     : '';
 
+  // Determine background and text colors based on theme
+  const sectionClasses = cn(
+    "py-12 module-bg",
+    className
+  );
+
+  // Prose styling for dark mode
+  const proseClasses = cn(
+    "prose max-w-none break-words",
+    textSize,
+    columnClasses,
+    module.enable_columns ? 'gap-x-8' : '',
+    isDarkMode ? "prose-dark" : ""
+  );
+
   return (
-    <section className={cn("py-12", className)}>
+    <section 
+      className={sectionClasses}
+      style={module.backgroundColor ? getModuleBackgroundStyle(module.backgroundColor) : {}}
+    >
       <div className="container px-4 md:px-6 mx-auto">
         <div className={cn(
           "max-w-4xl mx-auto",
           contentAlignment,
-          module.enable_columns ? 'gap-8' : ''
+          module.enable_columns ? 'gap-8' : '',
+          isDarkMode ? "text-foreground" : ""
         )}>
           {module.title && (
-            <h2 className="text-3xl font-bold mb-6">{module.title}</h2>
+            <h2 className={cn(
+              "text-3xl font-bold mb-6",
+              isDarkMode ? "text-foreground" : ""
+            )}>
+              {module.title}
+            </h2>
           )}
 
-          <div className={cn(
-            "prose max-w-none break-words",
-            textSize,
-            columnClasses,
-            module.enable_columns ? 'gap-x-8' : ''
-          )}>
-            <div dangerouslySetInnerHTML={{ __html: module.content }} />
+          <div className={proseClasses}>
+            <div 
+              className={isDarkMode ? "text-module-content-dark" : ""}
+              dangerouslySetInnerHTML={{ __html: module.content }} 
+            />
           </div>
         </div>
       </div>

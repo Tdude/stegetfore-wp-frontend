@@ -13,7 +13,10 @@ module.exports = {
   			xl: '0 10px 20px var(--tw-shadow-color)'
   		},
   		boxShadow: {
-  			custom: '0 10px 34px rgba(18, 25, 38, 0.04)'
+  			custom: '0 10px 34px rgba(18, 25, 38, 0.04)',
+  			'dark-sm': '0 2px 4px rgba(0, 0, 0, 0.3)',
+  			'dark-md': '0 4px 8px rgba(0, 0, 0, 0.4)',
+  			'dark-lg': '0 8px 16px rgba(0, 0, 0, 0.5)'
   		},
   		borderRadius: {
   			sm: 'calc(var(--radius) - 4px)',
@@ -29,7 +32,7 @@ module.exports = {
   			},
   			'primary-foreground': '#040404',
   			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
+  				DEFAULT: 'hsl(var(--text-secondary))', // Changed to use --text-secondary
   				foreground: 'hsl(var(--secondary-foreground))'
   			},
   			'secondary-foreground': '#040404',
@@ -67,6 +70,72 @@ module.exports = {
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			/* Semantic surface colors */
+  			surface: {
+  				primary: 'hsl(var(--surface-primary))',
+  				secondary: 'hsl(var(--surface-secondary))',
+  				tertiary: 'hsl(var(--surface-tertiary))'
+  			},
+  			/* Panel colors */
+  			panel: {
+  				background: 'hsl(var(--panel-background))',
+  				border: 'hsl(var(--panel-border))'
+  			},
+  			/* Navigation colors */
+  			nav: {
+  				background: 'hsl(var(--nav-background))',
+  				foreground: 'hsl(var(--nav-foreground))',
+  				hover: 'hsl(var(--nav-hover))',
+  				border: 'hsl(var(--nav-border))'
+  			},
+  			/* Text colors */
+  			text: {
+  				primary: 'hsl(var(--text-primary))',
+  				secondary: 'hsl(var(--text-secondary))',
+  				muted: 'hsl(var(--text-muted))',
+  				inverted: 'hsl(var(--text-inverted))'
+  			},
+  			/* Form colors */
+  			form: {
+  				input: {
+  					bg: 'hsl(var(--form-input-bg))',
+  					border: 'hsl(var(--form-input-border))',
+  					text: 'hsl(var(--form-input-text))'
+  				},
+  				label: 'hsl(var(--form-label))',
+  				placeholder: 'hsl(var(--form-placeholder))',
+  				focus: 'hsl(var(--form-focus-ring))',
+  				error: 'hsl(var(--form-error))',
+  				success: 'hsl(var(--form-success))'
+  			},
+  			/* Content colors */
+  			content: {
+  				heading: 'hsl(var(--content-heading))',
+  				text: 'hsl(var(--content-text))',
+  				link: 'hsl(var(--content-link))',
+  				'link-hover': 'hsl(var(--content-link-hover))',
+  				code: 'hsl(var(--content-code))',
+  				'code-bg': 'hsl(var(--content-code-bg))',
+  				quote: 'hsl(var(--content-quote))',
+  				'quote-border': 'hsl(var(--content-quote-border))'
+  			},
+  			/* Overlay colors */
+  			overlay: {
+  				bg: 'hsl(var(--overlay-bg))',
+  				text: 'hsl(var(--overlay-text))'
+  			},
+  			/* Hero module colors */
+  			hero: {
+  				overlay: 'hsl(var(--hero-overlay))',
+  				text: 'hsl(var(--hero-text))',
+  				'text-shadow': 'hsl(var(--hero-text-shadow))'
+  			},
+  			/* Interactive states */
+  			interactive: {
+  				hover: 'hsl(var(--hover-overlay))',
+  				focus: 'hsl(var(--focus-ring))',
+  				active: 'hsl(var(--active-state))'
   			}
   		},
   		fontFamily: {

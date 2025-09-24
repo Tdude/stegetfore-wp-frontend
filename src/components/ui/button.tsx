@@ -6,25 +6,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[4px] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[4px] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-state focus-visible-state",
   {
     variants: {
       variant: {
         primary:
-          "border border-yellow-400 bg-yellow-400 text-gray-900 hover:bg-yellow-500 hover:border-yellow-500 shadow-md hover:shadow-lg focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2",
+          "bg-primary text-primary-foreground border border-primary hover:bg-primary/90 hover:border-primary/90 shadow-md hover:shadow-lg focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:bg-primary dark:text-primary-foreground dark:border-primary/80 dark:hover:bg-primary/90 dark:focus:ring-primary/70 dark:focus:ring-offset-background",
         secondary:
-          "border border-slate-700 bg-slate-800 text-gray-100 hover:bg-slate-900 hover:border-slate-800 shadow-md hover:shadow-lg focus:ring-2 focus:ring-slate-500 focus:ring-offset-2",
+          "bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/80 hover:border-secondary/80 shadow-md hover:shadow-lg focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2 dark:bg-secondary dark:text-text-primary dark:border-panel-border dark:hover:bg-secondary/60 dark:focus:ring-secondary/70 dark:focus:ring-offset-background",
         default:
-          "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+          "bg-surface-secondary border border-border text-foreground hover:bg-surface-tertiary hover:border-border shadow-sm hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-surface-secondary dark:text-text-primary dark:border-panel-border dark:hover:bg-surface-tertiary dark:focus:ring-offset-background",
         success:
-          "border border-green-500 bg-green-600 text-white hover:bg-green-700 hover:border-green-600 shadow-md hover:shadow-lg focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
+          "border border-green-500 bg-green-600 text-white hover:bg-green-700 hover:border-green-600 shadow-md hover:shadow-lg focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-form-success/70 dark:bg-form-success dark:text-text-inverted dark:hover:bg-form-success/90 dark:hover:border-form-success/60 dark:focus:ring-form-success/50 dark:focus:ring-offset-background",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg focus:ring-2 focus:ring-destructive/50 focus:ring-offset-2 dark:bg-form-error dark:text-text-inverted dark:border-form-error/80 dark:hover:bg-form-error/80 dark:focus:ring-form-error/70 dark:focus:ring-offset-background",
         outline:
-          "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 shadow-sm hover:shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+          "border border-border bg-transparent text-foreground hover:bg-surface-secondary hover:text-foreground shadow-sm hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:border-panel-border dark:text-text-primary dark:bg-transparent dark:hover:bg-interactive-hover dark:focus:ring-offset-background",
         ghost:
-          "bg-transparent text-gray-700 hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
-        link: "text-slate-600 underline-offset-4 hover:underline hover:text-slate-700 focus:ring-2 focus:ring-slate-600 focus:ring-offset-2",
+          "bg-transparent text-foreground hover:bg-surface-secondary hover:text-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-transparent dark:text-text-primary dark:hover:bg-interactive-hover dark:focus:ring-offset-background",
+        link: 
+          "text-foreground/80 underline-offset-4 hover:underline hover:text-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:text-text-primary/90 dark:hover:text-text-primary dark:focus:ring-offset-background",
       },
       size: {
         sm: "h-8 px-3 text-sm rounded-[3px]",

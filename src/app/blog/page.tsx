@@ -65,7 +65,7 @@ function renderPostCard(post: Post | null, categories: { [key: number]: { id: nu
                     {categories[catId]?.name || 'Category'}
                     {/* Add reading time to the first badge for test */}
                     {readingTime && (
-                      <span className="ml-2 text-xs text-muted-foreground">{readingTime}</span>
+                      <span className="ml-2 text-xs text-secondary">{readingTime}</span>
                     )}
                   </Badge>
                 );
@@ -90,7 +90,7 @@ function renderPostCard(post: Post | null, categories: { [key: number]: { id: nu
               // Truncate plain text
               const truncatedText = decodedText.substring(0, excerptLimit) + (decodedText.length > excerptLimit ? '...' : '');
               return (
-                <div className={`text-muted-foreground ${isWide ? 'line-clamp-5' : 'line-clamp-3'} mb-4`}>
+                <div className={`text-secondary ${isWide ? 'line-clamp-5' : 'line-clamp-3'} mb-4`}>
                   {truncatedText} 
                 </div>
               );

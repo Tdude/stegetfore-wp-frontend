@@ -10,9 +10,9 @@ export const stageClasses: StageClasses = {
 
 // Header stage classes
 export const headerStageClasses = {
-  ej: 'border-b-4 border-red-200',
-  trans: 'border-b-4 border-amber-200',
-  full: 'border-b-4 border-green-200'
+  ej: 'border-b-4 border-red-200 dark:border-red-300/50',
+  trans: 'border-b-4 border-amber-200 dark:border-amber-300/50',
+  full: 'border-b-4 border-green-200 dark:border-green-300/50'
 };
 
 // CSS classes for different stages in question card
@@ -26,7 +26,7 @@ export const questionStageClasses = {
 export const getOptionClasses = (isSelected: boolean): string => {
   return `flex items-center border-2 space-x-4 p-3 rounded-md cursor-pointer transition-all duration-300 relative mb-0 ${
     isSelected
-      ? 'bg-primary/10 border-2 border-primary/20 shadow-md' 
-      : 'hover:bg-gray-50 border border-transparent'
+      ? 'bg-primary/10 border-2 border-primary/20 shadow-md dark:bg-primary/20 dark:border-primary/30 dark:shadow-dark-sm' 
+      : 'hover:bg-surface-tertiary border border-transparent dark:hover:bg-surface-tertiary'
   }`;
 };

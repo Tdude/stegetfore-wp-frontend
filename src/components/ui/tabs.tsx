@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       // Support both horizontal and vertical layouts
-      "inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground",
+      "inline-flex h-9 items-center justify-center rounded-lg p-1 text-secondary",
       // If vertical, stack tabs and adjust width
       "data-[orientation=vertical]:flex-col data-[orientation=vertical]:h-auto data-[orientation=vertical]:items-stretch",
       className
@@ -37,7 +37,7 @@ const TabsTrigger = React.forwardRef<
       "transition-colors duration-300",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent",
-      "data-[state=inactive]:border-transparent data-[state=inactive]:text-muted-foreground hover:text-primary hover:border-primary",
+      "data-[state=inactive]:border-transparent data-[state=inactive]:text-secondary hover:text-primary hover:border-primary",
       "rounded-t-md",
       // Vertical: add right border, keep all other styling the same as horizontal
       "data-[orientation=vertical]:border-r-2 data-[orientation=vertical]:rounded-t-none data-[orientation=vertical]:bg-transparent data-[orientation=vertical]:max-w-[200px] data-[orientation=vertical]:min-h-[48px]",

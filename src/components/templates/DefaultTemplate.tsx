@@ -27,7 +27,7 @@ function DefaultTemplate({ page }: { page: Page }) {
   // Defensive programming - ensure page is valid after hooks
   if (!page) {
     console.error('DefaultTemplate: Page is undefined');
-    return <div className="py-8 text-center">Error: Page content could not be loaded</div>;
+    return <div className="py-8 text-center surface-primary">Error: Page content could not be loaded</div>;
   }
 
   // Add null checks for all properties
@@ -62,6 +62,9 @@ function DefaultTemplate({ page }: { page: Page }) {
   const shouldShowContentAfter = showContentWithModules && contentPosition === 'after' && pageContent;
   const shouldShowContentAlone = (!showContentWithModules || !modulesBySection?.main?.length) && pageContent;
 
+  // Define prose classes with dark mode support
+  const proseClasses = "prose prose-lg max-w-prose mx-auto dark:prose-dark prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg";
+
   return (
     <TemplateTransitionWrapper>
       {/* Render header modules */}
@@ -72,10 +75,10 @@ function DefaultTemplate({ page }: { page: Page }) {
       ))}
 
       {/* Main article section with featured image, title, and content */}
-      <article className={`max-w-3xl mx-auto px-4 ${modulesBySection?.header?.length ? 'pb-8' : 'my-8'}`}>
+      <article className={`surface-primary max-w-3xl mx-auto px-4 ${modulesBySection?.header?.length ? 'pb-8' : 'my-8'}`}>
         {/* Featured image */}
         {featuredImageUrl && (
-          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
+          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg shadow-md dark:shadow-none dark:border dark:panel-border">
             <NextImage
               src={featuredImageUrl}
               htmlTitle={pageTitle}
@@ -89,7 +92,7 @@ function DefaultTemplate({ page }: { page: Page }) {
         {/* Page title - hide when Hero module is present */}
         {pageTitle && !modulesBySection?.header?.some(module => module.type === 'hero') && (
           <h1
-            className="text-4xl font-bold mb-8"
+            className="text-4xl font-bold mb-8 text-foreground"
             dangerouslySetInnerHTML={{ __html: pageTitle }}
           />
         )}
@@ -97,7 +100,7 @@ function DefaultTemplate({ page }: { page: Page }) {
         {/* Show content before modules if configured that way */}
         {shouldShowContentBefore && (
           <div
-            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
+            className={proseClasses}
             dangerouslySetInnerHTML={{ __html: pageContent }}
           />
         )}
@@ -105,7 +108,7 @@ function DefaultTemplate({ page }: { page: Page }) {
         {/* Show content after modules if configured that way */}
         {shouldShowContentAfter && (
           <div
-            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
+            className={proseClasses}
             dangerouslySetInnerHTML={{ __html: pageContent }}
           />
         )}
@@ -113,7 +116,7 @@ function DefaultTemplate({ page }: { page: Page }) {
         {/* Show content if modules aren't available or show_content_with_modules is false */}
         {shouldShowContentAlone && (
           <div
-            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
+            className={proseClasses}
             dangerouslySetInnerHTML={{ __html: pageContent }}
           />
         )}
@@ -128,22 +131,22 @@ function DefaultTemplate({ page }: { page: Page }) {
 
       {/* Render other and footer modules - outside article for full width */}
       {modulesBySection?.other?.length > 0 && modulesBySection.other.map(module => (
-        <div key={`other-${module.id}`}>
+        <div key={`other-${module.id}`} className="surface-primary">
           <ModuleRenderer module={module} />
         </div>
       ))}
 
       {modulesBySection?.footer?.length > 0 && modulesBySection.footer.map(module => (
-        <div key={`footer-${module.id}`}>
+        <div key={`footer-${module.id}`} className="surface-primary">
           <ModuleRenderer module={module} />
         </div>
       ))}
 
       {/* Show a message if no content is available */}
       {!pageTitle && !pageContent && (!page.modules || page.modules.length === 0) && (
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-semibold text-muted-foreground">Page content is loading or unavailable</h2>
-          <p className="mt-4">Please check the page configuration in WordPress.</p>
+        <div className="text-center py-16 surface-primary">
+          <h2 className="text-2xl font-semibold text-secondary">Page content is loading or unavailable</h2>
+          <p className="mt-4 text-foreground">Please check the page configuration in WordPress.</p>
         </div>
       )}
 

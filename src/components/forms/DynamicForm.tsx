@@ -262,7 +262,7 @@ export default function DynamicForm({
       case 'date':
         return (
           <div className={`mb-4 ${fieldClassName}`}>
-            <Label htmlFor={fieldId} className={required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}>
+            <Label htmlFor={fieldId} className={required ? 'form-required text-foreground' : 'text-foreground'}>
               {fieldLabel}
             </Label>
             <Input
@@ -270,36 +270,36 @@ export default function DynamicForm({
               type={type}
               value={value || ''}
               onChange={handleChange}
-              className={error ? 'border-red-500' : ''}
+              className={error ? 'border-red-500 dark:border-red-400' : ''}
               min={field.min}
               max={field.max}
               step={field.step}
             />
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
       case 'textarea':
         return (
           <div className={`mb-4 ${fieldClassName}`}>
-            <Label htmlFor={fieldId} className={required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}>
+            <Label htmlFor={fieldId} className={required ? 'form-required text-foreground' : 'text-foreground'}>
               {fieldLabel}
             </Label>
             <Textarea
               {...commonProps}
               value={value || ''}
               onChange={handleChange}
-              className={error ? 'border-red-500' : ''}
+              className={error ? 'border-red-500 dark:border-red-400' : ''}
               rows={5}
             />
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
       case 'select':
         return (
           <div className={`mb-4 ${fieldClassName}`}>
-            <Label htmlFor={fieldId} className={required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}>
+            <Label htmlFor={fieldId} className={required ? 'form-required text-foreground' : 'text-foreground'}>
               {fieldLabel}
             </Label>
             <Select
@@ -307,7 +307,7 @@ export default function DynamicForm({
               onValueChange={(val) => handleSelectChange(name, val)}
               disabled={isSubmitting}
             >
-              <SelectTrigger id={fieldId} className={error ? 'border-red-500' : ''}>
+              <SelectTrigger id={fieldId} className={error ? 'border-red-500 dark:border-red-400' : ''}>
                 <SelectValue placeholder={placeholder || 'Select an option'} />
               </SelectTrigger>
               <SelectContent>
@@ -318,7 +318,7 @@ export default function DynamicForm({
                 ))}
               </SelectContent>
             </Select>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
@@ -326,7 +326,7 @@ export default function DynamicForm({
         return (
           <div className={`mb-4 ${fieldClassName}`}>
             <fieldset>
-              <legend className={`mb-2 ${required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}`}>
+              <legend className={`mb-2 ${required ? 'form-required text-foreground' : 'text-foreground'}`}>
                 {fieldLabel}
               </legend>
               <div className="space-y-2">
@@ -353,7 +353,7 @@ export default function DynamicForm({
                         }}
                         disabled={isSubmitting}
                       />
-                      <Label htmlFor={`${fieldId}-${index}`} className="cursor-pointer">
+                      <Label htmlFor={`${fieldId}-${index}`} className="cursor-pointer text-foreground">
                         {field.labels?.[index] || optionValue}
                       </Label>
                     </div>
@@ -361,7 +361,7 @@ export default function DynamicForm({
                 })}
               </div>
             </fieldset>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
@@ -369,7 +369,7 @@ export default function DynamicForm({
         return (
           <div className={`mb-4 ${fieldClassName}`}>
             <fieldset>
-              <legend className={`mb-2 ${required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}`}>
+              <legend className={`mb-2 ${required ? 'form-required text-foreground' : 'text-foreground'}`}>
                 {fieldLabel}
               </legend>
               <RadioGroup
@@ -384,7 +384,7 @@ export default function DynamicForm({
                         id={`${fieldId}-${index}`}
                         value={optionValue}
                       />
-                      <Label htmlFor={`${fieldId}-${index}`} className="cursor-pointer">
+                      <Label htmlFor={`${fieldId}-${index}`} className="cursor-pointer text-foreground">
                         {field.labels?.[index] || optionValue}
                       </Label>
                     </div>
@@ -392,36 +392,36 @@ export default function DynamicForm({
                 </div>
               </RadioGroup>
             </fieldset>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
       case 'file':
         return (
           <div className={`mb-4 ${fieldClassName}`}>
-            <Label htmlFor={fieldId} className={required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}>
+            <Label htmlFor={fieldId} className={required ? 'form-required text-foreground' : 'text-foreground'}>
               {fieldLabel}
             </Label>
             <Input
               {...commonProps}
               type="file"
               onChange={handleFileChange}
-              className={`${error ? 'border-red-500' : ''} file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90`}
+              className={`${error ? 'border-red-500 dark:border-red-400' : ''} file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90`}
               accept={field.options?.join(',')}
             />
             {value && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-foreground/70">
                 Selected file: {value instanceof File ? value.name : 'No file selected'}
               </p>
             )}
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
 
       default:
         return (
           <div className={`mb-4 ${fieldClassName}`}>
-            <Label htmlFor={fieldId} className={required ? 'after:content-["*"] after:ml-0.5 after:text-red-500' : ''}>
+            <Label htmlFor={fieldId} className={required ? 'form-required text-foreground' : 'text-foreground'}>
               {fieldLabel}
             </Label>
             <Input
@@ -429,9 +429,9 @@ export default function DynamicForm({
               type="text"
               value={value || ''}
               onChange={handleChange}
-              className={error ? 'border-red-500' : ''}
+              className={error ? 'border-red-500 dark:border-red-400' : ''}
             />
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-sm form-error">{error}</p>}
           </div>
         );
     }
@@ -453,9 +453,9 @@ export default function DynamicForm({
   // If form has been submitted successfully, show a success message
   if (isSubmitted) {
     return (
-      <div className="p-6 border rounded bg-green-50 border-green-200 text-center">
-        <h3 className="text-xl font-semibold text-green-700 mb-2">Thank You!</h3>
-        <p className="text-green-600 mb-4">{successMessage}</p>
+      <div className="p-6 border rounded panel-border panel-bg text-center dark:bg-green-950/30 dark:border-green-800/50 bg-green-50 border-green-200">
+        <h3 className="text-xl font-semibold mb-2 text-green-700 dark:text-green-400">Thank You!</h3>
+        <p className="mb-4 text-green-600 dark:text-green-300">{successMessage}</p>
         <Button onClick={handleReset} variant="outline">
           Submit Another Response
         </Button>
@@ -466,10 +466,10 @@ export default function DynamicForm({
   // Render the form
   return (
     <>
-      <form onSubmit={handleSubmit} className={`space-y-6 ${className}`} autoComplete="off">
+      <form onSubmit={handleSubmit} className={`space-y-6 form-container rounded-lg p-6 ${className}`} autoComplete="off">
         {/* Form title */}
         {form.title && (
-          <h3 className="text-xl font-semibold mb-4">{form.title}</h3>
+          <h3 className="text-xl font-semibold mb-4 text-foreground">{form.title}</h3>
         )}
 
         {/* Form fields */}
@@ -487,7 +487,7 @@ export default function DynamicForm({
             {isSubmitting ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white dark:text-primary-foreground"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

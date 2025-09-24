@@ -5,12 +5,13 @@ import { cn } from '@/lib/utils';
 
 /**
  * Progress bar gradient classes to match original styling with intricate cross-fading
+ * Enhanced with dark mode support
  */
 const progressGradients = {
-  low: 'bg-gradient-to-r from-red-400 via-red-300 to-amber-200',
-  medium: 'bg-gradient-to-r from-amber-300 via-amber-200 to-green-200',
-  high: 'bg-gradient-to-r from-amber-200 via-green-300 to-green-400',
-  complete: 'bg-gradient-to-r from-green-300 via-green-400 to-green-500'
+  low: 'bg-gradient-to-r from-red-400 via-red-300 to-amber-200 dark:from-red-500/70 dark:via-red-400/70 dark:to-amber-300/70',
+  medium: 'bg-gradient-to-r from-amber-300 via-amber-200 to-green-200 dark:from-amber-400/70 dark:via-amber-300/70 dark:to-green-300/70',
+  high: 'bg-gradient-to-r from-amber-200 via-green-300 to-green-400 dark:from-amber-300/70 dark:via-green-400/70 dark:to-green-500/70',
+  complete: 'bg-gradient-to-r from-green-300 via-green-400 to-green-500 dark:from-green-400/70 dark:via-green-500/70 dark:to-green-600/70'
 };
 
 /**
@@ -85,10 +86,10 @@ const MarkerPill: React.FC<{
       className="absolute top-0 transform -translate-y-full"
       style={{ left: `${positionPercent}%` }}
     >
-      <div className="bg-white border border-gray-300 rounded-full px-2 py-0.5 text-xs font-medium shadow-sm whitespace-nowrap">
+      <div className="bg-card dark:bg-surface-secondary border border-border dark:border-panel-border rounded-full px-2 py-0.5 text-xs font-medium shadow-sm dark:shadow-dark-sm whitespace-nowrap text-foreground">
         {label}
       </div>
-      <div className="w-0.5 h-3 bg-gray-400 mx-auto mt-0.5"></div>
+      <div className="w-0.5 h-3 bg-gray-400 dark:bg-gray-500 mx-auto mt-0.5"></div>
     </div>
   );
 };
@@ -105,12 +106,12 @@ export const DualSectionProgressBar: React.FC<{
     <div className="w-full mb-8 mt-4">
       <div className="flex flex-col sm:flex-row gap-8">
         <div className="flex-1">
-          <h3 className="text-md font-medium mb-8">Anknytningstecken</h3>
+          <h3 className="text-md font-medium mb-8 dark:text-primary">Anknytningstecken</h3>
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs font-medium">{Math.round(anknytningProgress * 100)}%</span>
           </div>
           <div className="relative">
-            <div className="w-full h-6 rounded-full bg-gray-200 overflow-hidden">
+            <div className="w-full h-6 rounded-full bg-gray-200 dark:surface-tertiary overflow-hidden">
               <div 
                 className={cn(
                   "h-full rounded-full transition-all duration-300",
@@ -128,12 +129,12 @@ export const DualSectionProgressBar: React.FC<{
         </div>
         
         <div className="flex-1">
-          <h3 className="text-md font-medium mb-8">Ansvarstecken</h3>
+          <h3 className="text-md font-medium mb-8 dark:text-primary">Ansvarstecken</h3>
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs font-medium">{Math.round(ansvarProgress * 100)}%</span>
           </div>
           <div className="relative">
-            <div className="w-full h-6 rounded-full bg-gray-200 overflow-hidden">
+            <div className="w-full h-6 rounded-full bg-gray-200 dark:surface-tertiary overflow-hidden">
               <div 
                 className={cn(
                   "h-full rounded-full transition-all duration-300",

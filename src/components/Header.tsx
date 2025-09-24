@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Menu, X, LogIn, LogOut } from 'lucide-react';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { MenuItem, SiteInfo } from '@/lib/types/contentTypes';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
@@ -19,8 +20,11 @@ interface HeaderProps {
 
 // Use grid|stack for mega menu layout
 export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }: HeaderProps) {
+  const { theme } = useTheme();
   const { name } = siteInfo || {};
-  const logoUrl = siteInfo?.logo_url || '/Maja-logo-Tryggve-text.svg'; // fallback logo
+  const logoUrl = siteInfo?.logo_url || (theme === 'dark' 
+    ? '/Maja-logo-tryggve-text-inverted.svg' 
+    : '/Maja-logo-tryggve-text.svg');
   const items = menuItems || [];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
@@ -75,9 +79,9 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
     const hasChildren = item.children && item.children.length > 0;
 
     return (
-      <li 
-        key={item.ID} 
-        className="h-16 flex items-center relative" 
+      <li
+        key={item.ID}
+        className="h-16 flex items-center relative"
         onMouseEnter={(event) => {
           handleMenuItemMouseEnter(event); // For sliding indicator
           if (megaMenuLayout === 'stack' && hasChildren) {
@@ -107,23 +111,22 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
         <div className="h-full flex items-center">
           <Link
             href={href}
-            className="flex items-center h-full px-4 text-gray-800 text-lg hover:text-black transition-colors border-t-2 border-transparent"
+            className="flex items-center h-full px-4 nav-text text-lg hover:text-primary transition-colors border-t-2 border-transparent dark:text-text-inverted font-medium"
             {...linkProps}
             onClick={() => setMobileMenuOpen(false)}
           >
             <span>{item.title}</span>
-            {hasChildren && <ChevronDown className="h-4 w-4 ml-1 text-gray-500" />}
+            {hasChildren && <ChevronDown className="h-4 w-4 ml-1 text-foreground/60 dark:text-text-inverted" />}
           </Link>
         </div>
 
         {/* Individual Dropdown for 'stack' layout */}
         {megaMenuLayout === 'stack' && hasChildren && ( // Always render if stack layout and has children
-          <div 
-            className={`absolute z-50 left-0 top-full w-56 bg-white rounded-b-md shadow-lg overflow-hidden ring-1 ring-black ring-opacity-5 transition-all ease-in-out duration-300 origin-top transform ${
-              openDropdownId === item.ID
-                ? 'opacity-100 scale-y-100 max-h-96'
-                : 'opacity-0 scale-y-95 max-h-0 pointer-events-none'
-            }`}
+          <div
+            className={`absolute z-50 left-0 top-full w-56 bg-card dark:bg-surface-secondary rounded-b-md shadow-lg overflow-hidden ring-1 ring-border dark:ring-panel-border transition-all ease-in-out duration-300 origin-top transform ${openDropdownId === item.ID
+              ? 'opacity-100 scale-y-100 max-h-96'
+              : 'opacity-0 scale-y-95 max-h-0 pointer-events-none'
+              }`}
             onMouseEnter={() => setOpenDropdownId(item.ID)} // Keep open when mouse enters dropdown
             onMouseLeave={() => setOpenDropdownId(null)}   // Close when mouse leaves dropdown
           >
@@ -132,7 +135,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
                 <li key={child.ID}>
                   <Link
                     href={getFormattedHref(child.slug)}
-                    className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-black whitespace-nowrap"
+                    className="block px-4 py-2 text-md text-foreground/80 hover:bg-surface-tertiary hover:text-foreground whitespace-nowrap hover-state focus-visible-state"
                     {...(child.target ? { target: child.target } : {})}
                     onClick={() => {
                       setMobileMenuOpen(false);
@@ -162,7 +165,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
   }, []);
 
   return (
-    <header className="bg-white shadow-sm relative">
+    <header className="surface-tertiary shadow-sm relative nav-bg">
       <div /* Main hover wrapper - primarily for 'grid' layout mega menu */
         onMouseEnter={() => {
           if (megaMenuLayout === 'grid') {
@@ -183,7 +186,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
             <div className="h-16 flex items-center">
               <Link
                 href="/"
-                className="text-xl font-bold text-gray-800 hover:text-black"
+                className="text-xl font-bold text-foreground/90 hover:text-foreground/100"
               >
                 <Image src={logoUrl} alt={name || 'Home'} width={120} height={60} />
               </Link>
@@ -193,7 +196,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
             <div className="lg:hidden h-16 flex items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="flex items-center text-gray-800"
+                className="flex items-center text-foreground/90"
               >
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -204,7 +207,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
             </div>
 
             {/* Navigation items - Desktop */}
-            <ul 
+            <ul
               className="hidden lg:flex items-stretch h-16 relative" // Added relative for positioning context
               onMouseLeave={handleMenuListMouseLeave} // Hide indicator when mouse leaves the UL
             >
@@ -255,14 +258,14 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
                   </Button>
                 )}
                 <div className="ml-2">
-                  <ThemeToggle />  
+                  <ThemeToggle />
                 </div>
               </div>
             </div>
 
             {/* Mobile menu */}
             {mobileMenuOpen && (
-              <div className="absolute top-16 left-0 right-0 bg-white shadow-sm z-50 lg:hidden">
+              <div className="absolute top-16 left-0 right-0 bg-card dark:bg-surface-secondary shadow-sm z-50 lg:hidden">
                 <ul className="py-2 px-4">
                   {items.map(item => {
                     const href = getFormattedHref(item.slug);
@@ -272,19 +275,19 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
                       <li key={item.ID} className="py-2">
                         <Link
                           href={href}
-                          className="block font-medium text-gray-800"
+                          className="block font-medium text-foreground/80 hover:text-primary transition-colors hover-state focus-visible-state"
                           onClick={() => !hasChildren && setMobileMenuOpen(false)}
                         >
                           {item.title}
                         </Link>
 
                         {hasChildren && (
-                          <ul className="pl-4 mt-2 border-l border-gray-200">
+                          <ul className="pl-4 mt-2 border-l panel-border">
                             {item.children?.map(child => (
                               <li key={child.ID} className="py-1">
                                 <Link
                                   href={getFormattedHref(child.slug)}
-                                  className="block text-sm text-gray-700"
+                                  className="block text-sm text-foreground/70 hover:text-foreground hover-state focus-visible-state"
                                   onClick={() => setMobileMenuOpen(false)}
                                 >
                                   {child.title}
@@ -344,16 +347,16 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
 
         {/* Mega Menu Panel - ONLY for 'grid' layout */}
         {megaMenuLayout === 'grid' && isMegaMenuOpen && activeSubMenuItems && activeSubMenuItems.length > 0 && (
-          <div className="absolute left-0 right-0 top-full bg-white shadow-lg z-40">
-            <div className="container mx-auto px-4 py-2"> 
+          <div className="absolute left-0 right-0 top-full bg-card dark:bg-surface-secondary shadow-lg z-40">
+            <div className="container mx-auto px-4 py-2">
               <div style={{ marginLeft: `${activeParentMenuLeft}px` }}> {/* Apply dynamic horizontal offset */}
                 {/* Submenu items styled as a vertical stack, similar to 'stack' mode dropdowns */}
-                <ul className="py-1 flex flex-col bg-white w-56 rounded-md shadow-xs"> {/* Mimic stack dropdown style */}
+                <ul className="py-1 flex flex-col bg-card dark:bg-surface-secondary w-56 rounded-md shadow-xs border border-border dark:border-panel-border"> {/* Mimic stack dropdown style */}
                   {activeSubMenuItems.map((child) => (
                     <li key={child.ID}>
                       <Link
                         href={getFormattedHref(child.slug)}
-                        className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-black whitespace-nowrap"
+                        className="block px-4 py-2 text-md text-foreground/80 hover:bg-surface-tertiary hover:text-foreground whitespace-nowrap hover-state focus-visible-state"
                         {...(child.target ? { target: child.target } : {})}
                         onClick={() => {
                           setMobileMenuOpen(false);

@@ -63,3 +63,23 @@ export function cleanWordPressContent(content: string): string {
 
   return cleanedContent;
 }
+
+/**
+ * Creates a style object for module backgrounds that respects dark mode
+ * @param backgroundColor The background color from WordPress admin
+ * @param darkModeColor Optional override color for dark mode (defaults to surface-secondary)
+ * @returns A style object with CSS variables for both light and dark modes
+ */
+export function getModuleBackgroundStyle(backgroundColor?: string, darkModeColor?: string): React.CSSProperties {
+  if (!backgroundColor) return {};
+  
+  // Create a style with CSS variables that can be overridden in dark mode
+  return {
+    // Use CSS variables for background color to support dark mode override
+    '--module-bg-color': backgroundColor,
+    // Custom property for dark mode background
+    '--module-dark-bg-color': darkModeColor || 'hsl(var(--surface-secondary))',
+    // The actual background color will be set via CSS using the variables
+    backgroundColor: 'var(--module-bg-color)',
+  } as React.CSSProperties;
+}

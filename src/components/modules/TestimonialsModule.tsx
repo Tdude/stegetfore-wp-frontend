@@ -43,7 +43,7 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
           )}
           <div className="w-full max-w-4xl mx-auto">
             <div className="bg-muted/30 rounded-lg h-64 animate-pulse flex items-center justify-center">
-              <p className="text-muted-foreground">Loading testimonials...</p>
+              <p className="text-secondary">Loading testimonials...</p>
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
           )}
           <div className="w-full max-w-4xl mx-auto">
             <Card className="text-center p-6">
-              <p className="text-muted-foreground">No testimonials available</p>
+              <p className="text-secondary">No testimonials available</p>
             </Card>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
                 <Card className="border-0 shadow-none">
                   <CardContent className="pt-6">
                     <div
-                      className="text-lg text-muted-foreground mb-4"
+                      className="text-lg text-secondary mb-4"
                       dangerouslySetInnerHTML={{ __html: testimonial.text }}
                     />
                   </CardContent>
@@ -106,7 +106,7 @@ export default function TestimonialsModule({ module, className }: TestimonialsMo
                     </Avatar>
                     <div>
                       <p className="font-medium">{testimonial.author || 'Anonymous'}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.position || ''}</p>
+                      <p className="text-sm text-secondary">{testimonial.position || ''}</p>
                     </div>
                   </CardFooter>
                 </Card>

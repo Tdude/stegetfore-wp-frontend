@@ -55,10 +55,10 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   isFormSaved
 }) => {
   const questionContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Current question data
   const currentQuestion = allQuestions[currentQuestionIndex];
-  
+
   // If there's no current question (e.g., no questions loaded yet), show loading state
   if (!currentQuestion && !isFormSaved) {
     return <div className="flex items-center justify-center p-10">Laddar frågor...</div>;
@@ -68,29 +68,29 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   if (isFormSaved) {
     return (
       <div className="w-full max-w-lg mx-auto mt-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-md">
-          <div className="text-green-600 text-4xl mb-4">✓</div>
-          <h3 className="text-xl font-semibold mb-3">Utvärderingen har sparats!</h3>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-green-50 dark:bg-form-success/10 border border-green-200 dark:border-form-success/30 rounded-lg p-6 text-center shadow-md dark:shadow-dark-md">
+          <div className="text-green-600 dark:text-form-success text-4xl mb-4">✓</div>
+          <h3 className="text-xl font-semibold mb-3 text-foreground">Utvärderingen har sparats!</h3>
+          <p className="text-gray-600 dark:text-text-secondary mb-6">
             Tack för att du slutförde utvärderingen. Den har sparats i systemet.
-            {evaluationId && typeof evaluationId === 'number' && !isNaN(evaluationId) && 
+            {evaluationId && typeof evaluationId === 'number' && !isNaN(evaluationId) &&
               <span className="block mt-2 text-sm">Utvärderingen har ID: {evaluationId}</span>
             }
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
+            <Button
               onClick={() => window.location.href = '/'}
               variant="default"
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 dark:text-primary-foreground"
             >
               Tillbaka till start
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => window.location.reload()}
               variant="outline"
-              className="border-primary text-primary hover:bg-primary/10"
+              className="border-primary text-primary hover:bg-primary/10 dark:border-primary/70 dark:text-primary dark:hover:bg-primary/20"
             >
               Ny utvärdering
             </Button>
@@ -105,28 +105,25 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Utvärdering</h2>
       </div>
-      
-      <DualSectionProgressBar 
-        anknytningProgress={calculateSectionProgress("anknytning")} 
+
+      <DualSectionProgressBar
+        anknytningProgress={calculateSectionProgress("anknytning")}
         ansvarProgress={calculateSectionProgress("ansvar")}
       />
-      
-      <div 
+
+      <div
         ref={questionContainerRef}
-        className={`transition-opacity duration-500 ${
-          fadeState === 'fading-out' ? 'opacity-0' : 'opacity-100'
-        }`}
+        className={`transition-opacity duration-500 ${fadeState === 'fading-out' ? 'opacity-0' : 'opacity-100'
+          }`}
       >
         {currentQuestion && (
           <QuestionCard
             question={currentQuestion.question}
             questionId={currentQuestion.questionId}
-            sectionId={currentQuestion.sectionId}
             value={formData[currentQuestion.sectionId]?.questions?.[currentQuestion.questionId] || ''}
             comment={formData[currentQuestion.sectionId]?.comments?.[currentQuestion.questionId] || ''}
             onChange={handleStepByStepQuestionChange(currentQuestion.sectionId, currentQuestion.questionId)}
             onCommentChange={handleCommentChange(currentQuestion.sectionId, currentQuestion.questionId)}
-            calculateProgress={calculateProgress}
             currentIndex={currentQuestionIndex}
             totalQuestions={allQuestions.length}
           />
@@ -145,12 +142,12 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             <ChevronLeft size={16} />
             Föregående
           </Button>
-          
+
           <Button
             type="button"
             variant="outline"
             onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === allQuestions.length - 1 || 
+            disabled={currentQuestionIndex === allQuestions.length - 1 ||
               !formData[currentSection]?.questions?.[currentQuestion.questionId]}
             className="flex items-center gap-2"
           >
@@ -158,10 +155,10 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             <ChevronRight size={16} />
           </Button>
         </div>
-        
+
         <div className="flex gap-2">
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="outline"
             onClick={toggleFullForm}
             className="flex items-center gap-2"
@@ -169,23 +166,23 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             <List size={16} />
             Visa alla frågor
           </Button>
-        
+
           {currentQuestionIndex === allQuestions.length - 1 && (
             <Button
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
                 // Make sure at least one question is answered
-                const hasAnsweredQuestions = 
-                  Object.keys(formData.anknytning?.questions || {}).length > 0 || 
+                const hasAnsweredQuestions =
+                  Object.keys(formData.anknytning?.questions || {}).length > 0 ||
                   Object.keys(formData.ansvar?.questions || {}).length > 0;
-                
+
                 if (!hasAnsweredQuestions) {
                   // Alert user if no questions are answered
                   alert('Du måste besvara minst en fråga innan du kan skicka in formuläret.');
                   return;
                 }
-                
+
                 // Proceed with submission if questions are answered
                 handleSubmit(e);
               }}

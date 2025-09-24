@@ -71,30 +71,35 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Define prose classes with dark mode support
+  const proseClasses = "prose max-w-none dark:prose-dark";
+
   return (
     <TemplateTransitionWrapper>
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12 surface-primary">
         <div className="max-w-4xl mx-auto">
           {featuredImage && (
-            <Image
-              src={featuredImage}
-              alt={page.title.rendered}
-              width={800}
-              height={400}
-              className="w-full h-64 object-cover rounded-lg mb-8"
-            />
+            <div className="relative w-full h-64 mb-8 overflow-hidden rounded-lg shadow-md dark:shadow-none dark:border dark:panel-border">
+              <Image
+                src={featuredImage}
+                alt={page.title.rendered}
+                width={800}
+                height={400}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
           )}
 
-          <h1 className="text-4xl font-bold mb-6">
+          <h1 className="text-4xl font-bold mb-6 text-foreground">
             <div dangerouslySetInnerHTML={{ __html: page.title.rendered }} />
           </h1>
 
           {/* Content before the form */}
           {shouldShowContentBefore && pageContent && (
-            <Card className="mb-12">
-              <CardContent>
+            <Card className="mb-12 panel-bg panel-border">
+              <CardContent className="p-6">
                 <div
-                  className="prose max-w-none"
+                  className={proseClasses}
                   dangerouslySetInnerHTML={{ __html: pageContent }}
                 />
               </CardContent>
@@ -102,14 +107,18 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
           )}
 
           {/* Contact form */}
-          <ContactForm formId={Number(page?.meta?.cf7_form_id) || 146} />
+          <Card className="panel-bg panel-border shadow-md dark:shadow-none">
+            <CardContent className="p-0">
+              <ContactForm formId={Number(page?.meta?.cf7_form_id) || 146} />
+            </CardContent>
+          </Card>
           
           {/* Content after the form */}
           {shouldShowContentAfter && pageContent && (
-            <Card className="mt-12">
-              <CardContent className="pt-6">
+            <Card className="mt-12 panel-bg panel-border">
+              <CardContent className="p-6">
                 <div
-                  className="prose max-w-none"
+                  className={proseClasses}
                   dangerouslySetInnerHTML={{ __html: pageContent }}
                 />
               </CardContent>
@@ -118,7 +127,7 @@ export default function ContactFormTemplate({ page }: ContactFormTemplateProps) 
           
           {/* Dev note about content */}
           {!pageContent && (
-            <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded text-sm">
+            <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200 rounded text-sm">
               <strong>Dev Note:</strong> No content from WordPress is available. 
               Add content in the WordPress editor and ensure content display settings are enabled.
             </div>

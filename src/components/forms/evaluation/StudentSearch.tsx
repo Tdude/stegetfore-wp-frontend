@@ -268,14 +268,14 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
   return (
     <div className={`relative ${className}`}>
       <div className="mb-4">
-        <label htmlFor="student-search" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="student-search" className="block text-sm font-medium text-foreground mb-1">
           {selectedStudent ? 'Vald elev' : 'Sök efter elev'}
         </label>
         <div className="relative">
           <input
             id="student-search"
             type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-3 py-2 rounded-md border border-input bg-surface-secondary text-sm ring-offset-background placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-transparent dark:bg-surface-secondary dark:text-foreground dark:border-input dark:focus-visible:ring-focus-ring dark:focus-visible:ring-offset-1"
             placeholder="Skriv namn för att söka... (minst 2 tecken)"
             value={searchTerm}
             onChange={handleSearchChange}
@@ -284,7 +284,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
           />
           {isLoading && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary dark:border-primary"></div>
             </div>
           )}
         </div>
@@ -294,7 +294,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
           <select
             value={selectedClassId || ''}
             onChange={(e) => handleClassSelect(e.target.value ? parseInt(e.target.value, 10) : null)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-3 py-2 rounded-md border border-input bg-surface-secondary text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-transparent dark:bg-surface-secondary dark:text-foreground dark:border-input dark:focus-visible:ring-focus-ring dark:focus-visible:ring-offset-1"
             aria-label="Filtrera efter klass"
           >
             <option value="">Alla klasser</option>
@@ -315,7 +315,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
         
         {/* Selected class info */}
         {selectedClassId && (
-          <p className="text-sm text-indigo-600 mt-1">
+          <p className="text-sm text-primary mt-1">
             Visar endast elever i vald klass
           </p>
         )}
@@ -323,19 +323,19 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
       
       {/* Selected student display */}
       {selectedStudent && (
-        <div className="mt-2 p-2 bg-indigo-50 border border-indigo-100 rounded-md">
-          <p className="text-sm font-medium text-indigo-700">Vald elev: {selectedStudent.name}</p>
+        <div className="mt-2 p-2 bg-indigo-50 dark:bg-primary/10 border border-indigo-100 dark:border-primary/20 rounded-md">
+          <p className="text-sm font-medium text-indigo-700 dark:text-primary">Vald elev: {selectedStudent.name}</p>
         </div>
       )}
       
       {/* Search results dropdown */}
       {showDropdown && students.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto">
+        <div className="absolute z-10 w-full mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border max-h-60 overflow-auto">
           <ul>
             {students.map(student => (
               <li 
                 key={student.id}
-                className="px-4 py-2 hover:bg-indigo-50 cursor-pointer transition-colors"
+                className="px-4 py-2 hover:bg-surface-tertiary dark:hover:bg-surface-tertiary/80 cursor-pointer transition-colors text-foreground"
                 onClick={() => handleStudentSelect(student)}
               >
                 {student.name}
@@ -347,8 +347,8 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
       
       {/* No results message */}
       {showDropdown && searchTerm.length >= 2 && students.length === 0 && !isLoading && (
-        <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Inga elever hittades</p>
+        <div className="absolute z-10 w-full mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border p-4">
+          <p className="text-sm text-secondary dark:text-text-secondary">Inga elever hittades</p>
         </div>
       )}
     </div>

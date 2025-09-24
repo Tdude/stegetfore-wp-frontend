@@ -122,24 +122,24 @@ export default function ContactForm({ formId }: ContactFormProps) {
   }, [formData, isSubmitted]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+    <form onSubmit={handleSubmit} className="space-y-6 p-6 form-container rounded-lg">
       {/* Name field */}
       <div>
-        <Label htmlFor="your-name">Namn</Label>
+        <Label htmlFor="your-name" className="form-required text-foreground">Namn</Label>
         <Input
           id="your-name"
           name="your-name"
           value={formData['your-name']}
           onChange={handleChange}
           required
-          className={errors['your-name'] ? 'border-red-500' : ''}
+          className={errors['your-name'] ? 'border-red-500 dark:border-red-400' : ''}
         />
-        {errors['your-name'] && <p className="text-sm text-red-500 mt-1">{errors['your-name']}</p>}
+        {errors['your-name'] && <p className="text-sm form-error mt-1">{errors['your-name']}</p>}
       </div>
 
       {/* Email field */}
       <div>
-        <Label htmlFor="your-email">E-post</Label>
+        <Label htmlFor="your-email" className="form-required text-foreground">E-post</Label>
         <Input
           id="your-email"
           name="your-email"
@@ -147,23 +147,23 @@ export default function ContactForm({ formId }: ContactFormProps) {
           value={formData['your-email']}
           onChange={handleChange}
           required
-          className={errors['your-email'] ? 'border-red-500' : ''}
+          className={errors['your-email'] ? 'border-red-500 dark:border-red-400' : ''}
         />
-        {errors['your-email'] && <p className="text-sm text-red-500 mt-1">{errors['your-email']}</p>}
+        {errors['your-email'] && <p className="text-sm form-error mt-1">{errors['your-email']}</p>}
       </div>
 
       {/* Message field */}
       <div>
-        <Label htmlFor="your-message">Meddelande</Label>
+        <Label htmlFor="your-message" className="form-required text-foreground">Meddelande</Label>
         <Textarea
           id="your-message"
           name="your-message"
           value={formData['your-message']}
           onChange={handleChange}
           required
-          className={errors['your-message'] ? 'border-red-500' : ''}
+          className={errors['your-message'] ? 'border-red-500 dark:border-red-400' : ''}
         />
-        {errors['your-message'] && <p className="text-sm text-red-500 mt-1">{errors['your-message']}</p>}
+        {errors['your-message'] && <p className="text-sm form-error mt-1">{errors['your-message']}</p>}
       </div>
 
       {/* Submit button */}

@@ -45,10 +45,10 @@ const FullFormView: React.FC<FullFormViewProps> = ({
   if (isFormSaved) {
     return (
       <div className="container max-w-3xl mx-auto p-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-md">
-          <div className="text-green-600 text-4xl mb-4">✓</div>
-          <h3 className="text-xl font-semibold mb-3">Utvärderingen har sparats!</h3>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-green-50 dark:bg-form-success/10 border border-green-200 dark:border-form-success/30 rounded-lg p-6 text-center shadow-md dark:shadow-dark-md">
+          <div className="text-green-600 dark:text-form-success text-4xl mb-4">✓</div>
+          <h3 className="text-xl font-semibold mb-3 text-foreground">Utvärderingen har sparats!</h3>
+          <p className="text-gray-600 dark:text-text-secondary mb-6">
             Tack för att du slutförde utvärderingen. Den har sparats i systemet.
             {evaluationId && <span className="block mt-2 text-sm">Evaluation ID: {evaluationId}</span>}
           </p>
@@ -57,7 +57,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
             <Button 
               onClick={() => window.location.href = '/'}
               variant="default"
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 dark:text-primary-foreground"
             >
               Tillbaka till start
             </Button>
@@ -65,7 +65,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
             <Button 
               onClick={() => window.location.reload()}
               variant="outline"
-              className="border-primary text-primary hover:bg-primary/10"
+              className="border-primary text-primary hover:bg-primary/10 dark:border-primary/70 dark:text-primary dark:hover:bg-primary/20"
             >
               Ny utvärdering
             </Button>
@@ -81,7 +81,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
         <Card className="mb-8 shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-2xl">Utvärdering</CardTitle>
-            <p className="text-muted-foreground">Fyll i alla frågor nedan</p>
+            <p className="text-secondary">Fyll i alla frågor nedan</p>
           </CardHeader>
           
           <CardContent>
