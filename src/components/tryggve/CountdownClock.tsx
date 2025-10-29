@@ -10,15 +10,42 @@ interface CountdownClockProps {
 
 export default function CountdownClock({ className }: CountdownClockProps) {
   const [rotation, setRotation] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Animate the clock hand rotating backwards (countdown effect)
     const interval = setInterval(() => {
       setRotation((prev) => (prev - 1) % 360); // Move 1 degree per second (backwards)
-    }, 200);
+    }, 1000); // Changed from 200ms to 1000ms (1 second)
 
     return () => clearInterval(interval);
   }, []);
+
+  // Prevent hydration issues by not rendering dynamic content until mounted
+  if (!isMounted) {
+    return (
+      <div className={cn("relative inline-block", className)}>
+        <svg width="70" height="70" viewBox="0 0 120 120" className="drop-shadow-lg">
+          <circle cx="60" cy="60" r="58" fill="white" stroke="black" strokeWidth="2" />
+          {[...Array(12)].map((_, i) => {
+            const angle = (i * 30 - 90) * (Math.PI / 180);
+            const x1 = Math.round((60 + 48 * Math.cos(angle)) * 100) / 100;
+            const y1 = Math.round((60 + 48 * Math.sin(angle)) * 100) / 100;
+            const x2 = Math.round((60 + 52 * Math.cos(angle)) * 100) / 100;
+            const y2 = Math.round((60 + 52 * Math.sin(angle)) * 100) / 100;
+            return (
+              <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="black" strokeWidth="2" strokeLinecap="round" />
+            );
+          })}
+          <circle cx="60" cy="60" r="4" fill="black" />
+          <line x1="60" y1="60" x2="60" y2="20" stroke="black" strokeWidth="2" strokeLinecap="round" />
+          <line x1="60" y1="60" x2="60" y2="30" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="60" cy="60" r="3" fill="hsl(var(--primary))" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative inline-block", className)}>
