@@ -24,7 +24,6 @@ interface StepByStepViewProps {
   toggleFullForm: () => void;
   handleStepByStepQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
-  calculateProgress: (sectionId: keyof FormData, questionId: string) => number;
   calculateSectionProgress: (sectionId: keyof FormData) => number;
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
@@ -47,7 +46,6 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   toggleFullForm,
   handleStepByStepQuestionChange,
   handleCommentChange,
-  calculateProgress,
   calculateSectionProgress,
   isSaving,
   handleSubmit,

@@ -72,7 +72,7 @@ export interface GalleryItem {
 }
 
 export interface PageParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }

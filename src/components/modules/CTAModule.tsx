@@ -30,20 +30,6 @@ export default function CTAModule({ module, className }: CTAModuleProps) {
     ? Math.min(baseOverlayOpacity + 0.2, 0.7) // Increase opacity more in dark mode for better contrast
     : baseOverlayOpacity;
 
-  // Determine background color based on theme
-  const backgroundColor = React.useMemo(() => {
-    if (isDarkMode) {
-      // If there's a background image, we'll rely on the overlay
-      if (module.backgroundImage) {
-        return undefined;
-      }
-      // Otherwise use a dark surface color
-      return 'hsl(var(--surface-secondary))';
-    }
-    // Use the provided background color or default in light mode
-    return module.backgroundColor || "#f9fce9";
-  }, [isDarkMode, module.backgroundColor, module.backgroundImage]);
-
   // Determine text color based on theme
   const textColor = React.useMemo(() => {
     if (isDarkMode) {
