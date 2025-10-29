@@ -47,8 +47,8 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
   const siteName = siteInfo?.name || 'Tryggve';
   // Use appropriate logo based on theme
   const logoUrl = siteInfo?.logo_url || (theme === 'dark' 
-    ? '/Maja-logo-tryggve-text-inverted.svg' 
-    : '/Maja-logo-tryggve-text.svg');
+    ? '/logo-tryggve-inverted.svg' 
+    : '/logo-tryggve.svg');
   const year = new Date().getFullYear();
 
   // Function to format href based on slug
