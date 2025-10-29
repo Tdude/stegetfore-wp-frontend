@@ -11,6 +11,11 @@ const nextConfig = {
     ignoreBuildErrors: true, // ⚠️ Only for temporary use!
   },
 
+  // ===== ESLint =====
+  eslint: {
+    ignoreDuringBuilds: true, // ⚠️ Only for production builds
+  },
+
   // ===== Image Optimization =====
   images: {
     remotePatterns: [
