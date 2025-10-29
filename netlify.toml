@@ -10,7 +10,7 @@
   NEXT_PUBLIC_API_URL = "https://cms.stegetfore.nu/wp-json"
   NEXT_PUBLIC_THEME_SLUG = "steget"
   NEXT_PUBLIC_USE_MODULAR_TEMPLATES = "true"
-  REVALIDATION_TOKEN = "#h411edudane-DA_50M_3N_gube_kan_MÅ!"
+  REVALIDATION_TOKEN = "#h********************MÅ!"
   HOMEPAGE_ID = "2"
   TYPESCRIPT_PATH = "./tsconfig.json"
   TSC_COMPILE_ON_ERROR = "true"

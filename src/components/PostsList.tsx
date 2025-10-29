@@ -26,8 +26,8 @@ export default function PostsList({ posts, categories }: PostsListProps) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {posts.map((post) => (
-        <Link 
-          href={`/posts/${post.slug}`} 
+        <Link
+          href={`/posts/${post.slug}`}
           className="text-sm text-primary"
           key={post.id}
         >
@@ -49,7 +49,7 @@ export default function PostsList({ posts, categories }: PostsListProps) {
                 <div className="flex flex-wrap gap-2 mb-2">
                   {post.categories.slice(0, 2).map((categoryId) => (
                     categories[categoryId as number] && (
-                      <Badge key={categoryId} variant="muted">
+                      <Badge key={categoryId} variant="secondary">
                         {categories[categoryId as number].name}
                       </Badge>
                     )
