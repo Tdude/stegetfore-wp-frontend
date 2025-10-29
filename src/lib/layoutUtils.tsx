@@ -14,8 +14,8 @@ export async function getLayoutData(): Promise<{
     ]);
 
     return {
-      siteInfo,
-      menuItems,
+      siteInfo: siteInfo || { name: 'Sajtens namn', description: 'Sajtbeskrivning' },
+      menuItems: Array.isArray(menuItems) ? menuItems : [],
     };
   } catch (error) {
     console.error('Error in getLayoutData:', error);

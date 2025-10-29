@@ -63,10 +63,10 @@ ssh -i ~/.LS-CG-Stockholm-22.cer ubuntu@13.50.90.88
 
 ### Rebel Server (206.168.213.62)
 
-#### Docker Cleanup
+#### Docker Cleanup. This will free up disk space without affecting your running services.
 ```bash
 # SSH to rebel
-ssh tibbe@206.168.213.62
+ssh tibbe@206.168.213.62 # or ssh rebel
 
 # Remove unused Docker images
 docker image prune -a

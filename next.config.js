@@ -5,6 +5,7 @@ const nextConfig = {
   // ===== Core Config =====
   compress: true,
   productionBrowserSourceMaps: false,
+  output: 'standalone', // For production deployment
 
   // ===== TypeScript =====
   typescript: {
