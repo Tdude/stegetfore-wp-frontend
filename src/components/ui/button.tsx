@@ -13,7 +13,7 @@ const buttonVariants = cva(
         primary:
           "bg-primary text-primary-foreground border border-primary hover:bg-primary/90 hover:border-primary/90 shadow-md hover:shadow-lg focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:bg-primary dark:text-primary-foreground dark:border-primary/80 dark:hover:bg-primary/90 dark:focus:ring-primary/70 dark:focus:ring-offset-background",
         secondary:
-          "bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/80 hover:border-secondary/80 shadow-md hover:shadow-lg focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2 dark:bg-secondary dark:text-text-primary dark:border-panel-border dark:hover:bg-secondary/60 dark:focus:ring-secondary/70 dark:focus:ring-offset-background",
+          "bg-secondary text-white border border-secondary hover:bg-secondary/80 hover:border-secondary/80 shadow-md hover:shadow-lg focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2 dark:bg-secondary dark:text-text-primary dark:border-panel-border dark:hover:bg-secondary/60 dark:focus:ring-secondary/70 dark:focus:ring-offset-background",
         default:
           "bg-surface-secondary border border-border text-foreground hover:bg-surface-tertiary hover:border-border shadow-sm hover:shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-surface-secondary dark:text-text-primary dark:border-panel-border dark:hover:bg-surface-tertiary dark:focus:ring-offset-background",
         success:

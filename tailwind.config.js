@@ -140,10 +140,12 @@ module.exports = {
   		},
   		fontFamily: {
   			sans: [
+  				'var(--font-lato)',
   				'Lato',
   				'sans-serif'
   			],
   			heading: [
+  				'var(--font-raleway)',
   				'Raleway',
   				'sans-serif'
   			]

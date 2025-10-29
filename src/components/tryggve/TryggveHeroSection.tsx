@@ -5,7 +5,6 @@ import React from 'react';
 import { TryggveHeroSection } from '@/lib/types/tryggveLandingTypes';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import NextImage from '@/components/NextImage';
 
 interface TryggveHeroSectionProps {
   data: TryggveHeroSection;
@@ -16,25 +15,19 @@ export default function TryggveHeroSectionComponent({ data, className }: Tryggve
   return (
     <section
       className={cn(
-        "relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden",
+        "relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden bg-background",
         className
       )}
-      style={{ backgroundColor: data.backgroundColor || '#a4e87a' }}
+      style={data.backgroundColor ? { backgroundColor: data.backgroundColor } : undefined}
     >
       {data.backgroundImage && (
-        <>
-          <div className="absolute inset-0 w-full h-full">
-            <NextImage
-              src={data.backgroundImage}
-              alt="Hero background"
-              fill={true}
-              priority={true}
-              className="object-cover"
-              fallbackSrc="/images/hero-fallback.jpg"
-            />
-          </div>
-          <div className="absolute inset-0 bg-black/20"></div>
-        </>
+        <div className="absolute inset-0 w-full h-full">
+          <img
+            src={data.backgroundImage}
+            alt="Hero background"
+            className="w-full h-full object-cover"
+          />
+        </div>
       )}
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">

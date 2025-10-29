@@ -30,7 +30,7 @@ export default function TryggveCourseSectionComponent({
 
           <div className="bg-white rounded-lg p-8 md:p-12 shadow-custom border border-gray-200">
             <h3 className="text-2xl font-bold font-heading mb-6 text-black">
-              Under kursen får ni:
+              Under kursen får du:
             </h3>
             <ul className="space-y-4 mb-8">
               {data.benefits.map((benefit, index) => (

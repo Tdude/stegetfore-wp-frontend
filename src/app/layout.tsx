@@ -1,4 +1,5 @@
 // src/app/layout.tsx
+import { Lato, Raleway } from 'next/font/google';
 import { getLayoutData } from '@/lib/layoutUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -6,6 +7,20 @@ import Providers from '@/components/Providers';
 import ContentFade from '@/components/ContentFade';
 import './globals.css';
 // import { PageTransitionOverlay } from "@/components/ui/PageTransitionOverlay";
+
+const lato = Lato({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-lato',
+  display: 'swap',
+});
+
+const raleway = Raleway({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-raleway',
+  display: 'swap',
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +32,7 @@ export default async function RootLayout({
   const { siteInfo, menuItems } = await getLayoutData();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${lato.variable} ${raleway.variable}`}>
       <body suppressHydrationWarning>
         <Providers>
           <ContentFade />

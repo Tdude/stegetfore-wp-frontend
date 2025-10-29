@@ -24,6 +24,8 @@ const defaultLandingData: TryggveLandingData = {
   hero: {
     title: 'Bygg en skola där även de svårnådda barnen lyckas',
     subtitle: 'Tryggve är en forskningsförankrad modell som hjälper skolor att förstå, möta och inkludera barn med komplexa behov – innan de faller utanför.',
+    backgroundImage: '/images/bubbelbarn-hero.png',
+    backgroundColor: '#FFB800',
     buttons: [
       {
         text: 'Boka plats på kursen',
@@ -33,10 +35,9 @@ const defaultLandingData: TryggveLandingData = {
       {
         text: 'Få mer information',
         url: '#course',
-        style: 'outline',
+        style: 'secondary',
       },
     ],
-    backgroundColor: '#f9fafb',
   },
   targetAudience: {
     title: 'Den här kursen är för dig som leder en skola där alla barn ska få plats',

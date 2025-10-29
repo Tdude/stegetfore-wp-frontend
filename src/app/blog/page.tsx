@@ -74,7 +74,7 @@ function renderPostCard(post: Post | null, categories: { [key: number]: { id: nu
           )}
           
           {/* Title */}
-          <CardTitle className={`${isCompact ? 'text-lg' : isWide ? 'text-2xl' : 'text-xl'} mb-4 line-clamp-2`}>
+          <CardTitle className="post-title mb-4 line-clamp-2">
             <span dangerouslySetInnerHTML={{ __html: post.title?.rendered || '' }} />
           </CardTitle>
           
