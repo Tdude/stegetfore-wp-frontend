@@ -23,8 +23,8 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
   const { theme } = useTheme();
   const { name } = siteInfo || {};
   const logoUrl = siteInfo?.logo_url || (theme === 'dark' 
-    ? '/Maja-logo-tryggve-text-inverted.svg' 
-    : '/Maja-logo-tryggve-text.svg');
+    ? '/Maja-logo-Tryggve-text-inverted.svg' 
+    : '/Maja-logo-Tryggve-text.svg');
   const items = menuItems || [];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
