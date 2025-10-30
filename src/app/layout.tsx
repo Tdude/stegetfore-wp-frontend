@@ -24,6 +24,19 @@ const raleway = Raleway({
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-64.png', type: 'image/png', sizes: '64x64' },
+    ],
+    apple: [
+      { url: '/favicon-500.png', sizes: '500x500', type: 'image/png' },
+    ],
+  },
+};
+
 export default async function RootLayout({
   children,
 }: {
