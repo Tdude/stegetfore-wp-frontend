@@ -9,17 +9,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { submitForm } from '@/lib/api/formApi';
 
 interface TryggveContactFormSectionProps {
   data: TryggveContactFormSection;
   className?: string;
   id?: string;
+  formId?: number; // Contact Form 7 ID
 }
 
 export default function TryggveContactFormSectionComponent({ 
   data, 
   className,
-  id
+  id,
+  formId = 1 // Default to CF7 form ID 1, can be overridden
 }: TryggveContactFormSectionProps) {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,18 +42,21 @@ export default function TryggveContactFormSectionComponent({
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement actual form submission to WordPress or API
-      // For now, simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Submit to Contact Form 7 via WordPress API
+      const response = await submitForm(formId, formData);
       
-      setIsSubmitted(true);
-      toast.success(data.successMessage || 'Tack! Vi kontaktar dig inom kort.');
-      
-      // Reset form after 3 seconds
-      setTimeout(() => {
-        setFormData({});
-        setIsSubmitted(false);
-      }, 3000);
+      if (response.status === 'mail_sent') {
+        setIsSubmitted(true);
+        toast.success(data.successMessage || response.message || 'Tack! Vi kontaktar dig inom kort.');
+        
+        // Reset form after 5 seconds
+        setTimeout(() => {
+          setFormData({});
+          setIsSubmitted(false);
+        }, 5000);
+      } else {
+        toast.error(response.message || 'Ett fel uppstod. Försök igen senare.');
+      }
     } catch (error) {
       console.error('Form submission error:', error);
       toast.error('Ett fel uppstod. Försök igen senare.');

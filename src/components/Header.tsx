@@ -206,28 +206,30 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
               </button>
             </div>
 
-            {/* Navigation items - Desktop */}
-            <ul
-              className="hidden lg:flex items-stretch h-16 relative" // Added relative for positioning context
-              onMouseLeave={handleMenuListMouseLeave} // Hide indicator when mouse leaves the UL
-            >
-              {/* Sliding Indicator */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: indicatorStyle.left,
-                  width: indicatorStyle.width,
-                  height: '2px', // Corresponds to border-t-2
-                  backgroundColor: 'hsl(var(--primary))', // Use primary color from CSS variables
-                  opacity: indicatorStyle.opacity,
-                  transition: 'left 0.25s ease-out, width 0.25s ease-out, opacity 0.2s ease-out',
-                  pointerEvents: 'none', // Ensure it doesn't interfere with mouse events
-                  zIndex: 10, // Above items, below dropdowns (which are z-50)
-                }}
-              />
-              {items.map(renderMenuItem)}
-            </ul>
+            {/* Navigation items - Desktop - Only show when authenticated */}
+            {isAuthenticated && (
+              <ul
+                className="hidden lg:flex items-stretch h-16 relative" // Added relative for positioning context
+                onMouseLeave={handleMenuListMouseLeave} // Hide indicator when mouse leaves the UL
+              >
+                {/* Sliding Indicator */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: indicatorStyle.left,
+                    width: indicatorStyle.width,
+                    height: '2px', // Corresponds to border-t-2
+                    backgroundColor: 'hsl(var(--primary))', // Use primary color from CSS variables
+                    opacity: indicatorStyle.opacity,
+                    transition: 'left 0.25s ease-out, width 0.25s ease-out, opacity 0.2s ease-out',
+                    pointerEvents: 'none', // Ensure it doesn't interfere with mouse events
+                    zIndex: 10, // Above items, below dropdowns (which are z-50)
+                  }}
+                />
+                {items.map(renderMenuItem)}
+              </ul>
+            )}
 
             {/* Login or other button - desktop */}
             <div className="hidden lg:flex items-center h-16">
@@ -263,8 +265,8 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
               </div>
             </div>
 
-            {/* Mobile menu */}
-            {mobileMenuOpen && (
+            {/* Mobile menu - Only show when authenticated */}
+            {mobileMenuOpen && isAuthenticated && (
               <div className="absolute top-16 left-0 right-0 bg-card dark:bg-surface-secondary shadow-sm z-50 lg:hidden">
                 <ul className="py-2 px-4">
                   {items.map(item => {

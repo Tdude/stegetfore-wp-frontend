@@ -115,28 +115,28 @@ const defaultLandingData: TryggveLandingData = {
     successMessage: 'Tack! Vi kontaktar dig inom kort med mer information om kursen och hur ni kan ta första steget mot en mer relationell skola.',
     fields: [
       {
-        name: 'name',
+        name: 'your-name',
         label: 'Namn',
         type: 'text',
         required: true,
         placeholder: 'Ditt namn',
       },
       {
-        name: 'email',
+        name: 'your-email',
         label: 'E-post',
         type: 'email',
         required: true,
         placeholder: 'din@email.se',
       },
       {
-        name: 'role',
+        name: 'your-role',
         label: 'Roll / Skola',
         type: 'text',
         required: true,
         placeholder: 'T.ex. Rektor, Södra skolan',
       },
       {
-        name: 'message',
+        name: 'your-message',
         label: 'Meddelande',
         type: 'textarea',
         required: false,
@@ -177,7 +177,7 @@ export default function TryggveLandingTemplate({
         <TryggveCourseSection data={data.course} id="course" />
 
         {/* Contact Form Section */}
-        <TryggveContactFormSection data={data.contactForm} id="contact" />
+        <TryggveContactFormSection data={data.contactForm} id="contact" formId={748} />
 
         {/* Closing Section */}
         <TryggveClosingSection data={data.closing} />
