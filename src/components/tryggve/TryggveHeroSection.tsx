@@ -32,10 +32,10 @@ export default function TryggveHeroSectionComponent({ data, className }: Tryggve
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading tracking-tight mb-6 text-black">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading tracking-tight mb-6 text-black text-hard-shadow-white">
             {data.title}
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800">
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800 text-hard-shadow-white">
             {data.subtitle}
           </p>
           {data.buttons && data.buttons.length > 0 && (
