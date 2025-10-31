@@ -17,11 +17,11 @@ export default function TryggveTextPanel({
 }: TryggveTextPanelProps) {
   return (
     <section className={cn("py-16 md:py-24 bg-surface-primary", className)}>
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-6 md:px-8 lg:px-12">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg p-8 md:p-12 shadow-custom border border-gray-200">
             {title && (
-              <h2 className="text-2xl md:text-3xl font-bold font-heading mb-6 text-black">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading mb-6 text-black px-4">
                 {title}
               </h2>
             )}

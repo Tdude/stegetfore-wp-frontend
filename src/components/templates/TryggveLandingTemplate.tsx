@@ -66,7 +66,7 @@ const defaultLandingData: TryggveLandingData = {
   },
   textPanel: {
     title: 'Varför Tryggve?',
-    content: '<p>Tryggve är en pedagogisk modell som hjälper dig att förstå och möta barn med komplexa behov. Genom att kombinera anknytningsteori med praktisk pedagogik får du verktyg för att skapa trygghet och struktur i klassrummet.</p><p>Modellen är forskningsförankrad och har visat sig effektiv i att förebygga problem och stödja barns utveckling.</p>',
+    content: '<p>Varför gör det utagerande barnet som det gör? Förstår du det så vet du också att bestraffningar och konsekvenstrappor i sig inte är en lyckad pedagogisk lösning.</p><p>Steget före handlar om att förstå och utveckla pedagogiska lösningar för att sårbara barn ska komma till rätta i skolan.</p>',
   },
   problem: {
     title: 'De sårbara barnen är många. De är framtiden vi riskerar att förlora.',
@@ -92,22 +92,22 @@ const defaultLandingData: TryggveLandingData = {
     description: 'Fyra nyckelområden som gör skillnad',
     cards: [
       {
-        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-1.jpg',
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/hoodie.svg',
         title: 'Förståelse',
         description: 'Lär dig se bakom beteendet och förstå barnets behov',
       },
       {
-        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-2.jpg',
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/bli-sedd.svg',
         title: 'Verktyg',
         description: 'Konkreta metoder för klassrummet som fungerar',
       },
       {
-        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-3.jpg',
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/kollegialt-samtal.svg',
         title: 'Stöd',
         description: 'Ett nätverk av kollegor som delar dina utmaningar',
       },
       {
-        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-4.jpg',
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/korridor-snackar.svg',
         title: 'Resultat',
         description: 'Beprövade metoder som leder till verklig förändring',
       },

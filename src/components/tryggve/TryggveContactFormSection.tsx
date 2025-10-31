@@ -67,33 +67,33 @@ export default function TryggveContactFormSectionComponent({
 
   return (
     <section id={id} className={cn("py-16 md:py-24 bg-white", className)}>
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold font-heading text-center mb-6 text-black">
+      <div className="container mx-auto px-6 md:px-8 lg:px-12">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-center mb-6 text-black px-4">
             {data.title}
           </h2>
-          <p className="text-lg md:text-xl text-center mb-12 text-gray-800">
+          <p className="text-xl md:text-2xl text-center mb-12 text-gray-800 px-4">
             {data.subtitle}
           </p>
 
-          <div className="bg-gray-50 rounded-lg p-8 md:p-12 shadow-custom border border-gray-200">
+          <div className="bg-gray-50 rounded-lg p-6 md:p-10 lg:p-12 shadow-custom border border-gray-200">
             {isSubmitted ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4 text-primary">✓</div>
                 <h3 className="text-2xl font-bold text-black mb-2">
                   Tack för din anmälan!
                 </h3>
-                <p className="text-gray-800">
+                <p className="text-lg text-gray-800">
                   {data.successMessage}
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-8">
                 {data.fields.map((field, index) => (
                   <div key={index}>
                     <Label 
                       htmlFor={field.name}
-                      className="text-black font-medium mb-2 block"
+                      className="text-black text-lg md:text-xl font-medium mb-3 block"
                     >
                       {field.label}
                       {field.required && <span className="text-red-600 ml-1">*</span>}
@@ -107,8 +107,8 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full"
-                        rows={5}
+                        className="w-full text-lg md:text-xl p-4"
+                        rows={6}
                       />
                     ) : (
                       <Input
@@ -119,19 +119,17 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full"
+                        className="w-full text-lg md:text-xl p-4 h-14"
                       />
                     )}
                   </div>
                 ))}
 
                 <div className="pt-4">
-                  <Button
-                    type="submit"
-                    size="lg"
-                    variant="primary"
+                  <Button 
+                    type="submit" 
                     disabled={isSubmitting}
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary-dark text-white font-bold text-lg md:text-xl py-5 px-8 rounded-lg transition-colors h-16"
                   >
                     {isSubmitting ? 'Skickar...' : data.submitButtonText}
                   </Button>

@@ -18,19 +18,17 @@ export default function TryggveCourseSectionComponent({
   id
 }: TryggveCourseSectionProps) {
   return (
-    <section id={id} className={cn("py-16 md:py-24 bg-gray-50", className)}>
-      <div className="container mx-auto px-4 md:px-6">
+    <section id={id} className={cn("py-16 md:py-24 bg-surface-primary", className)}>
+      <div className="container mx-auto px-6 md:px-8 lg:px-12">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold font-heading text-center mb-6 text-black">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-center mb-6 text-black px-4">
             {data.title}
           </h2>
-          <p className="text-lg md:text-xl text-center mb-12 text-gray-800">
-            {data.description}
-          </p>
+
 
           <div className="bg-white rounded-lg p-8 md:p-12 shadow-custom border border-gray-200">
             <h3 className="text-2xl font-bold font-heading mb-6 text-black">
-              Under kursen får du:
+              {data.description}
             </h3>
             <ul className="space-y-4 mb-8">
               {data.benefits.map((benefit, index) => (
