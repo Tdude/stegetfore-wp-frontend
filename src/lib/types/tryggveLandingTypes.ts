@@ -78,6 +78,8 @@ export interface TryggveClosingSection {
 export interface TryggveTextPanel {
   title?: string;
   content: string;
+  image?: string;
+  imagePosition?: 'left' | 'right' | 'center-bottom';
 }
 
 export interface TryggveSellingCard {

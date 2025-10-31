@@ -35,7 +35,7 @@ export default function TryggveHeroSectionComponent({ data, className }: Tryggve
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading tracking-tight mb-6 text-black text-hard-shadow-white">
             {data.title}
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800 text-hard-shadow-white">
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800 font-bold text-hard-shadow-white">
             {data.subtitle}
           </p>
           {data.buttons && data.buttons.length > 0 && (
