@@ -6,6 +6,7 @@
 - **Frontend (Next.js)**: Hostup server (lambda.hostup.se / 185.113.11.10)
 - **Backend (WordPress)**: Plesk server (cms.stegetfore.nu / 13.50.90.88)
 - **Domain**: stegetfore.nu
+- **NO GIT REPO IN REMOTE** Compiled next.js files are scp:d to remote server via deploy.sh script
 
 ### Server Infrastructure
 

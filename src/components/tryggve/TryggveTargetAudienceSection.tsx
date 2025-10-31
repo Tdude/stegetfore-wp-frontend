@@ -4,6 +4,7 @@
 import React from 'react';
 import { TryggveTargetAudienceSection } from '@/lib/types/tryggveLandingTypes';
 import { cn } from '@/lib/utils';
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
@@ -60,8 +61,19 @@ export default function TryggveTargetAudienceSectionComponent({
                     </p>
                   </div>
                 ) : (
-                  // Multiple testimonials - use carousel
-                  <Carousel className="w-full">
+                  // Multiple testimonials - use carousel with autoplay
+                  <Carousel 
+                    className="w-full relative"
+                    opts={{
+                      loop: true,
+                    }}
+                    plugins={[
+                      Autoplay({
+                        delay: 20000,
+                        stopOnInteraction: true,
+                      }),
+                    ]}
+                  >
                     <CarouselContent>
                       {data.testimonials.map((testimonial, index) => (
                         <CarouselItem key={index}>
@@ -79,8 +91,9 @@ export default function TryggveTargetAudienceSectionComponent({
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-0 -translate-x-1/2" />
-                    <CarouselNext className="right-0 translate-x-1/2" />
+                    {/* Arrows positioned outside parent, hidden on small screens */}
+                    <CarouselPrevious className="hidden md:flex -left-12 lg:-left-16" />
+                    <CarouselNext className="hidden md:flex -right-12 lg:-right-16" />
                   </Carousel>
                 )}
               </div>
