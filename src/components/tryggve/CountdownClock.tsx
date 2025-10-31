@@ -17,7 +17,7 @@ export default function CountdownClock({ className }: CountdownClockProps) {
     // Animate the clock hand rotating backwards (countdown effect)
     const interval = setInterval(() => {
       setRotation((prev) => (prev - 1) % 360); // Move 1 degree per second (backwards)
-    }, 1000); // Changed from 200ms to 1000ms (1 second)
+    }, 500); // Changed from 200ms to 1000ms (1 second)
 
     return () => clearInterval(interval);
   }, []);

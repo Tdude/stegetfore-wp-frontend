@@ -15,15 +15,17 @@ export interface TryggveHeroSection {
   backgroundColor?: string;
 }
 
+export interface TryggveTestimonial {
+  quote: string;
+  author: string;
+  role?: string;
+}
+
 export interface TryggveTargetAudienceSection {
   title: string;
   description: string;
   points: string[];
-  testimonial?: {
-    quote: string;
-    author: string;
-    role?: string;
-  };
+  testimonials?: TryggveTestimonial[];
 }
 
 export interface TryggveProblemSection {

@@ -22,8 +22,8 @@ interface TryggveLandingTemplateProps {
 // Default data based on the OpenAI output
 const defaultLandingData: TryggveLandingData = {
   hero: {
-    title: 'Bygg en skola där även de svårnådda barnen lyckas',
-    subtitle: 'Tryggve är en forskningsförankrad modell som hjälper skolor att förstå, möta och inkludera barn med komplexa behov – innan de faller utanför.',
+    title: 'Se potentialen i skolans sårbara barn',
+    subtitle: 'Förstå, möt och inkludera barn med komplexa behov.',
     backgroundImage: '/images/bubbelbarn-hero.png',
     backgroundColor: '#FFB800',
     buttons: [
@@ -40,22 +40,30 @@ const defaultLandingData: TryggveLandingData = {
     ],
   },
   targetAudience: {
-    title: 'Den här kursen är för dig som leder en skola där alla barn ska få plats',
-    description: 'Kursen riktar sig till rektorer, specialpedagoger och elevhälsoteam som vill:',
+    title: 'Från vilsenhet till att leda Steget Före',
+    description: 'Våra onlineseminarier riktar sig till dig som är verksam i skolans värld och vill:',
     points: [
-      'Förstå och stötta elever som "inte passar in" i skolans mallar',
-      'Få ett vetenskapligt grundat språk för att prata om beteende och lärande',
-      'Skapa ett relationellt och förebyggande elevhälsoarbete',
-      'Minska behovet av medicinska insatser genom att agera tidigare',
+      'Förstå och stötta elever med ett utmanande beteende',
+      'Få ett gemensamt språk för att prata om beteende, utveckling och lärande',
+      'Skapa ett relationellt och proaktivt förhållnings- och tillvägagångssätt',
+      'Förebygga behovet av medicinsk behandling genom att agera tidigt',
+      'Få "bukt med problematiskt beteende" och istället se och förstå otryggheten',
     ],
-    testimonial: {
-      quote: 'Tryggve gav oss ett gemensamt språk för att förstå eleverna bakom beteendena.',
-      author: 'Specialpedagog',
-      role: 'Göteborgs stad',
-    },
+    testimonials: [
+      {
+        quote: 'Eran kurs har gett oss ett gemensamt språk. Vi har börjat prata om att knyta an, och kan sätta ord på att vi har barn i våra klasser som ännu inte är elever.',
+        author: 'Lärare',
+        role: 'Norrtälje',
+      },
+      {
+        quote: 'Barn är som dom är av en anledning, vi behöver möta dem med vuxnas klokhet och förstå att det pedagogiskt går att göra nåt!',
+        author: 'Skolledare',
+        role: 'Haninge',
+      },
+    ],
   },
   problem: {
-    title: 'De sårbara barnen är inte få. De är framtiden vi riskerar att förlora.',
+    title: 'De sårbara barnen är många. De är framtiden vi riskerar att förlora.',
     description: '',
     statistics: [
       {
@@ -64,44 +72,46 @@ const defaultLandingData: TryggveLandingData = {
       },
       {
         value: '1/4',
-        label: 'står utan jobb eller utbildning fem år senare',
+        label: 'av dessa elever står utan jobb eller utbildning fem år senare',
       },
       {
         value: '16 miljoner kr',
         label: 'kostar varje liv i utanförskap',
       },
     ],
-    closingText: 'Bakom dessa siffror finns barn som hade kunnat lyckas – om vi förstått dem i tid.',
+    closingText: 'Bakom dessa siffror finns barn som hade kunnat lyckas – om vi förstått dem och agerat i tid.',
   },
   solution: {
-    title: 'En forskningsbaserad modell som gör skillnad i klassrummet',
-    description: 'Tryggve bygger på anknytningsteori och pedagogisk psykologi. Den hjälper skolpersonal att:',
+    title: 'En forskningsförankrad modell som gör skillnad i klassrummet',
+    description: 'Tryggve bygger på anknytningsteori och pedagogisk psykologi. Den hjälper dig med:',
     features: [
       {
         icon: '',
-        title: 'Bygger broar',
-        description: 'Mellan medicinskt och pedagogiskt perspektiv',
+        title: 'Att bygga broar',
+        description: 'Mellan det pedagogiska och medicinska perspektivet',
       },
       {
         icon: '',
-        title: 'Forskningsförankrad',
-        description: 'Utvecklad med stöd av forskning och klinisk erfarenhet',
+        title: 'Hållbara lösningar',
+        description: 'Utgår från relationell och jag-strukturerande pedagogik',
       },
       {
         icon: '',
         title: 'Konkreta verktyg',
-        description: 'Ger praktiska metoder för skolvardagen',
+        description: 'Ger dig praktiska metoder för skolvardagen',
       },
     ],
   },
   course: {
-    title: 'Kursen: "Se potentialen i skolans bubbelbarn"',
-    description: '',
+    title: 'Kursen: "Se potentialen i skolans sårbara barn"',
+    description: 'Under kursen får du:',
     benefits: [
-      'Förståelse för barns anknytningsmönster och deras betydelse i skolan',
-      'Verktyg att bygga den avgörande relationen',
-      'Strategier för att möta "bubbelbarn" med adekvata förväntningar',
+      'Förståelse för bakomliggande orsaker till utmanande beteenden',
+      'Pedagogiska strategier för att bygga den avgörande relationen',
+      'Pedagogiska strategier för att möta "sårbara barn" med adekvata förväntningar och verksamma pedagogiska lösningar',
+      'Ett skolrelaterat språk för personlig utveckling',
       'En modell som kan implementeras direkt i skolans vardag',
+      'Bok och material så du kan omsätta kursen i praktiken på din skola',
     ],
     ctaButton: {
       text: 'Anmäl intresse för nästa kursstart',
@@ -110,8 +120,8 @@ const defaultLandingData: TryggveLandingData = {
     },
   },
   contactForm: {
-    title: 'Intresseanmälan till Tryggve-kursen',
-    subtitle: 'Fyll i dina uppgifter så skickar vi information om nästa kursstart och hur du kan delta.',
+    title: 'Intresseanmälan till Tryggve-kursen "Steget Före"',
+    subtitle: 'Fyll i dina uppgifter så skickar vi information om nästa kursstart Vt-26 och hur du kan delta.',
     successMessage: 'Tack! Vi kontaktar dig inom kort med mer information om kursen och hur ni kan ta första steget mot en mer relationell skola.',
     fields: [
       {

@@ -4,6 +4,13 @@
 import React from 'react';
 import { TryggveTargetAudienceSection } from '@/lib/types/tryggveLandingTypes';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious
+} from "@/components/ui/carousel";
 
 interface TryggveTargetAudienceSectionProps {
   data: TryggveTargetAudienceSection;
@@ -37,17 +44,45 @@ export default function TryggveTargetAudienceSectionComponent({
               ))}
             </ul>
 
-            {data.testimonial && (
+            {data.testimonials && data.testimonials.length > 0 && (
               <div className="mt-8 pt-8 border-t border-gray-200">
-                <blockquote className="italic text-gray-700 text-lg mb-4 pl-4 border-l-4 border-gray-300">
-                  &ldquo;{data.testimonial.quote}&rdquo;
-                </blockquote>
-                <p className="text-gray-800 font-medium">
-                  — {data.testimonial.author}
-                  {data.testimonial.role && (
-                    <span className="text-gray-600">, {data.testimonial.role}</span>
-                  )}
-                </p>
+                {data.testimonials.length === 1 ? (
+                  // Single testimonial - no carousel
+                  <div>
+                    <blockquote className="italic text-gray-700 text-lg mb-4 pl-4 border-l-4 border-gray-300">
+                      &ldquo;{data.testimonials[0].quote}&rdquo;
+                    </blockquote>
+                    <p className="text-gray-800 font-medium">
+                      — {data.testimonials[0].author}
+                      {data.testimonials[0].role && (
+                        <span className="text-gray-600">, {data.testimonials[0].role}</span>
+                      )}
+                    </p>
+                  </div>
+                ) : (
+                  // Multiple testimonials - use carousel
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {data.testimonials.map((testimonial, index) => (
+                        <CarouselItem key={index}>
+                          <div>
+                            <blockquote className="italic text-gray-700 text-lg mb-4 pl-4 border-l-4 border-gray-300">
+                              &ldquo;{testimonial.quote}&rdquo;
+                            </blockquote>
+                            <p className="text-gray-800 font-medium">
+                              — {testimonial.author}
+                              {testimonial.role && (
+                                <span className="text-gray-600">, {testimonial.role}</span>
+                              )}
+                            </p>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0 -translate-x-1/2" />
+                    <CarouselNext className="right-0 translate-x-1/2" />
+                  </Carousel>
+                )}
               </div>
             )}
           </div>
