@@ -7,7 +7,9 @@ import { TryggveLandingData } from '@/lib/types/tryggveLandingTypes';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 import TryggveHeroSection from '@/components/tryggve/TryggveHeroSection';
 import TryggveTargetAudienceSection from '@/components/tryggve/TryggveTargetAudienceSection';
+import TryggveTextPanel from '@/components/tryggve/TryggveTextPanel';
 import TryggveProblemSection from '@/components/tryggve/TryggveProblemSection';
+import TryggveSellingCards from '@/components/tryggve/TryggveSellingCards';
 import TryggveSolutionSection from '@/components/tryggve/TryggveSolutionSection';
 import TryggveCourseSection from '@/components/tryggve/TryggveCourseSection';
 import TryggveContactFormSection from '@/components/tryggve/TryggveContactFormSection';
@@ -56,11 +58,15 @@ const defaultLandingData: TryggveLandingData = {
         role: 'Norrtälje',
       },
       {
-        quote: 'Barn är som dom är av en anledning, vi behöver möta dem med vuxnas klokhet och förstå att det pedagogiskt går att göra nåt!',
+        quote: 'Barn är som dom är av en anledning, vi behöver möta dom med vuxnas klokhet och förstå att det pedagogiskt går att göra nåt!',
         author: 'Skolledare',
         role: 'Haninge',
       },
     ],
+  },
+  textPanel: {
+    title: 'Varför Tryggve?',
+    content: '<p>Tryggve är en pedagogisk modell som hjälper dig att förstå och möta barn med komplexa behov. Genom att kombinera anknytningsteori med praktisk pedagogik får du verktyg för att skapa trygghet och struktur i klassrummet.</p><p>Modellen är forskningsförankrad och har visat sig effektiv i att förebygga problem och stödja barns utveckling.</p>',
   },
   problem: {
     title: 'De sårbara barnen är många. De är framtiden vi riskerar att förlora.',
@@ -80,6 +86,32 @@ const defaultLandingData: TryggveLandingData = {
       },
     ],
     closingText: 'Bakom dessa siffror finns barn som hade kunnat lyckas – om vi förstått dem och agerat i tid.',
+  },
+  sellingCards: {
+    title: 'Vad får du med Tryggve?',
+    description: 'Fyra nyckelområden som gör skillnad',
+    cards: [
+      {
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-1.jpg',
+        title: 'Förståelse',
+        description: 'Lär dig se bakom beteendet och förstå barnets behov',
+      },
+      {
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-2.jpg',
+        title: 'Verktyg',
+        description: 'Konkreta metoder för klassrummet som fungerar',
+      },
+      {
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-3.jpg',
+        title: 'Stöd',
+        description: 'Ett nätverk av kollegor som delar dina utmaningar',
+      },
+      {
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2024/01/card-4.jpg',
+        title: 'Resultat',
+        description: 'Beprövade metoder som leder till verklig förändring',
+      },
+    ],
   },
   solution: {
     title: 'En forskningsförankrad modell som gör skillnad i klassrummet',
@@ -177,8 +209,25 @@ export default function TryggveLandingTemplate({
         {/* Target Audience Section */}
         <TryggveTargetAudienceSection data={data.targetAudience} />
 
+        {/* Text Panel (Optional) */}
+        {data.textPanel && (
+          <TryggveTextPanel 
+            title={data.textPanel.title}
+            content={data.textPanel.content}
+          />
+        )}
+
         {/* Problem Section */}
         <TryggveProblemSection data={data.problem} />
+
+        {/* Selling Cards (Optional) */}
+        {data.sellingCards && (
+          <TryggveSellingCards 
+            title={data.sellingCards.title}
+            description={data.sellingCards.description}
+            cards={data.sellingCards.cards}
+          />
+        )}
 
         {/* Solution Section */}
         <TryggveSolutionSection data={data.solution} />

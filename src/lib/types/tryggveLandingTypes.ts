@@ -75,10 +75,29 @@ export interface TryggveClosingSection {
   author: string;
 }
 
+export interface TryggveTextPanel {
+  title?: string;
+  content: string;
+}
+
+export interface TryggveSellingCard {
+  image: string;
+  title: string;
+  description: string;
+}
+
+export interface TryggveSellingCardsSection {
+  title?: string;
+  description?: string;
+  cards: TryggveSellingCard[];
+}
+
 export interface TryggveLandingData {
   hero: TryggveHeroSection;
   targetAudience: TryggveTargetAudienceSection;
+  textPanel?: TryggveTextPanel;
   problem: TryggveProblemSection;
+  sellingCards?: TryggveSellingCardsSection;
   solution: TryggveSolutionSection;
   course: TryggveCourseSection;
   contactForm: TryggveContactFormSection;
