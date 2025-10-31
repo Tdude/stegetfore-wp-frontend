@@ -129,7 +129,8 @@ export default function TryggveContactFormSectionComponent({
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full bg-primary hover:bg-primary-dark text-white font-bold text-lg md:text-xl py-5 px-8 rounded-lg transition-colors h-16"
+                    variant="primary"
+                    className="w-full text-lg md:text-xl py-5 px-8 h-16 font-bold"
                   >
                     {isSubmitting ? 'Skickar...' : data.submitButtonText}
                   </Button>
