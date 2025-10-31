@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * SiteInfo interface defining the structure of the siteInfo prop
@@ -42,6 +43,7 @@ interface FooterProps {
 export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: FooterProps) {
   // Get theme context to determine current theme
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
   
   // Get site info with fallbacks
   const siteName = siteInfo?.name || 'Tryggve';
@@ -199,38 +201,40 @@ export default function Footer({ siteInfo = {} as SiteInfo, menuItems = [] }: Fo
             </div>
           </div>
           
-          {/* Footer Links */}
-          <div className="md:col-span-4">
-            <h3 className="text-xl font-bold mb-4 text-foreground/90">Snabblänkar</h3>
-            <ul className="space-y-2">
-              {menuItems && menuItems.length > 0 ? (
-                menuItems.map((item) => renderMenuItem(item))
-              ) : (
-                <>
-                  <li>
-                    <Link href="/" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
-                      Start
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/about" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
-                      Om oss
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/blog" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
-                      Blogg
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/kontakt" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
-                      Kontakt
-                    </Link>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
+          {/* Footer Links - Only show when authenticated */}
+          {isAuthenticated && (
+            <div className="md:col-span-4">
+              <h3 className="text-xl font-bold mb-4 text-foreground/90">Snabblänkar</h3>
+              <ul className="space-y-2">
+                {menuItems && menuItems.length > 0 ? (
+                  menuItems.map((item) => renderMenuItem(item))
+                ) : (
+                  <>
+                    <li>
+                      <Link href="/" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
+                        Start
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/about" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
+                        Om oss
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/blog" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
+                        Blogg
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/kontakt" className="text-foreground/80 hover:text-primary transition-colors border-b border-panel-border py-1 block">
+                        Kontakt
+                      </Link>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          )}
           
           {/* Contact Info */}
           <div className="md:col-span-4">

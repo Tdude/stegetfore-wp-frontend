@@ -66,9 +66,9 @@ const defaultLandingData: TryggveLandingData = {
   },
   textPanel: {
     title: 'Varför Tryggve?',
-    content: '<p>Varför gör det utagerande barnet som det gör? Förstår du det så vet du också att bestraffningar och konsekvenstrappor i sig inte är en lyckad pedagogisk lösning.</p><p>Steget före handlar om att förstå och utveckla pedagogiska lösningar för att sårbara barn ska komma till rätta i skolan.</p>',
-    image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/hoodie.svg',
-    imagePosition: 'right', // Options: 'left', 'right', 'center-bottom'
+    content: '<p>Varför gör det utagerande barnet som det gör? Förstår du det så vet du också att bestraffningar och konsekvenstrappor i sig inte är en lyckad pedagogisk lösning.</p><p>Steget före handlar om att förstå och utveckla pedagogiska lösningar för att sårbara barn ska komma till rätta i skolan.</p><p><i>Tycker du bilden är provocerande? Bra, det tycker vi också!</i></p>',
+    image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/tagen-i-orat.svg',
+    imagePosition: 'center-bottom', // Options: 'left', 'right', 'center-bottom'
   },
   problem: {
     title: 'De sårbara barnen är många. De är framtiden vi riskerar att förlora.',
@@ -99,9 +99,9 @@ const defaultLandingData: TryggveLandingData = {
         description: 'Lär dig se bakom beteendet och förstå barnets behov',
       },
       {
-        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/bli-sedd.svg',
+        image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/10/bli-sedd2.svg',
         title: 'Verktyg',
-        description: 'Konkreta metoder för klassrummet som fungerar',
+        description: 'Konkreta metoder som fungerar i klassrummet',
       },
       {
         image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/kollegialt-samtal.svg',
