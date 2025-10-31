@@ -72,6 +72,40 @@
 - SSH access to Hostup server
 - Git repository access
 
+### Quick Deploy (Automated)
+
+Use the `deploy.sh` script for automated deployment:
+
+```bash
+# Full deployment (build + sync + restart)
+./deploy.sh
+
+# Skip build (use existing .next folder)
+./deploy.sh --skip-build
+
+# Skip PM2 restart
+./deploy.sh --skip-restart
+
+# Dry run (see what would happen)
+./deploy.sh --dry-run
+
+# Show help
+./deploy.sh --help
+```
+
+**What the script does:**
+1. ✅ Builds the Next.js app locally (`npm run build`)
+2. ✅ Syncs standalone build to server via rsync
+3. ✅ Syncs static files (.next/static)
+4. ✅ Syncs public assets
+5. ✅ Creates symlinks in document root
+6. ✅ Restarts PM2 application
+7. ✅ Shows deployment summary
+
+### Manual Deployment
+
+If you prefer manual control:
+
 ### Step 1: Build Locally
 ```bash
 cd ~/Sites/DOCKER/stegetfore.nu/stegetfore-wp-frontend
