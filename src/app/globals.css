@@ -634,9 +634,11 @@
     max-width: 100%;
   }
 
-  /* Ensure columns share space properly within prose container */
+  /* Give columns enough width for side-by-side layout */
   .prose .wp-block-columns {
     max-width: 100%;
+    width: 900px;
+    min-width: min(900px, 100vw);
   }
 
   .wp-block-columns.is-layout-flex {
