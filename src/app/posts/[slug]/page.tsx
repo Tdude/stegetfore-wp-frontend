@@ -32,7 +32,7 @@ async function Post({ slug }: { slug: string }) {
     requiresAuth ? (
       <RequireAuth>
         <>
-          <article className="container lg:max-w-7xl mx-auto px-4 my-8">
+          <article className="container mx-auto px-4 my-8">
             {post.featured_image_url && (
               <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
                 <Image
