@@ -1,6 +1,7 @@
 // src/lib/api/baseApi.ts
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
 export const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG || "steget";
+export const DISABLE_CACHE = process.env.NEXT_PUBLIC_DISABLE_CACHE === 'true';
 
 /**
  * Test API connection to the WordPress backend
@@ -60,7 +61,10 @@ export async function makeRequest(
 
   // Handle Next.js caching via revalidate if present (only if running in supported env)
   // This is a noop in browsers, but works in Next.js/Node
-  if (typeof revalidate === 'number' && revalidate > 0) {
+  // If DISABLE_CACHE is true, set revalidate to 0 to disable caching
+  if (DISABLE_CACHE) {
+    fetchOptions.next = { revalidate: 0 };
+  } else if (typeof revalidate === 'number' && revalidate > 0) {
     fetchOptions.next = { revalidate };
   }
 

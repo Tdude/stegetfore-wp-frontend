@@ -13,20 +13,20 @@ interface TryggveHeroSectionProps {
 
 export default function TryggveHeroSectionComponent({ data, className }: TryggveHeroSectionProps) {
   return (
-    <section
-      className={cn(
-        "relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden bg-background",
-        className
-      )}
-      style={data.backgroundColor ? { backgroundColor: data.backgroundColor } : undefined}
-    >
+    <>
+      <section
+        className={cn(
+          "relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden bg-background",
+          className
+        )}
+        style={data.backgroundColor ? { backgroundColor: data.backgroundColor } : undefined}
+      >
       {data.backgroundImage && (
         <div className="absolute inset-0 w-full h-full">
           <img
             src={data.backgroundImage}
             alt="Hero background"
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full object-cover" />
         </div>
       )}
 
@@ -35,9 +35,7 @@ export default function TryggveHeroSectionComponent({ data, className }: Tryggve
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading tracking-tight mb-6 text-black text-hard-shadow-white">
             {data.title}
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800 font-bold text-hard-shadow-white">
-            {data.subtitle}
-          </p>
+
           {data.buttons && data.buttons.length > 0 && (
             <div className="flex flex-wrap gap-4 justify-center">
               {data.buttons.map((button, index) => (
@@ -60,6 +58,12 @@ export default function TryggveHeroSectionComponent({ data, className }: Tryggve
           )}
         </div>
       </div>
-    </section>
+      </section>
+    <div className="relative pt-8 container mx-auto px-4 md:px-6 text-center">
+        <div className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-800 font-bold text-hard-shadow-white">
+          {data.subtitle}
+        </div>
+      </div>
+    </>
   );
 }

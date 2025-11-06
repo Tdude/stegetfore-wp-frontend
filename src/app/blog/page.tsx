@@ -134,7 +134,17 @@ async function BlogContent({ page }: { page: number }) {
 
   const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
   const pagePosts = posts;
-  const debugData = buildBlogDebugData(posts, Object.values(categories));
+  
+  // Convert Post[] to BlogPost[] format for debug panel
+  const debugPosts = posts.map(post => ({
+    id: post.id,
+    title: post.title?.rendered,
+    slug: post.slug,
+    content: post.content?.rendered,
+    featured_image_url: post.featured_image_url,
+  }));
+  
+  const debugData = buildBlogDebugData(debugPosts, Object.values(categories));
 
   // Split posts for layout logic
   const firstPost = pagePosts[0];
@@ -167,7 +177,7 @@ async function BlogContent({ page }: { page: number }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container lg:max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">I fokus</h1>
 
       {/* Blog posts with specific layout */}

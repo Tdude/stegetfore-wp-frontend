@@ -65,7 +65,7 @@ const defaultLandingData: TryggveLandingData = {
     ],
   },
   textPanel: {
-    title: 'Varför Tryggve?',
+    title: 'Varför Steget Före?',
     content: '<p>Varför gör det utagerande barnet som det gör? Förstår du det så vet du också att bestraffningar och konsekvenstrappor i sig inte är en lyckad pedagogisk lösning.</p><p>Steget före handlar om att förstå och utveckla pedagogiska lösningar för att sårbara barn ska komma till rätta i skolan.</p><p><i>Tycker du bilden är provocerande? Bra, det tycker vi också!</i></p>',
     image: 'https://cms.stegetfore.nu/wp-content/uploads/2025/05/tagen-i-orat.svg',
     imagePosition: 'center-bottom', // Options: 'left', 'right', 'center-bottom'
@@ -90,7 +90,7 @@ const defaultLandingData: TryggveLandingData = {
     closingText: 'Bakom dessa siffror finns barn som hade kunnat lyckas – om vi förstått dem och agerat i tid.',
   },
   sellingCards: {
-    title: 'Vad får du med Tryggve?',
+    title: 'Vad får du med Steget Före?',
     description: 'Fyra nyckelområden som gör skillnad',
     cards: [
       {
@@ -117,7 +117,7 @@ const defaultLandingData: TryggveLandingData = {
   },
   solution: {
     title: 'En forskningsförankrad modell som gör skillnad i klassrummet',
-    description: 'Tryggve bygger på anknytningsteori och pedagogisk psykologi. Den hjälper dig med:',
+    description: 'Steget Före bygger på anknytningsteori och pedagogisk psykologi. Den hjälper dig med:',
     features: [
       {
         icon: '',
@@ -190,8 +190,8 @@ const defaultLandingData: TryggveLandingData = {
     submitButtonText: 'Skicka intresseanmälan',
   },
   closing: {
-    quote: 'Tryggve hjälper skolor att se det osynliga – att förstå barnen bakom beteendena.',
-    author: 'Utvecklingsteamet bakom Tryggve',
+    quote: 'Steget Före hjälper skolor att se det osynliga – att förstå barnen bakom beteendena.',
+    author: 'Utvecklingsteamet bakom Steget Före',
   },
 };
 

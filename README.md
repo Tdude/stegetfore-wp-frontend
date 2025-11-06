@@ -35,6 +35,23 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Cache Control
+
+The application uses Next.js caching to optimize performance. You can control caching behavior using the `NEXT_PUBLIC_DISABLE_CACHE` environment variable.
+
+**To disable caching (useful for WordPress admins to see changes immediately):**
+
+1. Set `NEXT_PUBLIC_DISABLE_CACHE=true` in your `.env.local` or `.env.production` file
+2. Restart the development server or redeploy the application
+
+**Default cache durations when caching is enabled:**
+- Homepage data: 5 minutes
+- Pages: 10 minutes
+- Posts: 20 minutes to 1 hour
+- Site info, menus, forms: 1 hour
+
+**Note:** In development (`.env.local`), caching is disabled by default to help with content editing. In production (`.env.production`), caching is enabled by default for better performance.
+
 ## Styling components
 
 Since lazyness is a virtue :), I have used https://ui.shadcn.com/

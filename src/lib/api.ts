@@ -6,6 +6,7 @@ export * from "./api/index";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG;
+const DISABLE_CACHE = process.env.NEXT_PUBLIC_DISABLE_CACHE === 'true';
 
 if (!API_URL) {
   throw new Error("API_URL is not defined");
@@ -27,8 +28,8 @@ async function fetchAPI(
       headers: {
         "Content-Type": "application/json",
       },
-      // Default to 60 seconds if not specified
-      next: { revalidate: options.revalidate ?? 60 },
+      // If DISABLE_CACHE is true, set revalidate to 0, otherwise use specified value or default to 60 seconds
+      next: { revalidate: DISABLE_CACHE ? 0 : (options.revalidate ?? 60) },
     });
 
     if (!response.ok) {
