@@ -6,6 +6,9 @@ module.exports = {
   ],
   theme: {
   	extend: {
+  		maxWidth: {
+  			prose: '65ch', // Override Tailwind's default prose width (currently same as default)
+  		},
   		textShadow: {
   			sm: '0 1px 2px var(--tw-shadow-color)',
   			DEFAULT: '0 2px 4px var(--tw-shadow-color)',
