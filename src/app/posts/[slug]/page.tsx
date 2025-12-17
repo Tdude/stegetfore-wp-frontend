@@ -32,7 +32,7 @@ async function Post({ slug }: { slug: string }) {
     requiresAuth ? (
       <RequireAuth>
         <>
-          <article className="max-w-3xl mx-auto px-4 my-8">
+          <article className="container mx-auto px-4 my-8">
             {post.featured_image_url && (
               <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
                 <Image
@@ -94,7 +94,7 @@ async function Post({ slug }: { slug: string }) {
       </RequireAuth>
     ) : (
       <>
-        <article className="max-w-3xl mx-auto px-4 my-8">
+        <article className="container lg:max-w-7xl mx-auto px-4 my-8">
           {post.featured_image_url && (
             <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
               <Image
@@ -113,7 +113,7 @@ async function Post({ slug }: { slug: string }) {
             dangerouslySetInnerHTML={{ __html: post.title.rendered }}
           />
           <div
-            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mx-auto"
+            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-full"
             dangerouslySetInnerHTML={{ __html: post.content.rendered }}
           />
 
