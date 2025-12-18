@@ -344,10 +344,6 @@
     @apply surface-primary;
   }
 
-  /* Form panel styling */
-  .form-container {
-    @apply panel-bg panel-border border;
-  }
 
   /* Form validation styling */
   .form-error {

@@ -114,51 +114,88 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
         ansvarStats={calculateSectionStats("ansvar")}
       />
 
-      <div
-        ref={questionContainerRef}
-        className={`transition-opacity duration-500 ${fadeState === 'fading-out' ? 'opacity-0' : 'opacity-100'
-          }`}
-      >
-        {currentQuestion && (
-          <QuestionCard
-            question={currentQuestion.question}
-            questionId={currentQuestion.questionId}
-            value={formData[currentQuestion.sectionId]?.questions?.[currentQuestion.questionId] || ''}
-            comment={formData[currentQuestion.sectionId]?.comments?.[currentQuestion.questionId] || ''}
-            onChange={handleStepByStepQuestionChange(currentQuestion.sectionId, currentQuestion.questionId)}
-            onCommentChange={handleCommentChange(currentQuestion.sectionId, currentQuestion.questionId)}
-            currentIndex={currentQuestionIndex}
-            totalQuestions={allQuestions.length}
-          />
+      <div className="relative" ref={questionContainerRef}>
+        {/* Left chevron (previous) */}
+        {currentQuestionIndex > 0 && (
+          <button
+            type="button"
+            onClick={handlePrevQuestion}
+            aria-label="Föregående fråga"
+            className="hidden sm:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-12 h-12 rounded-full bg-white/80 dark:bg-surface-secondary/80 shadow-md hover:bg-white dark:hover:bg-surface-secondary hover:scale-105 transition-transform transition-colors z-20"
+          >
+            <ChevronLeft size={20} />
+          </button>
         )}
+
+        {/* Right chevron (next) */}
+        {currentQuestion && currentQuestionIndex < allQuestions.length - 1 && (
+          <button
+            type="button"
+            onClick={handleNextQuestion}
+            aria-label="Nästa fråga"
+            disabled={!
+              formData[currentSection]?.questions?.[currentQuestion.questionId]
+            }
+            className={`hidden sm:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-12 h-12 rounded-full bg-white/80 dark:bg-surface-secondary/80 shadow-md hover:bg-white dark:hover:bg-surface-secondary hover:scale-105 transition-transform transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+              !formData[currentSection]?.questions?.[currentQuestion.questionId]
+                ? 'z-0 pointer-events-none'
+                : 'z-20'
+            }`}
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
+
+        <div
+          className={`transition-opacity duration-500 ${fadeState === 'fading-out' ? 'opacity-0' : 'opacity-100'}`}
+        >
+          {currentQuestion && (
+            <QuestionCard
+              question={currentQuestion.question}
+              questionId={currentQuestion.questionId}
+              value={formData[currentQuestion.sectionId]?.questions?.[currentQuestion.questionId] || ''}
+              comment={formData[currentQuestion.sectionId]?.comments?.[currentQuestion.questionId] || ''}
+              onChange={handleStepByStepQuestionChange(currentQuestion.sectionId, currentQuestion.questionId)}
+              onCommentChange={handleCommentChange(currentQuestion.sectionId, currentQuestion.questionId)}
+              currentIndex={currentQuestionIndex}
+              totalQuestions={allQuestions.length}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Mobile navigation (visible only on small screens) */}
+      <div className="flex items-center justify-between mt-4 sm:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handlePrevQuestion}
+          disabled={currentQuestionIndex === 0}
+          className="flex items-center justify-center w-10 h-10 rounded-full p-0"
+        >
+          <ChevronLeft size={18} />
+        </Button>
+
+        <div className="text-sm text-muted-foreground">
+          {currentQuestionIndex + 1} / {allQuestions.length}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleNextQuestion}
+          disabled={
+            currentQuestionIndex === allQuestions.length - 1 ||
+            !currentQuestion ||
+            !formData[currentSection]?.questions?.[currentQuestion.questionId]
+          }
+          className="flex items-center justify-center w-10 h-10 rounded-full p-0 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronRight size={18} />
+        </Button>
       </div>
 
       <div className="flex justify-between items-center mt-8">
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevQuestion}
-            disabled={currentQuestionIndex === 0}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft size={16} />
-            Föregående
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleNextQuestion}
-            disabled={currentQuestionIndex === allQuestions.length - 1 ||
-              !formData[currentSection]?.questions?.[currentQuestion.questionId]}
-            className="flex items-center gap-2"
-          >
-            Nästa
-            <ChevronRight size={16} />
-          </Button>
-        </div>
-
         <div className="flex gap-2">
           <Button
             type="button"
