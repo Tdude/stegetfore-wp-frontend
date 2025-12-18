@@ -1,6 +1,11 @@
 // src/components/debug/DebugPanel.tsx
 'use client';
 
+// Build-time flag: controls whether the debug panel is available at all.
+// Set NEXT_PUBLIC_DEBUG_PANEL="true" in .env.development and leave it
+// undefined or "false" in .env.production so the panel is never rendered there.
+const DEBUG_PANEL_ENABLED = process.env.NEXT_PUBLIC_DEBUG_PANEL === 'true';
+
 /**
  * DEBUG LOG NOTICE:
  * The DebugPanel fetches /wp-json to discover available API endpoints for debugging.
@@ -11,7 +16,6 @@
  * If you change how endpoint discovery works, ensure this isolation is preserved.
  */
 
-export const DEBUG_PANEL_ENABLED = true;
 
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -103,12 +107,10 @@ export default function DebugPanel({
   const [endpointError, setEndpointError] = React.useState<string | null>(null);
   const [fallbackEndpoints, setFallbackEndpoints] = React.useState<string[]>([]);
   const pathname = usePathname();
-  const [debugEnabled, setDebugEnabled] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    setDebugEnabled(process.env.NEXT_PUBLIC_DEBUG_MODE === 'true');
     setMounted(true);
   }, []);
 
@@ -159,7 +161,7 @@ export default function DebugPanel({
   }, [isOpen]);
 
   // --- Only render UI after all hooks ---
-  if (!DEBUG_PANEL_ENABLED || !debugEnabled || !mounted) return null;
+  if (!DEBUG_PANEL_ENABLED || !mounted) return null;
 
   const debugData = providedDebugData || {
     page,
