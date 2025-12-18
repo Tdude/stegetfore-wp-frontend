@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { ChevronsDownUp } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -18,7 +19,12 @@ interface FullFormViewProps {
   questionsStructure: QuestionsStructure;
   handleQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
-  calculateSectionProgress: (sectionId: keyof FormData) => number;
+  calculateSectionStats: (sectionId: keyof FormData) => {
+    totalQuestions: number;
+    answered: number;
+    nonZero: number;
+    avg: number;
+  };
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
@@ -35,11 +41,12 @@ const FullFormView: React.FC<FullFormViewProps> = ({
   questionsStructure,
   handleQuestionChange,
   handleCommentChange,
-  calculateSectionProgress,
+  calculateSectionStats,
   isSaving,
   handleSubmit,
   evaluationId,
-  isFormSaved
+  isFormSaved,
+  toggleFullForm
 }) => {
   // If the form is saved, show success message
   if (isFormSaved) {
@@ -91,8 +98,8 @@ const FullFormView: React.FC<FullFormViewProps> = ({
               {/* If you see errors about anknytningProgress/ansvarProgress, ensure you're passing correct props to DualSectionProgressBar */}
               {/* For now, add a type assertion or fallback values */}
               <DualSectionProgressBar 
-                anknytningProgress={calculateSectionProgress("anknytning") || 0} 
-                ansvarProgress={calculateSectionProgress("ansvar") || 0}
+                anknytningStats={calculateSectionStats("anknytning")} 
+                ansvarStats={calculateSectionStats("ansvar")}
               />
             
               {/* Progress header */}
@@ -202,6 +209,18 @@ const FullFormView: React.FC<FullFormViewProps> = ({
             
               {/* Form actions */}
               <div className="flex justify-between items-center mt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={toggleFullForm}
+                  className="flex items-center gap-2"
+                >
+                  <span className="flex items-center gap-1">
+                    <ChevronsDownUp size={16} />
+                  </span>
+                  Visa frågor en och en
+                </Button>
+
                 <Button 
                   type="submit" 
                   onClick={(e) => {

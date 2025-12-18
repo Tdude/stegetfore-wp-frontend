@@ -253,48 +253,69 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     }));
   }, []);
 
-  // Calculate progress percentage for a specific question
-  const calculateProgress = useCallback((sectionId: keyof FormData, questionId: string) => {
-    const answer = formData[sectionId]?.questions?.[questionId];
+  type SectionStats = {
+    totalQuestions: number;
+    answered: number;
+    nonZero: number;
+    avg: number; // 0–1 average progress across questions
+  };
 
-    if (!answer) return 0;
-
-    return parseInt(answer, 10) / 5; // Convert 1-5 scale to 0-1 percentage
-  }, [formData]);
-
-  // Calculate overall progress for a section
-  const calculateSectionProgress = useCallback((sectionId: keyof FormData) => {
+  // Calculate detailed statistics for a section
+  const calculateSectionStats = useCallback((sectionId: keyof FormData): SectionStats => {
     const section = questionsStructure[sectionId];
-    if (!section) return 0;
+    if (!section) {
+      return { totalQuestions: 0, answered: 0, nonZero: 0, avg: 0 };
+    }
 
     let totalQuestions = 0;
     let progressSum = 0;
+    let answered = 0;
+    let nonZero = 0;
+
+    const collectQuestion = (questionId: string) => {
+      totalQuestions++;
+      const answer = formData[sectionId]?.questions?.[questionId];
+
+      // Treat the lowest option as a "zero score" for section progress.
+      // Only values > 1 contribute positive progress and are counted as non-zero.
+      let progress = 0;
+      if (answer !== undefined && answer !== null && answer !== '') {
+        const numeric = parseInt(answer, 10);
+
+        answered++;
+
+        if (!Number.isNaN(numeric)) {
+          if (numeric > 1) {
+            // Map 2–5 to 0–1 range (2 -> 0, 5 -> 1) for section progress
+            const zeroBased = numeric - 1; // 1–4
+            progress = zeroBased / 4;
+            nonZero++;
+          }
+          // numeric <= 1 is treated as zero: no nonZero increment, no progress added
+        }
+      }
+
+      progressSum += progress;
+    };
 
     // Process questions directly in the section
     if (section.questions) {
-      Object.keys(section.questions).forEach(questionId => {
-        totalQuestions++;
-        // Add the progress value (will be 0 if not answered)
-        progressSum += calculateProgress(sectionId, questionId);
-      });
+      Object.keys(section.questions).forEach(collectQuestion);
     }
 
     // Process questions in subsections
     if (section.subsections) {
       Object.values(section.subsections).forEach(subsection => {
         if (subsection.questions) {
-          Object.keys(subsection.questions).forEach(questionId => {
-            totalQuestions++;
-            // Add the progress value (will be 0 if not answered)
-            progressSum += calculateProgress(sectionId, questionId);
-          });
+          Object.keys(subsection.questions).forEach(collectQuestion);
         }
       });
     }
 
-    // Return the total progress divided by the total number of questions
-    return totalQuestions > 0 ? progressSum / totalQuestions : 0;
-  }, [calculateProgress, questionsStructure]);
+    const avg = totalQuestions > 0 ? progressSum / totalQuestions : 0;
+
+    return { totalQuestions, answered, nonZero, avg };
+  }, [formData, questionsStructure]);
 
   // Toggle between full form and step-by-step views
   const toggleFullForm = useCallback(() => {
@@ -305,7 +326,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   const handleSubmit = async () => {
     try {
       if (!studentId) {
-        toast.error('Student ID saknas');
+        toast.error('Elev-ID saknas');
         return;
       }
 
@@ -539,8 +560,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             toggleFullForm={toggleFullForm}
             handleStepByStepQuestionChange={handleStepByStepQuestionChange}
             handleCommentChange={handleCommentChange}
-            calculateProgress={calculateProgress}
-            calculateSectionProgress={calculateSectionProgress}
+            calculateSectionStats={calculateSectionStats}
             isSaving={isSaving}
             handleSubmit={handleSubmit}
             evaluationId={evaluationId}
@@ -553,7 +573,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             toggleFullForm={toggleFullForm}
             handleQuestionChange={handleQuestionChange}
             handleCommentChange={handleCommentChange}
-            calculateSectionProgress={calculateSectionProgress}
+            calculateSectionStats={calculateSectionStats}
             isSaving={isSaving}
             handleSubmit={handleSubmit}
             evaluationId={evaluationId}

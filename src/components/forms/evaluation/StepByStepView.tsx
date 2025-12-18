@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { FormData, Question } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
 import { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
@@ -24,7 +24,12 @@ interface StepByStepViewProps {
   toggleFullForm: () => void;
   handleStepByStepQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
-  calculateSectionProgress: (sectionId: keyof FormData) => number;
+  calculateSectionStats: (sectionId: keyof FormData) => {
+    totalQuestions: number;
+    answered: number;
+    nonZero: number;
+    avg: number;
+  };
   isSaving: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   evaluationId?: number;
@@ -46,7 +51,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   toggleFullForm,
   handleStepByStepQuestionChange,
   handleCommentChange,
-  calculateSectionProgress,
+  calculateSectionStats,
   isSaving,
   handleSubmit,
   evaluationId,
@@ -105,8 +110,8 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
       </div>
 
       <DualSectionProgressBar
-        anknytningProgress={calculateSectionProgress("anknytning")}
-        ansvarProgress={calculateSectionProgress("ansvar")}
+        anknytningStats={calculateSectionStats("anknytning")}
+        ansvarStats={calculateSectionStats("ansvar")}
       />
 
       <div
@@ -161,7 +166,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             onClick={toggleFullForm}
             className="flex items-center gap-2"
           >
-            <List size={16} />
+            <ChevronsUpDown size={16} />
             Visa alla frågor
           </Button>
 
