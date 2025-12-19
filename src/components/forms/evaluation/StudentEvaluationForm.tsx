@@ -445,7 +445,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
               className="my-8 mx-auto"
             />
             {" Kontakta "}
-            <a href="mailto:admin@stegetfore.se" className="font-bold hover:text-primary/80">administratören</a>
+            <a href="mailto:info@stegetfore.se" className="font-bold hover:text-primary/80">administratören</a>
             {" om du behöver hjälp."}
           </div>
         </div>
@@ -461,7 +461,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     return (
       <div className="mb-8 mt-8 w-full max-w-3xl mx-auto">
         <h2 className="text-xl font-medium mb-4 text-foreground">
-          {!studentId ? 'Välj en elev för att starta bedömningen' : 'Bedömning'}
+          {!studentId ? 'Välj en elev för att starta observationen' : 'Observation'}
         </h2>
         <div className="flex flex-wrap justify-between items-center mb-4">
 
@@ -582,7 +582,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
         )}
       </div>
       <CenteredToast
-        message="Utvärderingen har sparats"
+        message="Observationen har sparats"
         open={centeredToastOpen}
         onClose={() => setCenteredToastOpen(false)}
       />

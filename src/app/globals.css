@@ -370,18 +370,18 @@
 
   /* Dark mode badge variants */
   .dark .badge-teacher {
-    background-color: rgba(255, 176, 0, 0.15);
+    background-color: rgba(255, 176, 0, 0.1);
     color: rgb(255, 176, 0);
   }
 
   .dark .badge-student {
-    background-color: rgba(225, 85, 84, 0.15);
+    background-color: rgba(225, 85, 84, 0.1);
     color: rgb(225, 85, 84);
   }
 
   .dark .badge-class {
-    background-color: rgba(20, 184, 166, 0.15);
-    color: rgb(20, 184, 166);
+    background-color: rgba(14, 188, 107, 0.1);
+    color: rgb(20, 184, 72);
   }
 
   /* Panels and cards using semantic colors */

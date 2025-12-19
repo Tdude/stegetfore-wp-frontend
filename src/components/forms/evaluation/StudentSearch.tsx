@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/lib/api/baseApi';
 import { getAuthToken } from '@/lib/utils/authToken';
 import { toast } from 'sonner';
+import { ChevronDown } from 'lucide-react';
 
 interface Student {
   id: number;
@@ -50,6 +51,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
   // Class filtering implementation
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [showClassDropdown, setShowClassDropdown] = useState(false);
   
   // Fetch teacher's classes
   useEffect(() => {
@@ -123,6 +125,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
     setSelectedClassId(classId);
     setSearchTerm('');
     setStudents([]);
+    setShowClassDropdown(false);
     
     // If a class is selected, focus the search input
     if (classId) {
@@ -131,6 +134,15 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
         searchInput.focus();
       }
     }
+  };
+  
+  // Helper to format class label with optional student count
+  const formatClassLabel = (cls: Class & { student_count?: number; count?: number }) => {
+    const base = cls.name;
+    const rawCount = typeof cls.student_count === 'number' ? cls.student_count : cls.count;
+    if (typeof rawCount !== 'number') return base;
+    const label = rawCount === 1 ? 'elev' : 'elever';
+    return `${base} (${rawCount} ${label})`;
   };
   
   // Search for students by name or ID
@@ -268,42 +280,74 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
   return (
     <div className={`relative ${className}`}>
       <div className="mb-4">
-        <label htmlFor="student-search" className="block text-sm font-medium text-foreground mb-1">
-          {selectedStudent ? 'Vald elev' : 'Sök efter elev'}
+        <label htmlFor="student-search" className="block text-md font-medium text-foreground mb-1">
+          {selectedStudent ? 'Vald elev' : 'Sök elev'}
         </label>
-        <div className="relative">
-          <input
-            id="student-search"
-            type="text"
-            className="w-full px-3 py-2 rounded-md border border-input bg-surface-secondary text-sm ring-offset-background placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-transparent dark:bg-surface-secondary dark:text-foreground dark:border-input dark:focus-visible:ring-focus-ring dark:focus-visible:ring-offset-1"
-            placeholder="Skriv namn för att söka... (minst 2 tecken)"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onFocus={() => searchTerm.length >= 2 && setShowDropdown(true)}
-            aria-label="Sök efter elev"
-          />
-          {isLoading && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary dark:border-primary"></div>
-            </div>
-          )}
-        </div>
-        
-        {/* Class Filter Dropdown */}
-        <div className="mt-2">
-          <select
-            value={selectedClassId || ''}
-            onChange={(e) => handleClassSelect(e.target.value ? parseInt(e.target.value, 10) : null)}
-            className="w-full px-3 py-2 rounded-md border border-input bg-surface-secondary text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-transparent dark:bg-surface-secondary dark:text-foreground dark:border-input dark:focus-visible:ring-focus-ring dark:focus-visible:ring-offset-1"
-            aria-label="Filtrera efter klass"
-          >
-            <option value="">Alla klasser</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
+
+        <div className="md:flex md:gap-3 md:items-start">
+          {/* Student search pill */}
+          <div className="relative md:flex-1 rounded-full border border-red-300/80 bg-red-50/70 dark:border-red-500/60 dark:bg-red-950/30 px-3 py-1">
+            <input
+              id="student-search"
+              type="text"
+              className="w-full bg-transparent text-sm placeholder:text-secondary focus-visible:outline-none border-0 focus-visible:ring-0 dark:bg-transparent dark:text-foreground"
+              placeholder="Sök på namn (minst 2 tecken)"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onFocus={() => searchTerm.length >= 2 && setShowDropdown(true)}
+              aria-label="Sök elev"
+            />
+            {isLoading && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary dark:border-primary"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Class filter pill */}
+          <div className="mt-2 relative md:mt-0 md:w-56 rounded-full border border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-500/60 dark:bg-emerald-950/30 px-3 py-1">
+            <button
+              type="button"
+              onClick={() => setShowClassDropdown((v) => !v)}
+              className="w-full px-0 py-1 rounded-full bg-transparent text-sm sm:text-sm text-left flex items-center justify-between focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent dark:text-foreground"
+              aria-label="Filtrera efter klass"
+              aria-haspopup="listbox"
+              aria-expanded={showClassDropdown}
+            >
+              <span>
+                {selectedClassId ? classes.find((c) => c.id === selectedClassId)?.name || 'Vald klass' : 'Alla klasser'}
+              </span>
+              <span className="ml-2 text-secondary flex items-center justify-center">
+                <ChevronDown size={16} />
+              </span>
+            </button>
+
+            {showClassDropdown && classes.length > 0 && (
+              <div className="absolute z-20 w-full mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border max-h-60 overflow-auto">
+                <ul role="listbox">
+                  <li
+                    role="option"
+                    aria-selected={selectedClassId === null}
+                    className="px-4 py-2 text-base sm:text-sm hover:bg-surface-tertiary dark:hover:bg-surface-tertiary/80 cursor-pointer transition-colors text-foreground"
+                    onClick={() => handleClassSelect(null)}
+                  >
+                    Alla klasser
+                  </li>
+                  {classes.map((cls) => (
+                    <li
+                      key={cls.id}
+                      role="option"
+                      aria-selected={selectedClassId === cls.id}
+                      className="px-4 py-2 text-base sm:text-sm hover:bg-surface-tertiary dark:hover:bg-surface-tertiary/80 cursor-pointer transition-colors text-foreground"
+                      onClick={() => handleClassSelect(cls.id)}
+                    >
+                      {formatClassLabel(cls as Class & { student_count?: number; count?: number })}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Error message */}

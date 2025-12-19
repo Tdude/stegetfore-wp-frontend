@@ -73,9 +73,9 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
       <div className="w-full max-w-lg mx-auto mt-4">
         <div className="bg-green-50 dark:bg-form-success/10 border border-green-200 dark:border-form-success/30 rounded-lg p-6 text-center shadow-md dark:shadow-dark-md">
           <div className="text-green-600 dark:text-form-success text-4xl mb-4">✓</div>
-          <h3 className="text-xl font-semibold mb-3 text-foreground">Utvärderingen har sparats!</h3>
+          <h3 className="text-xl font-semibold mb-3 text-foreground">Observationen har sparats!</h3>
           <p className="text-gray-600 dark:text-text-secondary mb-6">
-            Tack för att du slutförde utvärderingen. Den har sparats i systemet.
+            Tack för att du slutförde observationen. Den har sparats i systemet.
             {evaluationId && typeof evaluationId === 'number' && !isNaN(evaluationId) &&
               <span className="block mt-2 text-sm">Utvärderingen har ID: {evaluationId}</span>
             }
@@ -104,9 +104,9 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   }
 
   return (
-    <div className="space-y-6 p-4 max-w-3xl mx-auto">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Utvärdering</h2>
+        <h2 className="text-xl font-medium mb-4 text-foreground">Formulär för observation</h2>
       </div>
 
       <DualSectionProgressBar
