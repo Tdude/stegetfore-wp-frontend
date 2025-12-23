@@ -1,13 +1,15 @@
 // src/components/forms/evaluation/StepByStepView.tsx
+
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { FormData, Question } from '@/lib/types/formTypesEvaluation';
 import QuestionCard from '@/components/ui/evaluation/QuestionCard';
 import { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
+import StepByStepMinimap from './StepByStepMinimap';
 
 interface StepByStepViewProps {
   formData: FormData;
@@ -21,6 +23,7 @@ interface StepByStepViewProps {
   fadeState: 'visible' | 'fading-out' | 'fading-in';
   handlePrevQuestion: () => void;
   handleNextQuestion: () => void;
+  handleGoToQuestion: (targetIndex: number) => void;
   toggleFullForm: () => void;
   handleStepByStepQuestionChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
   handleCommentChange: (sectionId: keyof FormData, questionId: string) => (value: string) => void;
@@ -48,6 +51,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   fadeState,
   handlePrevQuestion,
   handleNextQuestion,
+  handleGoToQuestion,
   toggleFullForm,
   handleStepByStepQuestionChange,
   handleCommentChange,
@@ -57,7 +61,69 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   evaluationId,
   isFormSaved
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const questionContainerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [minimapHeightPx, setMinimapHeightPx] = useState<number>(0);
+  const [minimapTopOffsetPx, setMinimapTopOffsetPx] = useState<number>(0);
+
+  const minimapRows = useMemo(() => {
+    return allQuestions.map(q => {
+      const value = formData[q.sectionId]?.questions?.[q.questionId] || '';
+      return {
+        sectionId: q.sectionId,
+        questionId: q.questionId,
+        question: q.question,
+        value
+      };
+    });
+  }, [allQuestions, formData]);
+
+  useEffect(() => {
+    const el = questionContainerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.height > 0) setMinimapHeightPx(rect.height);
+    };
+
+    update();
+
+    const ro = new ResizeObserver(() => {
+      update();
+    });
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    const updateTopOffset = () => {
+      const el = headerRef.current;
+      const container = containerRef.current;
+      if (!el) return;
+      if (!container) {
+        setMinimapTopOffsetPx(el.offsetTop);
+        return;
+      }
+
+      // Compute offset relative to the StepByStepView container so the minimap aligns
+      // with the header inside this component, not the page scroll position.
+      const headerRect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setMinimapTopOffsetPx(headerRect.top - containerRect.top);
+    };
+
+    updateTopOffset();
+    window.addEventListener('resize', updateTopOffset);
+
+    return () => {
+      window.removeEventListener('resize', updateTopOffset);
+    };
+  }, []);
 
   // Current question data
   const currentQuestion = allQuestions[currentQuestionIndex];
@@ -104,17 +170,19 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-medium mb-4 text-foreground">Formulär för observation</h2>
-      </div>
+    <div ref={containerRef} className="max-w-6xl mx-auto">
+      <div className="relative">
+        <div className="space-y-6 max-w-3xl mx-auto">
+          <div ref={headerRef} className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-medium mb-4 text-foreground">Formulär för observation</h2>
+          </div>
 
-      <DualSectionProgressBar
-        anknytningStats={calculateSectionStats("anknytning")}
-        ansvarStats={calculateSectionStats("ansvar")}
-      />
+          <DualSectionProgressBar
+            anknytningStats={calculateSectionStats("anknytning")}
+            ansvarStats={calculateSectionStats("ansvar")}
+          />
 
-      <div className="relative" ref={questionContainerRef}>
+          <div className="relative" ref={questionContainerRef}>
         {/* Left chevron (previous) */}
         {currentQuestionIndex > 0 && (
           <button
@@ -162,77 +230,84 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
             />
           )}
         </div>
-      </div>
+          </div>
 
-      {/* Mobile navigation (visible only on small screens) */}
-      <div className="flex items-center justify-between mt-4 sm:hidden">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handlePrevQuestion}
-          disabled={currentQuestionIndex === 0}
-          className="flex items-center justify-center w-10 h-10 rounded-full p-0"
-        >
-          <ChevronLeft size={18} />
-        </Button>
-
-        <div className="text-sm text-muted-foreground">
-          {currentQuestionIndex + 1} / {allQuestions.length}
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleNextQuestion}
-          disabled={
-            currentQuestionIndex === allQuestions.length - 1 ||
-            !currentQuestion ||
-            !formData[currentSection]?.questions?.[currentQuestion.questionId]
-          }
-          className="flex items-center justify-center w-10 h-10 rounded-full p-0 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <ChevronRight size={18} />
-        </Button>
-      </div>
-
-      <div className="flex justify-between items-center mt-8">
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={toggleFullForm}
-            className="flex items-center gap-2"
-          >
-            <ChevronsUpDown size={16} />
-            Visa alla frågor
-          </Button>
-
-          {currentQuestionIndex === allQuestions.length - 1 && (
+          {/* Mobile navigation (visible only on small screens) */}
+          <div className="flex items-center justify-between mt-4 sm:hidden">
             <Button
-              type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                // Make sure at least one question is answered
-                const hasAnsweredQuestions =
-                  Object.keys(formData.anknytning?.questions || {}).length > 0 ||
-                  Object.keys(formData.ansvar?.questions || {}).length > 0;
-
-                if (!hasAnsweredQuestions) {
-                  // Alert user if no questions are answered
-                  alert('Du måste besvara minst en fråga innan du kan skicka in formuläret.');
-                  return;
-                }
-
-                // Proceed with submission if questions are answered
-                handleSubmit(e);
-              }}
-              disabled={isSaving}
-              className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
+              type="button"
+              variant="outline"
+              onClick={handlePrevQuestion}
+              disabled={currentQuestionIndex === 0}
+              className="flex items-center justify-center w-10 h-10 rounded-full p-0"
             >
-              {isSaving ? <LoadingDots text="Sparar" /> : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
+              <ChevronLeft size={18} />
             </Button>
-          )}
+
+            <div className="text-sm text-muted-foreground">
+              {currentQuestionIndex + 1} / {allQuestions.length}
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleNextQuestion}
+              disabled={
+                currentQuestionIndex === allQuestions.length - 1 ||
+                !currentQuestion ||
+                !formData[currentSection]?.questions?.[currentQuestion.questionId]
+              }
+              className="flex items-center justify-center w-10 h-10 rounded-full p-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={18} />
+            </Button>
+          </div>
+
+          <div className="flex justify-between items-center mt-8">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={toggleFullForm}
+                className="flex items-center gap-2"
+              >
+                <ChevronsUpDown size={16} />
+                Visa alla frågor
+              </Button>
+
+              {currentQuestionIndex === allQuestions.length - 1 && (
+                <Button
+                  type="submit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const hasAnsweredQuestions =
+                      Object.keys(formData.anknytning?.questions || {}).length > 0 ||
+                      Object.keys(formData.ansvar?.questions || {}).length > 0;
+
+                    if (!hasAnsweredQuestions) {
+                      alert('Du måste besvara minst en fråga innan du kan skicka in formuläret.');
+                      return;
+                    }
+
+                    handleSubmit(e);
+                  }}
+                  disabled={isSaving}
+                  className="px-4 py-1.5 bg-primary/90 border rounded text-gray-700 hover:text-black"
+                >
+                  {isSaving ? <LoadingDots text="Sparar" /> : evaluationId ? 'Uppdatera utvärdering' : 'Spara utvärdering'}
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
+
+        <StepByStepMinimap
+          rows={minimapRows.map(r => ({ sectionId: String(r.sectionId) === 'ansvar' ? 'ansvar' : 'anknytning', questionId: r.questionId, questionTitle: r.question.text, value: r.value }))}
+          currentQuestionIndex={currentQuestionIndex}
+          onGoToQuestion={handleGoToQuestion}
+          heightPx={minimapHeightPx}
+          topOffsetPx={minimapTopOffsetPx}
+        />
       </div>
     </div>
   );

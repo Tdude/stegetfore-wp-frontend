@@ -76,7 +76,7 @@ export default function TryggveContactFormSectionComponent({
             {data.subtitle}
           </p>
 
-          <div className="bg-gray-50 rounded-lg p-6 md:p-10 lg:p-12 shadow-custom border border-gray-200">
+          <div className="rounded-lg p-6 md:p-10 lg:p-12 shadow-custom border border-gray-200">
             {isSubmitted ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4 text-primary">✓</div>
@@ -93,7 +93,7 @@ export default function TryggveContactFormSectionComponent({
                   <div key={index}>
                     <Label 
                       htmlFor={field.name}
-                      className="text-black text-lg md:text-xl font-medium mb-3 block"
+                      className="text-black text-md md:text-lg font-medium mb-3 block"
                     >
                       {field.label}
                       {field.required && <span className="text-red-600 ml-1">*</span>}
@@ -107,7 +107,7 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full text-lg md:text-xl p-4"
+                        className="w-full text-md md:text-lg p-4"
                         rows={6}
                       />
                     ) : (
@@ -119,7 +119,7 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full text-lg md:text-xl p-4 h-14"
+                        className="w-full text-md md:text-lg p-4 h-14"
                       />
                     )}
                   </div>

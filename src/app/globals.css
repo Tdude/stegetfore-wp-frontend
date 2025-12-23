@@ -198,6 +198,10 @@
     @apply font-sans;
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   main.container {
     @apply text-xl;
   }

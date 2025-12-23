@@ -225,6 +225,27 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
     }
   }, [currentQuestionIndex, allQuestions.length]);
 
+  const handleGoToQuestion = useCallback((targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= allQuestions.length) return;
+    if (targetIndex === currentQuestionIndex) return;
+
+    // Clear any existing timeout
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+    }
+
+    setFadeState('fading-out');
+
+    setTimeout(() => {
+      setCurrentQuestionIndex(targetIndex);
+      setFadeState('fading-in');
+
+      setTimeout(() => {
+        setFadeState('visible');
+      }, 300);
+    }, 300);
+  }, [allQuestions.length, currentQuestionIndex]);
+
   // Handle question changes in full form view
   const handleQuestionChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
     setFormData(prev => ({
@@ -557,6 +578,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             fadeState={fadeState}
             handlePrevQuestion={handlePrevQuestion}
             handleNextQuestion={handleNextQuestion}
+            handleGoToQuestion={handleGoToQuestion}
             toggleFullForm={toggleFullForm}
             handleStepByStepQuestionChange={handleStepByStepQuestionChange}
             handleCommentChange={handleCommentChange}
