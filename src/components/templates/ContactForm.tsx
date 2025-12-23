@@ -122,24 +122,24 @@ export default function ContactForm({ formId }: ContactFormProps) {
   }, [formData, isSubmitted]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-6 form-container rounded-lg">
+    <form onSubmit={handleSubmit} className="space-y-7 rounded-lg bg-white p-6 md:p-8 lg:p-10 shadow-sm border border-gray-200">
       {/* Name field */}
       <div>
-        <Label htmlFor="your-name" className="form-required text-foreground">Namn</Label>
+        <Label htmlFor="your-name" className="form-required text-black text-sm md:text-base font-medium mb-2 block">Namn</Label>
         <Input
           id="your-name"
           name="your-name"
           value={formData['your-name']}
           onChange={handleChange}
           required
-          className={errors['your-name'] ? 'border-red-500 dark:border-red-400' : ''}
+          className={`w-full text-base md:text-lg p-3.5 h-12 ${errors['your-name'] ? 'border-red-500 dark:border-red-400' : ''}`}
         />
         {errors['your-name'] && <p className="text-sm form-error mt-1">{errors['your-name']}</p>}
       </div>
 
       {/* Email field */}
       <div>
-        <Label htmlFor="your-email" className="form-required text-foreground">E-post</Label>
+        <Label htmlFor="your-email" className="form-required text-black text-sm md:text-base font-medium mb-2 block">E-post</Label>
         <Input
           id="your-email"
           name="your-email"
@@ -147,28 +147,28 @@ export default function ContactForm({ formId }: ContactFormProps) {
           value={formData['your-email']}
           onChange={handleChange}
           required
-          className={errors['your-email'] ? 'border-red-500 dark:border-red-400' : ''}
+          className={`w-full text-base md:text-lg p-3.5 h-12 ${errors['your-email'] ? 'border-red-500 dark:border-red-400' : ''}`}
         />
         {errors['your-email'] && <p className="text-sm form-error mt-1">{errors['your-email']}</p>}
       </div>
 
       {/* Message field */}
       <div>
-        <Label htmlFor="your-message" className="form-required text-foreground">Meddelande</Label>
+        <Label htmlFor="your-message" className="form-required text-black text-sm md:text-base font-medium mb-2 block">Meddelande</Label>
         <Textarea
           id="your-message"
           name="your-message"
           value={formData['your-message']}
           onChange={handleChange}
           required
-          className={errors['your-message'] ? 'border-red-500 dark:border-red-400' : ''}
+          className={`w-full text-base md:text-lg p-3.5 ${errors['your-message'] ? 'border-red-500 dark:border-red-400' : ''}`}
         />
         {errors['your-message'] && <p className="text-sm form-error mt-1">{errors['your-message']}</p>}
       </div>
 
       {/* Submit button */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting} className="min-w-32">
+      <div className="pt-2">
+        <Button type="submit" disabled={isSubmitting} variant="primary" className="w-full text-base md:text-lg py-4 px-8 h-14 font-bold">
           {isSubmitting ? 'Skickar...' : 'Skicka'}
         </Button>
       </div>

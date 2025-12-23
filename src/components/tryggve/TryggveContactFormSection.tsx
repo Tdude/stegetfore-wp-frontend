@@ -76,7 +76,7 @@ export default function TryggveContactFormSectionComponent({
             {data.subtitle}
           </p>
 
-          <div className="rounded-lg p-6 md:p-10 lg:p-12 shadow-custom border border-gray-200">
+          <div className="rounded-lg bg-white p-6 md:p-8 lg:p-10 shadow-sm border border-gray-200">
             {isSubmitted ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4 text-primary">✓</div>
@@ -88,12 +88,12 @@ export default function TryggveContactFormSectionComponent({
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-7">
                 {data.fields.map((field, index) => (
                   <div key={index}>
                     <Label 
                       htmlFor={field.name}
-                      className="text-black text-md md:text-lg font-medium mb-3 block"
+                      className="text-black text-sm md:text-base font-medium mb-2 block"
                     >
                       {field.label}
                       {field.required && <span className="text-red-600 ml-1">*</span>}
@@ -107,7 +107,7 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full text-md md:text-lg p-4"
+                        className="w-full text-base md:text-lg p-3.5"
                         rows={6}
                       />
                     ) : (
@@ -119,7 +119,7 @@ export default function TryggveContactFormSectionComponent({
                         placeholder={field.placeholder}
                         value={formData[field.name] || ''}
                         onChange={handleChange}
-                        className="w-full text-md md:text-lg p-4 h-14"
+                        className="w-full text-base md:text-lg p-3.5 h-12"
                       />
                     )}
                   </div>
@@ -130,7 +130,7 @@ export default function TryggveContactFormSectionComponent({
                     type="submit" 
                     disabled={isSubmitting}
                     variant="primary"
-                    className="w-full text-lg md:text-xl py-5 px-8 h-16 font-bold"
+                    className="w-full text-base md:text-lg py-4 px-8 h-14 font-bold"
                   >
                     {isSubmitting ? 'Skickar...' : data.submitButtonText}
                   </Button>
