@@ -1,5 +1,10 @@
 // src/lib/api/baseApi.ts
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/wp-json';
+const WORDPRESS_URL = (process.env.NEXT_PUBLIC_WORDPRESS_URL || '').replace(/\/$/, '');
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (WORDPRESS_URL ? `${WORDPRESS_URL}/wp-json` : '') ||
+  process.env.NEXT_PUBLIC_WORDPRESS_API_URL ||
+  'http://localhost:8000/wp-json';
 export const THEME_SLUG = process.env.NEXT_PUBLIC_THEME_SLUG || "steget";
 export const DISABLE_CACHE = process.env.NEXT_PUBLIC_DISABLE_CACHE === 'true';
 

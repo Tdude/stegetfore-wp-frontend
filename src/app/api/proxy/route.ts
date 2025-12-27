@@ -17,7 +17,11 @@ export async function GET(request: NextRequest) {
   }
 
   // Construct the full WordPress API URL
-  const wpBaseUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://localhost:8000';
+  const wordpressUrl = (process.env.NEXT_PUBLIC_WORDPRESS_URL || '').replace(/\/$/, '');
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+  const wordpressApiUrl = (process.env.NEXT_PUBLIC_WORDPRESS_API_URL || '').replace(/\/$/, '');
+
+  const wpBaseUrl = wordpressApiUrl || wordpressUrl || apiUrl || 'http://localhost:8000';
   const url = `${wpBaseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   
   try {
