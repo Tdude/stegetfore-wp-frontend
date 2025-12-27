@@ -1,20 +1,40 @@
-FROM node:20-alpine AS deps
+FROM node:20-bookworm-slim AS deps
 
 WORKDIR /app
 
 # Install build dependencies for canvas and other native modules
-RUN apk add --no-cache python3 make g++ pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev \
-  && ln -sf python3 /usr/bin/python
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    pkg-config \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 RUN npm install
 
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++ pkgconfig pixman-dev cairo-dev pango-dev cairo-dev pango-dev jpeg-dev giflib-dev \
-  && ln -sf python3 /usr/bin/python
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    pkg-config \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -23,12 +43,23 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Runtime dependencies for node-canvas
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libjpeg62-turbo \
+    libgif7 \
+    librsvg2-2 \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy standalone output produced by output: 'standalone'
 COPY --from=builder /app/.next/standalone ./
