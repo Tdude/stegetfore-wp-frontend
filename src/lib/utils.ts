@@ -5,6 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function trackUmamiEvent(event: string, data?: Record<string, unknown>) {
+  if (!event) return;
+  if (typeof window === "undefined") return;
+
+  try {
+    window.umami?.track?.(event, data);
+  } catch {
+    // no-op
+  }
+}
+
 /**
  * Recursively normalizes backslashes in any string property of an object
  * This prevents the compounding escaping issue when saving repeatedly in WordPress

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { cn, trackUmamiEvent } from '@/lib/utils';
 import { toast } from 'sonner';
 import { submitForm } from '@/lib/api/formApi';
 
@@ -41,11 +41,14 @@ export default function TryggveContactFormSectionComponent({
     e.preventDefault();
     setIsSubmitting(true);
 
+    trackUmamiEvent('stegetfore_tryggve_contact_attempt', { formId });
+
     try {
       // Submit to Contact Form 7 via WordPress API
       const response = await submitForm(formId, formData);
       
       if (response.status === 'mail_sent') {
+        trackUmamiEvent('stegetfore_tryggve_contact_success', { formId });
         setIsSubmitted(true);
         toast.success(data.successMessage || response.message || 'Tack! Vi kontaktar dig inom kort.');
         

@@ -6,7 +6,7 @@ import { FormModule as FormModuleType } from '@/lib/types/moduleTypes';
 import { WPCF7Form } from '@/lib/types/wpTypes';
 import { fetchFormStructure, submitForm } from '@/lib/api';
 import DynamicForm from '@/components/forms/DynamicForm';
-import { cn } from '@/lib/utils';
+import { cn, trackUmamiEvent } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 
 interface FormModuleProps {
@@ -37,9 +37,14 @@ export default function FormModule({ module, className }: FormModuleProps) {
   }, [module.form_id]);
 
   // Handle form submission
-  const handleSubmit = async (formData: Record<string, unknown>): Promise<void> => {
+  const handleSubmit = async (formData: Record<string, string | File>): Promise<void> => {
       try {
+        trackUmamiEvent('stegetfore_formmodule_attempt', { formId: module.form_id });
         const response = await submitForm(module.form_id, formData);
+
+        if (response.status === 'mail_sent') {
+          trackUmamiEvent('stegetfore_formmodule_success', { formId: module.form_id });
+        }
 
         // Check if redirect URL is set
         if (response.status === 'mail_sent' && module.redirect_url) {

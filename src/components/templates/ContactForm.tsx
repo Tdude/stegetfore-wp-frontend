@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 import { submitForm } from '@/lib/api/formApi';
+import { trackUmamiEvent } from '@/lib/utils';
 
 interface ContactFormProps {
   formId: number;
@@ -94,10 +95,13 @@ export default function ContactForm({ formId }: ContactFormProps) {
 
     setIsSubmitting(true);
 
+    trackUmamiEvent('stegetfore_contact_attempt', { formId });
+
     try {
       // Submit to backend
       const response = await submitForm(formId, formData);
       if (response.status === 'mail_sent') {
+        trackUmamiEvent('stegetfore_contact_success', { formId });
         toast.success(response.message || 'Tack för ditt meddelande!');
         setFormData(initialFormState);
         setIsSubmitted(true);

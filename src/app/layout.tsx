@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import { Lato, Raleway } from 'next/font/google';
+import Script from 'next/script';
 import { getLayoutData } from '@/lib/layoutUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -44,9 +45,20 @@ export default async function RootLayout({
 }) {
   const { siteInfo, menuItems } = await getLayoutData();
 
+  const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const umamiHost = process.env.NEXT_PUBLIC_UMAMI_HOST;
+  const shouldLoadUmami = Boolean(umamiWebsiteId && umamiHost);
+
   return (
     <html lang="en" suppressHydrationWarning className={`${lato.variable} ${raleway.variable}`}>
       <body suppressHydrationWarning>
+        {shouldLoadUmami ? (
+          <Script
+            defer
+            data-website-id={umamiWebsiteId}
+            src={`${(umamiHost || '').replace(/\/$/, '')}/script.js`}
+          />
+        ) : null}
         <Providers>
           <ContentFade />
           {/* Fade effect logic for main content */}

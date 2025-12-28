@@ -10,3 +10,13 @@ declare module 'next' {
     searchParams?: Record<string, string | string[]>;
   }
 }
+
+declare global {
+  interface Window {
+    umami?: {
+      track?: (event: string, data?: Record<string, unknown>) => void;
+    };
+  }
+}
+
+export {};
