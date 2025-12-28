@@ -21,6 +21,14 @@ interface Class {
   title?: {
     rendered: string;
   };
+  school?: {
+    id?: number;
+    name?: string;
+    title?: {
+      rendered?: string;
+    };
+  };
+  school_name?: string;
 }
 
 interface StudentSearchProps {
@@ -145,8 +153,23 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
   };
   
   // Helper to format class label with optional student count
+  const getSchoolPrefix = (cls: Class): string | undefined => {
+    const raw =
+      cls.school_name ||
+      cls.school?.name ||
+      cls.school?.title?.rendered ||
+      undefined;
+
+    if (!raw) return undefined;
+    const trimmed = String(raw).replace(/<[^>]*>/g, '').trim();
+    if (!trimmed) return undefined;
+
+    return trimmed.split(/\s+/).slice(0, 2).join(' ');
+  };
+
   const formatClassLabel = (cls: Class & { student_count?: number; count?: number }) => {
-    const base = cls.name;
+    const schoolPrefix = getSchoolPrefix(cls);
+    const base = schoolPrefix ? `${schoolPrefix} – ${cls.name}` : cls.name;
     const rawCount = typeof cls.student_count === 'number' ? cls.student_count : cls.count;
     if (typeof rawCount !== 'number') return base;
     const label = rawCount === 1 ? 'elev' : 'elever';
@@ -337,7 +360,7 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
               aria-expanded={showClassDropdown}
             >
               <span>
-                {selectedClassId ? classes.find((c) => c.id === selectedClassId)?.name || 'Vald klass' : 'Alla klasser'}
+                {selectedClassId ? formatClassLabel(classes.find((c) => c.id === selectedClassId) as Class) || 'Vald klass' : 'Alla klasser'}
               </span>
               <span className="ml-2 text-secondary flex items-center justify-center">
                 <ChevronDown size={16} />
