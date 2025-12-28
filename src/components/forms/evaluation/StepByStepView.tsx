@@ -135,6 +135,8 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
 
   // If the form is saved, show success message
   if (isFormSaved) {
+    const wpAdminAssessmentsUrl = 'https://cms.stegetfore.nu/wp-admin/admin.php?page=ham-assessments';
+
     return (
       <div className="w-full max-w-lg mx-auto mt-4">
         <div className="bg-green-50 dark:bg-form-success/10 border border-green-200 dark:border-form-success/30 rounded-lg p-6 text-center shadow-md dark:shadow-dark-md">
@@ -162,6 +164,14 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
               className="border-primary text-primary hover:bg-primary/10 dark:border-primary/70 dark:text-primary dark:hover:bg-primary/20"
             >
               Ny utvärdering
+            </Button>
+
+            <Button
+              onClick={() => window.open(wpAdminAssessmentsUrl, '_blank', 'noopener,noreferrer')}
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10 dark:border-primary/70 dark:text-primary dark:hover:bg-primary/20"
+            >
+              WordPress admin
             </Button>
           </div>
         </div>
