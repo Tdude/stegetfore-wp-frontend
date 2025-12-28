@@ -46,7 +46,15 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userInfo } = useAuth();
+
+  const roles = Array.isArray(userInfo?.roles) ? userInfo?.roles : [];
+  const normalizedRoles = roles.map((r) => String(r).toLowerCase());
+  const roleSet = new Set(normalizedRoles);
+  const isAdminLike = roleSet.has('administrator') || roleSet.has('admin');
+  const isSchoolChief = roleSet.has('ham_school_head');
+  const isPrincipal = roleSet.has('ham_principal');
+  const isTeacher = roleSet.has('ham_teacher');
   
   // Class filtering implementation
   const [classes, setClasses] = useState<Class[]>([]);
@@ -173,62 +181,76 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
       
       // Modify the URL if class filtering is enabled
       // FIXED: Using plural 'students' to match backend endpoint registration
-      let searchUrl = `${API_URL}/ham/v1/students/search/${encodedTerm}`;
-      if (selectedClassId) {
-        searchUrl += `?class_id=${selectedClassId}`;
-      }
-      
-      const response = await fetch(searchUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const baseSearchUrl = `${API_URL}/ham/v1/students/search/${encodedTerm}`;
 
-      if (response.ok) {
-        const data = await response.json();
-        // Enhanced debug logs
-        console.log('Student search API response:', data);
-        console.log('Response type:', typeof data);
-        console.log('Is array?', Array.isArray(data));
-        if (Array.isArray(data)) {
-          console.log('Array length:', data.length);
-          if (data.length > 0) {
-            console.log('First item structure:', data[0]);
+      const fetchSearch = async (url: string) => {
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        }
-        
-        // Make sure we're handling the data correctly
-        if (data && Array.isArray(data)) {
-          setStudents(data);
-          if (data.length === 0) {
-            setErrorMessage('Inga elever hittades');
-          } else {
-            setErrorMessage(''); // Clear error if we have results
-          }
-        } else {
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) return data as Student[];
           console.error('API response is not an array:', data);
-          setStudents([]);
-          setErrorMessage('Fel format på data från servern');
+          throw new Error('Fel format på data från servern');
         }
-      } else if (response.status === 404) {
-        // 404 is expected for no matching results
-        setStudents([]);
-        setErrorMessage('Inga elever hittades med den söktermen');
+
+        if (response.status === 404) {
+          return [] as Student[];
+        }
+
+        throw new Error(response.statusText || 'Okänt fel');
+      };
+
+      let results: Student[] = [];
+
+      if (selectedClassId) {
+        results = await fetchSearch(`${baseSearchUrl}?class_id=${selectedClassId}`);
+      } else if ((isTeacher || isPrincipal) && !isSchoolChief && !isAdminLike) {
+        if (!classes.length) {
+          setStudents([]);
+          setErrorMessage('Du har inga klasser tilldelade');
+          return;
+        }
+
+        const perClassResults = await Promise.all(
+          classes.map((cls) => fetchSearch(`${baseSearchUrl}?class_id=${cls.id}`))
+        );
+
+        const merged = perClassResults.flat();
+        const seen = new Set<number>();
+        results = merged.filter((s) => {
+          if (seen.has(s.id)) return false;
+          seen.add(s.id);
+          return true;
+        });
       } else {
-        setErrorMessage(`Det gick inte att söka efter elever: ${response.statusText || 'Okänt fel'}`);
-        setStudents([]);
+        results = await fetchSearch(baseSearchUrl);
+      }
+
+      setStudents(results);
+      if (results.length === 0) {
+        setErrorMessage('Inga elever hittades');
+      } else {
+        setErrorMessage('');
       }
     } catch (error) {
       // Log error in development environment only
       if (process.env.NODE_ENV !== 'production') {
         console.error('Error searching for students:', error);
       }
-      setErrorMessage('Ett fel uppstod vid sökning efter elever');
+      setErrorMessage(
+        error instanceof Error
+          ? `Ett fel uppstod vid sökning efter elever: ${error.message}`
+          : 'Ett fel uppstod vid sökning efter elever'
+      );
       setStudents([]);
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, selectedClassId]);
+  }, [classes, isAdminLike, isAuthenticated, isPrincipal, isSchoolChief, isTeacher, selectedClassId]);
 
   // Handle input changes with debouncing
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
