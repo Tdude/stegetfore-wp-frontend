@@ -1,4 +1,4 @@
-.PHONY: prod-up prod-rebuild prod-restart prod-logs prod-status prod-down prod-pull help
+.PHONY: prod-up prod-rebuild prod-restart prod-logs prod-status prod-down prod-pull remod help
 
 COMPOSE_PROD = docker compose -f docker-compose.prod.yaml
 
@@ -25,8 +25,13 @@ prod-down:
 prod-pull:
 	git pull
 
+remod:
+	$(MAKE) prod-pull
+	$(MAKE) prod-rebuild
+
 help:
 	@echo "Stegetfore prod commands (run from this repo folder):"
+	@echo "  make remod         - git pull + full rebuild (new asset hashes)"
 	@echo "  make prod-pull     - git pull"
 	@echo "  make prod-up       - start/update containers (no rebuild)"
 	@echo "  make prod-restart  - restart containers"
