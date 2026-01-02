@@ -100,6 +100,26 @@ export async function fetchPage(
     
     // Get the first page
     const page = pages[0];
+
+    const contentRendered =
+      typeof page.content === 'string'
+        ? page.content
+        : page.content?.rendered || "";
+
+    const excerptRendered =
+      typeof page.excerpt === 'string'
+        ? page.excerpt
+        : page.excerpt?.rendered || "";
+
+    const showContentWithModules =
+      page.show_content_with_modules === true ||
+      (page.meta && page.meta.show_content_with_modules === true) ||
+      false;
+
+    const contentPosition =
+      page.content_position ||
+      (page.meta && page.meta.content_position) ||
+      'after';
     
     // Log all top-level keys to see what's available
     console.log(`Page object keys for ${slug}:`, Object.keys(page));
@@ -112,25 +132,28 @@ export async function fetchPage(
         rendered: page.title?.rendered || ""
       },
       content: {
-        rendered: page.content?.rendered || ""
+        rendered: contentRendered
       },
-      excerpt: page.excerpt ? {
-        rendered: page.excerpt.rendered || ""
-      } : undefined,
+      excerpt: excerptRendered
+        ? {
+            rendered: excerptRendered
+          }
+        : undefined,
       modules: page.modules || [],
       type: page.type || "",
       template: page.template || "default",
       featured_image_url: page.featured_image_url || null,
       _embedded: page._embedded,
+      meta: page.meta,
+      content_display_settings: {
+        show_content_with_modules: showContentWithModules,
+        content_position: contentPosition === 'before' ? 'before' : 'after'
+      },
       // Get the content toggle flag - content is only shown when flag is true
       // This matches WordPress admin "Show content when modules are present" checkbox
-      show_content_with_modules: page.show_content_with_modules === true || 
-                              (page.meta && page.meta.show_content_with_modules === true) ||
-                              false,
+      show_content_with_modules: showContentWithModules,
       // Get content position - default to 'after' if not specified
-      content_position: page.content_position || 
-                     (page.meta && page.meta.content_position) || 
-                     'after'
+      content_position: contentPosition
     };
     
     // Cast to LocalPage to satisfy TypeScript
@@ -169,6 +192,26 @@ export async function fetchPageById(
       return null;
     }
 
+    const contentRendered =
+      typeof page.content === 'string'
+        ? page.content
+        : page.content?.rendered || "";
+
+    const excerptRendered =
+      typeof page.excerpt === 'string'
+        ? page.excerpt
+        : page.excerpt?.rendered || "";
+
+    const showContentWithModules =
+      page.show_content_with_modules === true ||
+      (page.meta && page.meta.show_content_with_modules === true) ||
+      false;
+
+    const contentPosition =
+      page.content_position ||
+      (page.meta && page.meta.content_position) ||
+      'after';
+
     // Use a temporary variable to build a page object with the correct structure
     const rawPageData = {
       id: page.id,
@@ -177,25 +220,28 @@ export async function fetchPageById(
         rendered: page.title?.rendered || ""
       },
       content: {
-        rendered: page.content?.rendered || ""
+        rendered: contentRendered
       },
-      excerpt: page.excerpt ? {
-        rendered: page.excerpt.rendered || ""
-      } : undefined,
+      excerpt: excerptRendered
+        ? {
+            rendered: excerptRendered
+          }
+        : undefined,
       modules: page.modules || [],
       type: page.type || "",
       template: page.template || "default",
       featured_image_url: page.featured_image_url || null,
       _embedded: page._embedded,
+      meta: page.meta,
+      content_display_settings: {
+        show_content_with_modules: showContentWithModules,
+        content_position: contentPosition === 'before' ? 'before' : 'after'
+      },
       // Get the content toggle flag - content is only shown when flag is true
       // This matches WordPress admin "Show content when modules are present" checkbox
-      show_content_with_modules: page.show_content_with_modules === true || 
-                              (page.meta && page.meta.show_content_with_modules === true) ||
-                              false,
+      show_content_with_modules: showContentWithModules,
       // Get content position - default to 'after' if not specified
-      content_position: page.content_position || 
-                     (page.meta && page.meta.content_position) || 
-                     'after'
+      content_position: contentPosition
     };
     
     // Cast to LocalPage to satisfy TypeScript
