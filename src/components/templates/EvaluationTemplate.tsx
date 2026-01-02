@@ -6,9 +6,29 @@ import StudentEvaluationForm from '@/components/forms/evaluation/StudentEvaluati
 import DebugPanel from '@/components/debug/DebugPanel';
 import TemplateTransitionWrapper from './TemplateTransitionWrapper';
 
+type WPRendered = {
+  rendered: string;
+};
+
+type EvaluationPage = {
+  meta?: {
+    student_id?: number | string;
+  };
+  studentId?: number | string;
+  title?: WPRendered;
+  content?: WPRendered;
+  content_display_settings?: {
+    show_content_with_modules?: boolean;
+    content_position?: string;
+  };
+  evaluationId?: number | string;
+  id?: number;
+  template?: string;
+};
+
 // Main EvaluationTemplate component
 const EvaluationTemplate: React.FC<{ 
-  page: unknown, 
+  page: EvaluationPage, 
   evaluationId?: number, 
   studentId?: number | string 
 }> = ({ 
@@ -33,15 +53,22 @@ const EvaluationTemplate: React.FC<{
   const contentPosition = contentDisplaySettings.content_position || 'before';
   
   // Simplified content display logic
-  const shouldShowContentBefore = showContentWithForm && contentPosition === 'before' && pageContent;
-  const shouldShowContentAfter = showContentWithForm && contentPosition === 'after' && pageContent;
-  const shouldShowContentAlone = (!showContentWithForm) && pageContent;
+  const shouldShowContentBefore = false;
+  const shouldShowContentAfter = false;
+  const shouldShowContentAlone = false;
   
   return (
     <TemplateTransitionWrapper>
       <div className="container mx-auto px-4 py-8">
         {/* Page title */}
         <h1 className="text-3xl font-bold mb-6" dangerouslySetInnerHTML={{ __html: pageTitle }} />
+
+        {pageContent && (
+          <div
+            className="prose prose-lg prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-img:rounded-lg max-w-prose mb-8"
+            dangerouslySetInnerHTML={{ __html: pageContent }}
+          />
+        )}
         
         {/* Show content before form if configured that way */}
         {shouldShowContentBefore && (

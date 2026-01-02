@@ -236,7 +236,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
               <div className="flex items-center space-x-2">
                 <Link href="/kontakt" className="hidden lg:inline-block">
                   <Button variant="primary" size="md" className="px-4 py-1">
-                    Börja nu
+                    Kontakt
                   </Button>
                 </Link>
 
@@ -305,7 +305,7 @@ export default function Header({ siteInfo, menuItems, megaMenuLayout = 'stack' }
                   <li className="mt-4 mb-2">
                     <Link href="/kontakt">
                       <Button variant="primary" size="md" className="w-full px-4 py-1.5">
-                        Börja nu
+                        Kontakt
                       </Button>
                     </Link>
                   </li>

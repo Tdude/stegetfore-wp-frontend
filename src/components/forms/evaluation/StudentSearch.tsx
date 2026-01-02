@@ -142,6 +142,9 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
     setSearchTerm('');
     setStudents([]);
     setShowClassDropdown(false);
+    setShowDropdown(false);
+    setErrorMessage('');
+    setSelectedStudent(null);
     
     // If a class is selected, focus the search input
     if (classId) {
@@ -344,13 +347,40 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary dark:border-primary"></div>
               </div>
             )}
+
+            {/* Search results dropdown (anchored under the search input) */}
+            {showDropdown && students.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border max-h-60 overflow-auto">
+                <ul>
+                  {students.map(student => (
+                    <li 
+                      key={student.id}
+                      className="px-4 py-2 hover:bg-surface-tertiary dark:hover:bg-surface-tertiary/80 cursor-pointer transition-colors text-foreground"
+                      onClick={() => handleStudentSelect(student)}
+                    >
+                      {student.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* No results message (anchored under the search input) */}
+            {showDropdown && searchTerm.length >= 2 && students.length === 0 && !isLoading && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border p-4">
+                <p className="text-sm text-secondary dark:text-text-secondary">Inga elever hittades</p>
+              </div>
+            )}
           </div>
 
           {/* Class filter pill */}
           <div className="mt-2 relative md:mt-0 md:w-56 rounded-full border border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-500/60 dark:bg-emerald-950/30 px-3 py-1">
             <button
               type="button"
-              onClick={() => setShowClassDropdown((v) => !v)}
+              onClick={() => {
+                setShowDropdown(false);
+                setShowClassDropdown((v) => !v);
+              }}
               className="w-full px-0 py-1 rounded-full bg-transparent text-sm sm:text-sm text-left flex items-center justify-between focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent dark:text-foreground"
               aria-label="Filtrera efter klass"
               aria-haspopup="listbox"
@@ -414,29 +444,6 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
         </div>
       )}
       
-      {/* Search results dropdown */}
-      {showDropdown && students.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border max-h-60 overflow-auto">
-          <ul>
-            {students.map(student => (
-              <li 
-                key={student.id}
-                className="px-4 py-2 hover:bg-surface-tertiary dark:hover:bg-surface-tertiary/80 cursor-pointer transition-colors text-foreground"
-                onClick={() => handleStudentSelect(student)}
-              >
-                {student.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      {/* No results message */}
-      {showDropdown && searchTerm.length >= 2 && students.length === 0 && !isLoading && (
-        <div className="absolute z-10 w-full mt-1 bg-card dark:bg-surface-secondary shadow-lg dark:shadow-dark-sm rounded-md border border-border dark:border-panel-border p-4">
-          <p className="text-sm text-secondary dark:text-text-secondary">Inga elever hittades</p>
-        </div>
-      )}
     </div>
   );
 };

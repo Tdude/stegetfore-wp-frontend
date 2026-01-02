@@ -52,6 +52,19 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   // Auto-advance timeout ref
   const autoAdvanceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  const resetEvaluationForNewStudent = useCallback(() => {
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+
+    setFormData(initialFormState);
+    setCurrentQuestionIndex(0);
+    setFadeState('visible');
+    setIsFormSaved(false);
+    setShowFullForm(false);
+  }, []);
+
   // Fetch question structure on mount, using the same robust approach as before
   useEffect(() => {
     const fetchData = async () => {
@@ -525,6 +538,9 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
           // Full search interface when no student is selected or search is shown
           <StudentSearch
             onStudentSelect={(selectedStudent) => {
+              // Reset evaluation state before switching to a new student
+              resetEvaluationForNewStudent();
+
               // Set student ID and data from the search component
               setStudentId(selectedStudent.id);
               setStudentName(selectedStudent.name);
@@ -544,7 +560,7 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
               setShowSearch(false);
               toast.success('Elev vald');
             }}
-            selectedStudentId={studentId}
+            selectedStudentId={showSearch ? null : studentId}
             className="mb-4"
           />
         ) : (
