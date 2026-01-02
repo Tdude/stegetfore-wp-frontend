@@ -342,7 +342,7 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
           currentQuestionIndex={currentQuestionIndex}
           onGoToQuestion={handleGoToQuestion}
           heightPx={minimapHeightPx}
-          topOffsetPx={minimapTopOffsetPx}
+          topOffsetPx={minimapTopOffsetPx + 180}
         />
       </div>
     </div>
