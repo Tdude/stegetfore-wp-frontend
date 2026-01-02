@@ -224,7 +224,19 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
           return [] as Student[];
         }
 
-        throw new Error(response.statusText || 'Okänt fel');
+        if (response.status === 401) {
+          setErrorMessage('Du måste vara inloggad för att söka efter elever');
+          return [] as Student[];
+        }
+
+        if (response.status === 403) {
+          setErrorMessage('Du har inte behörighet att söka efter dessa elever');
+          return [] as Student[];
+        }
+
+        const fallback = response.statusText || 'Okänt fel';
+        setErrorMessage(`Ett fel uppstod vid sökning efter elever: ${fallback}`);
+        return [] as Student[];
       };
 
       let results: Student[] = [];
@@ -232,23 +244,8 @@ const StudentSearch: React.FC<StudentSearchProps> = ({
       if (selectedClassId) {
         results = await fetchSearch(`${baseSearchUrl}?class_id=${selectedClassId}`);
       } else if ((isTeacher || isPrincipal) && !isSchoolChief && !isAdminLike) {
-        if (!classes.length) {
-          setStudents([]);
-          setErrorMessage('Du har inga klasser tilldelade');
-          return;
-        }
-
-        const perClassResults = await Promise.all(
-          classes.map((cls) => fetchSearch(`${baseSearchUrl}?class_id=${cls.id}`))
-        );
-
-        const merged = perClassResults.flat();
-        const seen = new Set<number>();
-        results = merged.filter((s) => {
-          if (seen.has(s.id)) return false;
-          seen.add(s.id);
-          return true;
-        });
+        // Backend scopes this search to the teacher/principal's assigned school.
+        results = await fetchSearch(baseSearchUrl);
       } else {
         results = await fetchSearch(baseSearchUrl);
       }
