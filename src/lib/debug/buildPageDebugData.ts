@@ -1,5 +1,5 @@
 import { API_URL } from '../api/baseApi'; 
-import { DebugLogData, Page, User } from '../types/debugLogTypes';
+import { DebugLogData, User } from '../types/debugLogTypes';
 
 interface PageDebugData extends DebugLogData {
   'Page Type': string;
@@ -16,18 +16,32 @@ interface PageDebugData extends DebugLogData {
   [key: string]: unknown;
 }
 
-export function buildPageDebugData(page: Page, user?: User): PageDebugData {
+export function buildPageDebugData(page: unknown, user?: User): PageDebugData {
+  const title =
+    typeof (page as unknown as { title?: unknown }).title === 'string'
+      ? (page as unknown as { title?: string }).title
+      : ((page as unknown as { title?: { rendered?: string } }).title?.rendered || undefined);
+
+  const content =
+    typeof (page as unknown as { content?: unknown }).content === 'string'
+      ? (page as unknown as { content?: string }).content
+      : ((page as unknown as { content?: { rendered?: string } }).content?.rendered || undefined);
+
+  const slug = (page as unknown as { slug?: string }).slug;
+  const template = (page as unknown as { template?: string }).template;
+  const featuredImageUrl = (page as unknown as { featured_image_url?: string | null }).featured_image_url;
+
   return {
     'Page Type': 'Page',
-    'Page ID': page?.id,
-    'Title': page?.title,
-    'Slug': page?.slug,
-    'Template': page?.template,
-    'Has Content': !!page?.content,
-    'Content Length': page?.content?.length || 0,
-    'Featured Image': page?.featured_image_url ? 'Yes' : 'None',
+    'Page ID': (page as { id?: number } | null)?.id,
+    'Title': title,
+    'Slug': slug,
+    'Template': template,
+    'Has Content': !!content,
+    'Content Length': content?.length || 0,
+    'Featured Image': featuredImageUrl ? 'Yes' : 'None',
     'Endpoints Used': [
-      `${API_URL}/wp/v2/pages?slug=${page?.slug}&_embed`
+      `${API_URL}/wp/v2/pages?slug=${slug}&_embed`
     ],
     'Env': {
       NODE_ENV: process.env.NODE_ENV,

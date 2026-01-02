@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { fetchPage } from '@/lib/api/pageApi'; 
 import { notFound } from 'next/navigation';
 import PageTemplateSelector from '@/components/PageTemplateSelector';
+import EvaluationTemplate from '@/components/templates/EvaluationTemplate';
 import type { LocalPage } from '@/lib/types/contentTypes';
 import type { Page } from '@/lib/types/contentTypes';
 import type { Metadata } from 'next/types';
@@ -34,8 +35,29 @@ async function getPageData(slug: string): Promise<LocalPage | null> {
   return page;
 }
 
+async function fetchAssessmentById(id: number) {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiBase) return null;
+
+  const response = await fetch(`${apiBase}/wp/v2/ham_assessment/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) return null;
+  return response.json();
+}
+
 // Individual page component
-async function PageContent({ slug }: { slug: string }) {
+async function PageContent({
+  slug,
+  evaluationId,
+}: {
+  slug: string;
+  evaluationId?: number;
+}) {
   // Fetch page data
   const page = await getPageData(slug);
   
@@ -49,6 +71,27 @@ async function PageContent({ slug }: { slug: string }) {
 
   // Only require auth if status is draft or private
   const requiresAuth = page.status === 'draft' || page.status === 'private';
+
+  // If this is an evaluation page and evaluationId is provided, use the
+  // ham_assessment content as the content source.
+  const isEvaluationTemplate = page.template === 'templates/evaluation.php';
+  if (isEvaluationTemplate && typeof evaluationId === 'number' && Number.isFinite(evaluationId)) {
+    const assessment = await fetchAssessmentById(evaluationId);
+    const assessmentContent = assessment?.content;
+
+    const mergedPage = {
+      ...page,
+      content: assessmentContent?.rendered ? assessmentContent : page.content,
+      content_display_settings: assessment?.content_display_settings || page.content_display_settings,
+      meta: {
+        ...(page as unknown as { meta?: Record<string, unknown> }).meta,
+        ...(assessment?.meta || {}),
+      },
+    };
+
+    const evaluationNode = <EvaluationTemplate page={mergedPage} evaluationId={evaluationId} />;
+    return requiresAuth ? <RequireAuth>{evaluationNode}</RequireAuth> : evaluationNode;
+  }
 
   // Return the appropriate template with page data and DebugPanel
   return (
@@ -67,15 +110,23 @@ async function PageContent({ slug }: { slug: string }) {
 }
 
 // Main page component
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams?: { evaluationId?: string };
+}) {
   // Await params before using
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
+  const evaluationId = searchParams?.evaluationId ? Number(searchParams.evaluationId) : undefined;
+
   return (
     <section className="mx-auto flex-grow">
       <Suspense fallback={<ContentFade />}>
-        <PageContent slug={slug} />
+        <PageContent slug={slug} evaluationId={evaluationId} />
       </Suspense>
     </section>
   );

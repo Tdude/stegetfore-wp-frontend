@@ -61,7 +61,7 @@ const StepByStepMinimap: React.FC<StepByStepMinimapProps> = ({
 
   return (
     <div
-      className="absolute right-0 hidden sm:block"
+      className="absolute right-0 top-10 hidden sm:block"
       style={{
         top: `${topOffsetPx}px`,
         width: `${MINIMAP_WIDTH_PCT}%`,
