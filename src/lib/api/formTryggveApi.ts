@@ -324,35 +324,21 @@ export const evaluationApi = {
    */
   getQuestionsStructure: async () => {
     try {
-      // Try both endpoint formats to ensure we get data
+      // The WP API base (API_URL) already includes /wp-json.
+      // The evaluation question structure is served by the HAM plugin.
       let data: EvaluationAPIResponse;
-      let endpointUsed = '';
       
-      // First try the standard endpoint format that should work
+      // Primary endpoint (WP plugin): /wp-json/ham/v1/assessment-data/questions
       try {
-        endpointUsed = '/public/v1/evaluation/questions';
+        const endpointUsed = '/ham/v1/assessment-data/questions';
         console.log(`Trying endpoint: ${API_URL}${endpointUsed}`);
-        data = await fetchApi(endpointUsed);
-        console.log('Data received from standard endpoint:', data);
+        data = await fetchApi(endpointUsed, {
+          headers: getHeaders(),
+        });
+        console.log('Data received from HAM questions endpoint:', data);
       } catch {
-        console.warn('Failed to fetch with standard endpoint, trying WP REST format');
-        
-        // If that fails, try the WordPress REST API format
-        endpointUsed = '/wp-json/public/v1/evaluation/questions';
-        console.log(`Trying WP REST endpoint: ${API_URL}${endpointUsed}`);
-        data = await fetchApi(endpointUsed);
-        console.log('Data received from WP REST endpoint:', data);
-      }
-      
-      // If data is completely empty after both attempts, try the assessment template endpoint
-      if (!data) {
-        console.warn('No data received from either questions endpoint, trying assessment template');
-        try {
-          data = await fetchApi('/public/v1/assessment/template');
-          console.log('Data from assessment template endpoint:', data);
-        } catch {
-          console.warn('Failed to fetch from assessment template endpoint:');
-        }
+        console.warn('Failed to fetch from HAM questions endpoint');
+        return getDefaultQuestionsStructure();
       }
       
       // Log the complete data structure - this helps diagnose exactly where the questions are located
