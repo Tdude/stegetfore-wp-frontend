@@ -31,6 +31,11 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
   // Auth check - MUST be called before any other hooks or conditionals
   const { isAuthenticated, loading, userInfo } = useAuth();
 
+  const roles = Array.isArray(userInfo?.roles) ? userInfo.roles : [];
+  const normalizedRoles = roles.map((r) => String(r).toLowerCase());
+  const roleSet = new Set(normalizedRoles);
+  const canEvaluate = roleSet.has('administrator') || roleSet.has('admin') || roleSet.has('ham_teacher') || roleSet.has('ham_principal');
+
   // State for form data and UI (always call hooks at the top, before any return)
   const [formData, setFormData] = useState<FormData>(initialFormState);
   const [questionsStructure, setQuestionsStructure] = useState<QuestionsStructure>({});
@@ -481,6 +486,24 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
             {" Kontakta "}
             <a href="mailto:info@stegetfore.se" className="font-bold hover:text-primary/80">administratören</a>
             {" om du behöver hjälp."}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && !loading && !canEvaluate) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="rounded-xl bg-muted/30 border border-muted-foreground/10 shadow-md px-6 py-8 max-w-lg w-full text-center">
+          <div className="mt-3 font-semibold text-lg text-foreground">
+            Du har inte behörighet att göra observationer.
+          </div>
+          <div className="m-2 text-secondary text-base">
+            Den här sidan är endast tillgänglig för lärare, rektor eller administratör.
+            {' '}Kontakta{' '}
+            <a href="mailto:info@stegetfore.se" className="font-bold hover:text-primary/80">administratören</a>
+            {' '}om du behöver hjälp.
           </div>
         </div>
       </div>
