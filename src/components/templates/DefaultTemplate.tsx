@@ -78,7 +78,7 @@ function DefaultTemplate({ page }: { page: Page }) {
       <article className={`surface-primary max-w-3xl mx-auto px-4 ${modulesBySection?.header?.length ? 'pb-8' : 'my-8'}`}>
         {/* Featured image */}
         {featuredImageUrl && (
-          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg shadow-md dark:shadow-none dark:border dark:panel-border">
+          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden rounded-lg">
             <NextImage
               src={featuredImageUrl}
               htmlTitle={pageTitle}

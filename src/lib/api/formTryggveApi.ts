@@ -328,9 +328,9 @@ export const evaluationApi = {
       // The evaluation question structure is served by the HAM plugin.
       let data: EvaluationAPIResponse;
       
-      // Primary endpoint (WP plugin): /wp-json/ham/v1/assessment-data/questions
+      // Primary endpoint (WP plugin): /wp-json/ham/v1/evaluation/questions
       try {
-        const endpointUsed = '/ham/v1/assessment-data/questions';
+        const endpointUsed = '/ham/v1/evaluation/questions';
         console.log(`Trying endpoint: ${API_URL}${endpointUsed}`);
         data = await fetchApi(endpointUsed, {
           headers: getHeaders(),
