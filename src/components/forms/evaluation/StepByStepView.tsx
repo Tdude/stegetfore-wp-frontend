@@ -181,11 +181,11 @@ const StepByStepView: React.FC<StepByStepViewProps> = ({
           <p className="text-gray-600 dark:text-text-secondary mb-6">
             Tack för att du slutförde observationen. Den har sparats i systemet.
             {evaluationId && typeof evaluationId === 'number' && !isNaN(evaluationId) &&
-              <span className="block mt-2 text-sm">Utvärderingen har ID: {evaluationId}</span>
+              <span className="block mt-2 text-sm">Obsningen har ID: {evaluationId}</span>
             }
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col gap-3 justify-center">
             <Button
               onClick={() => window.location.href = '/'}
               variant="default"
