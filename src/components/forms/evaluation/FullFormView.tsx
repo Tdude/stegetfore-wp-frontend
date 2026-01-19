@@ -211,9 +211,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                           </CardHeader>
                           
                           <CardContent>
-                            <RadioGroup
-                              value={formData[sectionId as keyof FormData]?.questions?.[questionId] || ''}
-                            >
+                            <RadioGroup>
                               <div className="space-y-3">
                                 {question.options.map((option) => (
                                   <div 
@@ -262,9 +260,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                               </CardHeader>
                               
                               <CardContent>
-                                <RadioGroup
-                                  value={formData[sectionId as keyof FormData]?.questions?.[questionId] || ''}
-                                >
+                                <RadioGroup>
                                   <div className="space-y-3">
                                     {question.options.map((option) => (
                                       <div 
