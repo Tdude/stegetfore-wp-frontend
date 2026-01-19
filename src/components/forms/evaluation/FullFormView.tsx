@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { ChevronsDownUp } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
 import { getOptionClasses } from '@/components/ui/evaluation/styles';
 import ProgressHeader from '@/components/ui/evaluation/ProgressHeader';
@@ -211,33 +209,29 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                           </CardHeader>
                           
                           <CardContent>
-                            <RadioGroup value={formData[sectionId as keyof FormData]?.questions?.[questionId] || ''}>
-                              <div className="space-y-3">
-                                {question.options.map((option) => (
+                            <div className="space-y-3">
+                              {question.options.map((option) => {
+                                const isSelected = formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value;
+                                return (
                                   <div
-                                    key={option.value} 
-                                    className={getOptionClasses(formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value)}
+                                    key={option.value}
+                                    className={getOptionClasses(isSelected)}
                                     onClick={() => {
                                       const currentValue = formData[sectionId as keyof FormData]?.questions?.[questionId] || '';
                                       const nextValue = currentValue === option.value ? '' : option.value;
                                       handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
                                     }}
                                   >
-                                    <RadioGroupItem
-                                      value={option.value}
-                                      id={`${sectionId}-${questionId}-${option.value}`}
-                                      className="pointer-events-none"
-                                    />
-                                    <Label
-                                      htmlFor={`${sectionId}-${questionId}-${option.value}`}
-                                      className="text-base cursor-pointer flex-1 pointer-events-none"
-                                    >
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary bg-primary' : 'border-gray-400'}`}>
+                                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                    <span className="text-base cursor-pointer flex-1">
                                       {option.label}
-                                    </Label>
+                                    </span>
                                   </div>
-                                ))}
-                              </div>
-                            </RadioGroup>
+                                );
+                              })}
+                            </div>
                             
                             <Textarea
                               value={formData[sectionId as keyof FormData]?.comments?.[questionId] || ''}
@@ -260,33 +254,29 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                               </CardHeader>
                               
                               <CardContent>
-                                <RadioGroup value={formData[sectionId as keyof FormData]?.questions?.[questionId] || ''}>
-                                  <div className="space-y-3">
-                                    {question.options.map((option) => (
+                                <div className="space-y-3">
+                                  {question.options.map((option) => {
+                                    const isSelected = formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value;
+                                    return (
                                       <div
-                                        key={option.value} 
-                                        className={getOptionClasses(formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value)}
+                                        key={option.value}
+                                        className={getOptionClasses(isSelected)}
                                         onClick={() => {
                                           const currentValue = formData[sectionId as keyof FormData]?.questions?.[questionId] || '';
                                           const nextValue = currentValue === option.value ? '' : option.value;
                                           handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
                                         }}
                                       >
-                                        <RadioGroupItem
-                                          value={option.value}
-                                          id={`${sectionId}-${questionId}-${option.value}`}
-                                          className="pointer-events-none"
-                                        />
-                                        <Label
-                                          htmlFor={`${sectionId}-${questionId}-${option.value}`}
-                                          className="text-base cursor-pointer flex-1 pointer-events-none"
-                                        >
+                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary bg-primary' : 'border-gray-400'}`}>
+                                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                        </div>
+                                        <span className="text-base cursor-pointer flex-1">
                                           {option.label}
-                                        </Label>
+                                        </span>
                                       </div>
-                                    ))}
-                                  </div>
-                                </RadioGroup>
+                                    );
+                                  })}
+                                </div>
                                 
                                 <Textarea
                                   value={formData[sectionId as keyof FormData]?.comments?.[questionId] || ''}
