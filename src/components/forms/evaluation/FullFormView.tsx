@@ -9,7 +9,6 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { FormData, QuestionsStructure } from '@/lib/types/formTypesEvaluation';
 import { getOptionClasses } from '@/components/ui/evaluation/styles';
-import ProgressHeader from '@/components/ui/evaluation/ProgressHeader';
 import { DualSectionProgressBar } from '@/components/ui/evaluation/ProgressBar';
 import LoadingDots from '@/components/ui/LoadingDots';
 
@@ -187,15 +186,7 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                     anknytningStats={calculateSectionStats("anknytning")} 
                     ansvarStats={calculateSectionStats("ansvar")}
                   />
-                
-                  <ProgressHeader 
-                    stages={[
-                      { type: 'ej', label: 'Ej uppnått' },
-                      { type: 'trans', label: 'På väg' },
-                      { type: 'full', label: 'Uppnått' }
-                    ]} 
-                  />
-                
+
                   {Object.entries(questionsStructure).map(([sectionId, section]) => (
                     <div key={sectionId} className="mb-12">
                       <div className="mb-4">

@@ -6,9 +6,15 @@ const MINIMAP_WIDTH_PCT = 7;
 const MINIMAP_MIN_WIDTH_REM = 5;
 const MINIMAP_MAX_WIDTH_REM = 8;
 const ANSWER_COLOR_OPACITY = 0.8;
-const UNANSWERED_COLOR = 'rgba(209, 213, 219, 0.8)';
+const UNANSWERED_COLOR = 'rgba(209, 213, 219, 0.5)';
 const SEGMENT_COUNT = 5;
 const UNSELECTED_SEGMENT_BG = 'rgba(148, 163, 184, 0.18)'; // slate-400-ish
+
+const ANSWER_STAGE_NOT_BG = `hsl(0 80% 65% / ${ANSWER_COLOR_OPACITY})`;
+const ANSWER_STAGE_TRANS_BG = `hsl(30 85% 65% / ${ANSWER_COLOR_OPACITY})`;
+const ANSWER_STAGE_MID_BG = `hsl(60 70% 65% / ${ANSWER_COLOR_OPACITY})`;
+const ANSWER_STAGE_ALOT_BG = `hsl(90 75% 65% / ${ANSWER_COLOR_OPACITY})`;
+const ANSWER_STAGE_FULL_BG = `hsl(120 70% 65% / ${ANSWER_COLOR_OPACITY})`;
 
 const ANKNYTNING_VERTICAL_MARKERS = [
   { position: 0.4, colorClass: 'bg-orange-500 dark:bg-orange-500' },
@@ -40,9 +46,12 @@ const getAnswerColor = (value: string) => {
   if (Number.isNaN(numeric)) return UNANSWERED_COLOR;
 
   const clamped = Math.min(5, Math.max(1, numeric));
-  const t = (clamped - 1) / 4;
-  const hue = 0 + 120 * t;
-  return `hsl(${hue} 80% 45% / ${ANSWER_COLOR_OPACITY})`;
+
+  if (clamped <= 1) return ANSWER_STAGE_NOT_BG;
+  if (clamped === 2) return ANSWER_STAGE_TRANS_BG;
+  if (clamped <= 3) return ANSWER_STAGE_MID_BG;
+  if (clamped <= 4) return ANSWER_STAGE_ALOT_BG;
+  return ANSWER_STAGE_FULL_BG;
 };
 
 const StepByStepMinimap: React.FC<StepByStepMinimapProps> = ({
@@ -74,7 +83,7 @@ const StepByStepMinimap: React.FC<StepByStepMinimapProps> = ({
         style={{ height: heightPx > 0 ? `${heightPx}px` : undefined }}
       >
         <div className="h-full">
-          <div className="text-xs text-muted-foreground mb-2">Översikt</div>
+          <div className="text-xs text-muted-foreground my-2 text-center">Översikt</div>
 
           <div
             className="relative"
