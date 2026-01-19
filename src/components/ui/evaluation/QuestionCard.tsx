@@ -91,7 +91,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       </CardHeader>
       
       <CardContent>
-        <RadioGroup value={value} onValueChange={handleOptionSelect}>
+        <RadioGroup value={value}>
           {optionsByStage.map(([stage, stageOptions]) => (
             <div key={`${questionId}-${stage}`} className={questionStageClasses[stage as keyof typeof questionStageClasses]}>
               {stageOptions.map((option, index) => (
