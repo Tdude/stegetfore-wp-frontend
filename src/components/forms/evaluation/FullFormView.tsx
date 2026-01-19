@@ -225,10 +225,14 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                                       handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
                                     }}
                                   >
-                                    <RadioGroupItem value={option.value} id={`${sectionId}-${questionId}-${option.value}`} />
-                                    <Label 
+                                    <RadioGroupItem
+                                      value={option.value}
+                                      id={`${sectionId}-${questionId}-${option.value}`}
+                                      className="pointer-events-none"
+                                    />
+                                    <Label
                                       htmlFor={`${sectionId}-${questionId}-${option.value}`}
-                                      className="text-base cursor-pointer flex-1"
+                                      className="text-base cursor-pointer flex-1 pointer-events-none"
                                     >
                                       {option.label}
                                     </Label>
@@ -272,10 +276,14 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                                           handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
                                         }}
                                       >
-                                        <RadioGroupItem value={option.value} id={`${sectionId}-${questionId}-${option.value}`} />
-                                        <Label 
+                                        <RadioGroupItem
+                                          value={option.value}
+                                          id={`${sectionId}-${questionId}-${option.value}`}
+                                          className="pointer-events-none"
+                                        />
+                                        <Label
                                           htmlFor={`${sectionId}-${questionId}-${option.value}`}
-                                          className="text-base cursor-pointer flex-1"
+                                          className="text-base cursor-pointer flex-1 pointer-events-none"
                                         >
                                           {option.label}
                                         </Label>

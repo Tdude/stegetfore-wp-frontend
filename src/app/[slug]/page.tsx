@@ -114,14 +114,15 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams?: { evaluationId?: string };
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ evaluationId?: string }>;
 }) {
-  // Await params before using
+  // Await params and searchParams before using
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const slug = resolvedParams.slug;
 
-  const evaluationId = searchParams?.evaluationId ? Number(searchParams.evaluationId) : undefined;
+  const evaluationId = resolvedSearchParams?.evaluationId ? Number(resolvedSearchParams.evaluationId) : undefined;
 
   return (
     <section className="mx-auto flex-grow">
@@ -134,7 +135,7 @@ export default async function Page({
 
 // Metadata generator
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   // Await params before using
   const resolvedParams = await params;

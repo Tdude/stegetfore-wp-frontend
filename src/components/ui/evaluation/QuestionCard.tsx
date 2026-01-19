@@ -95,15 +95,19 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           {optionsByStage.map(([stage, stageOptions]) => (
             <div key={`${questionId}-${stage}`} className={questionStageClasses[stage as keyof typeof questionStageClasses]}>
               {stageOptions.map((option, index) => (
-                <div 
-                  key={`${questionId}-${option.value}`} 
+                <div
+                  key={`${questionId}-${option.value}`}
                   className={`${getOptionClasses(selectedOption === option.value)} ${index > 0 ? '-mt-[2px]' : ''}`}
                   onClick={() => handleOptionSelect(option.value)}
                 >
-                  <RadioGroupItem value={option.value} id={`${questionId}-${option.value}`} />
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`${questionId}-${option.value}`}
+                    className="pointer-events-none"
+                  />
                   <Label
                     htmlFor={`${questionId}-${option.value}`}
-                    className="text-lg cursor-pointer flex-1"
+                    className="text-lg cursor-pointer flex-1 pointer-events-none"
                   >
                     {option.label}
                   </Label>
