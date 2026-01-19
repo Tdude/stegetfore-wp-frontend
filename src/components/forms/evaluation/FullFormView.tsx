@@ -220,6 +220,11 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                                   <div 
                                     key={option.value} 
                                     className={getOptionClasses(formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value)}
+                                    onClick={() => {
+                                      const currentValue = formData[sectionId as keyof FormData]?.questions?.[questionId] || '';
+                                      const nextValue = currentValue === option.value ? '' : option.value;
+                                      handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
+                                    }}
                                   >
                                     <RadioGroupItem value={option.value} id={`${sectionId}-${questionId}-${option.value}`} />
                                     <Label 
@@ -263,6 +268,11 @@ const FullFormView: React.FC<FullFormViewProps> = ({
                                       <div 
                                         key={option.value} 
                                         className={getOptionClasses(formData[sectionId as keyof FormData]?.questions?.[questionId] === option.value)}
+                                        onClick={() => {
+                                          const currentValue = formData[sectionId as keyof FormData]?.questions?.[questionId] || '';
+                                          const nextValue = currentValue === option.value ? '' : option.value;
+                                          handleQuestionChange(sectionId as keyof FormData, questionId)(nextValue);
+                                        }}
                                       >
                                         <RadioGroupItem value={option.value} id={`${sectionId}-${questionId}-${option.value}`} />
                                         <Label 

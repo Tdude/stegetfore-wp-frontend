@@ -58,12 +58,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   const handleOptionSelect = (optionValue: string) => {
     // No longer initial render after user interaction
     isInitialRender.current = false;
-    
+
+    const isTogglingOff = value === optionValue;
+
     // Set selected option for visual feedback
-    setSelectedOption(optionValue);
-    
-    // Update parent state - this will now trigger auto-advance
-    onChange(optionValue);
+    setSelectedOption(isTogglingOff ? null : optionValue);
+
+    // Update parent state (empty string means cleared)
+    onChange(isTogglingOff ? '' : optionValue);
   };
   
   // Group options by stage

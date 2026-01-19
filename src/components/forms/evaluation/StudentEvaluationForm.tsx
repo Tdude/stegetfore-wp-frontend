@@ -266,16 +266,33 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
 
   // Handle question changes in full form view
   const handleQuestionChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
-        questions: {
-          ...prev[sectionId]?.questions,
-          [questionId]: value
-        }
+    setFormData(prev => {
+      const prevQuestions = prev[sectionId]?.questions || {};
+
+      if (value === '') {
+        // Remove the key entirely so the form can become truly empty again
+        const { [questionId]: _removed, ...rest } = prevQuestions;
+        void _removed;
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            questions: rest
+          }
+        };
       }
-    }));
+
+      return {
+        ...prev,
+        [sectionId]: {
+          ...prev[sectionId],
+          questions: {
+            ...prevQuestions,
+            [questionId]: value
+          }
+        }
+      };
+    });
   }, []);
 
   // Handle comment changes
@@ -439,19 +456,35 @@ const StudentEvaluationForm: React.FC<StudentEvaluationFormProps> = ({
 
   // Handle question change in step-by-step view
   const handleStepByStepQuestionChange = useCallback((sectionId: keyof FormData, questionId: string) => (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
-        questions: {
-          ...prev[sectionId]?.questions,
-          [questionId]: value
-        }
+    setFormData(prev => {
+      const prevQuestions = prev[sectionId]?.questions || {};
+
+      if (value === '') {
+        const { [questionId]: _removed, ...rest } = prevQuestions;
+        void _removed;
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            questions: rest
+          }
+        };
       }
-    }));
+
+      return {
+        ...prev,
+        [sectionId]: {
+          ...prev[sectionId],
+          questions: {
+            ...prevQuestions,
+            [questionId]: value
+          }
+        }
+      };
+    });
 
     // Auto-advance to next question after a short delay if not disabled
-    if (currentQuestionIndex < allQuestions.length - 1) {
+    if (value !== '' && currentQuestionIndex < allQuestions.length - 1) {
       // Clear any existing timeout
       if (autoAdvanceTimeoutRef.current) {
         clearTimeout(autoAdvanceTimeoutRef.current);
