@@ -49,6 +49,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Next.js standalone server.js binds to $HOSTNAME. Docker auto-sets HOSTNAME to the
+# container ID, which makes it bind to the container's eth0 IP only — so the
+# in-container healthcheck (fetch http://127.0.0.1:3000/) can never connect and
+# autoheal restarts a healthy app every ~2 min. Bind to all interfaces instead.
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
 # Runtime dependencies for node-canvas
 RUN apt-get update \
