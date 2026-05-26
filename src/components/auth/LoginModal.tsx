@@ -6,11 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingDots from '@/components/ui/LoadingDots';
+import { ExternalLink } from 'lucide-react';
+import { getWpAdminUrl, canAccessWpAdmin } from '@/lib/utils/wpAdmin';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// How long the success message stays before the modal auto-closes (ms).
+// Admins/editors are exempt — their modal stays open for the wp-admin link.
+const AUTO_CLOSE_DELAY_MS = 6000;
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [username, setUsername] = useState('');
@@ -18,17 +24,27 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  // Whether to surface the wp-admin link (administrators/editors only).
+  const [showAdminLink, setShowAdminLink] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const { login, devLogin } = useAuth();
 
   // Check if in development mode
   const isDevelopment = process.env.NODE_ENV === 'development';
 
+  // Reset transient success state on close so a reopened modal starts clean.
+  const handleClose = () => {
+    setSuccess(false);
+    setShowAdminLink(false);
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess(false);
+    setShowAdminLink(false);
 
     try {
       const result = await login(username, password, rememberMe);
@@ -38,11 +54,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         // Reset form
         setUsername('');
         setPassword('');
-        // Close after a short delay
-        setTimeout(() => {
-          onClose();
-          setSuccess(false);
-        }, 1500);
+        // Keep the modal open for admins/editors so the wp-admin link stays
+        // usable; auto-close for everyone else after a short delay.
+        if (canAccessWpAdmin(result.data?.roles)) {
+          setShowAdminLink(true);
+        } else {
+          setTimeout(() => {
+            handleClose();
+          }, AUTO_CLOSE_DELAY_MS);
+        }
       } else {
         setError(result.error ? String(result.error) : 'Inloggningen misslyckades. Kontrollera dina uppgifter.');
       }
@@ -59,17 +79,22 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setError('');
     setSuccess(false);
+    setShowAdminLink(false);
 
     try {
       const result = await devLogin(rememberMe);
       if (result.success) {
         // Show success message
         setSuccess(true);
-        // Close after a short delay
-        setTimeout(() => {
-          onClose();
-          setSuccess(false);
-        }, 1500);
+        // Keep the modal open for admins/editors so the wp-admin link stays
+        // usable; auto-close for everyone else after a short delay.
+        if (canAccessWpAdmin(result.data?.roles)) {
+          setShowAdminLink(true);
+        } else {
+          setTimeout(() => {
+            handleClose();
+          }, AUTO_CLOSE_DELAY_MS);
+        }
       } else {
         setError(result.error ? String(result.error) : 'Dev-inloggning misslyckades. Kontrollera .env.local filen.');
       }
@@ -83,7 +108,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Logga in</DialogTitle>
@@ -102,6 +127,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           {success && (
             <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
               <p className="text-green-700">Du är inloggad</p>
+              {showAdminLink && (
+                <a
+                  href={getWpAdminUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 font-medium text-green-800 underline hover:text-green-900"
+                >
+                  Till Wordpress admin
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              )}
             </div>
           )}
           
